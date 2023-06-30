@@ -12,6 +12,8 @@ Scripts for MacroQuest2
   * Type '/lua run ScriptFolderName' and press enter
 
 ## Other Resources and Links
+* [BuffBot](https://github.com/TheDroidYourLookingFor/MacroQuest2-Scripts/tree/main/BuffBot)
+  * This is a Lua script I converted from my old Guild Buff Assistant macro. The old macro is still available if you prefer it. However this version is much easier to configure as everything is done via a GUI instead of editing INI files. You can however still edit the ini files if you prefer. The Lua script can run on a Shaman, Magician, Enchanter, Ranger, Druid, Wizard, Beastlord, Cleric, or Paladin. You can even have a Necromancer or Shadowknight summon corpses!
 
 ### Documentation and Guides
 
