@@ -2,57 +2,57 @@
 local mq = require('mq')
 ---@type ImGui
 local imgui = require 'ImGui'
-local necromancer = {}
+local shadowknight = {}
 
-local necromancer_version = '1.0.0'
+local shadowknight_version = '1.0.0'
 
 local toon = mq.TLO.Me.Name() or ''
 local class = mq.TLO.Me.Class() or ''
 local iniPath = mq.configDir .. '\\BuffBot\\Settings\\' .. 'BuffBot_' .. toon .. '_' .. class .. '.ini'
 
-necromancer.summon_Spell = {
+shadowknight.summon_Spell = {
     'Summon Remains'
 }
-necromancer.necromancer_settings = {
+shadowknight.shadowknight_settings = {
     runDebug = DEBUG,
-    summonSpells = necromancer.summon_Spell,
+    summonSpells = shadowknight.summon_Spell,
     summonEnabled = false,
     summon_current_idx = 1,
 }
 
-function necromancer.saveSettings()
+function shadowknight.saveSettings()
     ---@diagnostic disable-next-line: undefined-field
-    mq.pickle(iniPath, necromancer.necromancer_settings)
+    mq.pickle(iniPath, shadowknight.shadowknight_settings)
 end
 
-function necromancer.Setup()
+function shadowknight.Setup()
     local conf
     local configData, err = loadfile(iniPath)
     if err then
-        necromancer.saveSettings()
+        shadowknight.saveSettings()
     elseif configData then
         conf = configData()
-        necromancer.necromancer_settings = conf
+        shadowknight.shadowknight_settings = conf
     end
 end
 
-function necromancer.MemorizeSpells()
+function shadowknight.MemorizeSpells()
     return
 end
 
-function necromancer.Buff()
+function shadowknight.Buff()
     return
 end
 
 local summonEnabled
 local summon_current_idx
 
-function necromancer.ShowClassBuffBotGUI()
+function shadowknight.ShowClassBuffBotGUI()
     --
     -- Help
     --
-    if imgui.CollapsingHeader("Necromancer v"..necromancer_version) then
-        ImGui.Text("NECROMANCER:")
+    if imgui.CollapsingHeader("Shadowknight v"..shadowknight_version) then
+        ImGui.Text("SHADOWKNIGHT:")
         ImGui.BulletText('Please invite me to "summon" your corpse.')
         ImGui.Separator();
 
@@ -61,18 +61,18 @@ function necromancer.ShowClassBuffBotGUI()
     --
     if ImGui.TreeNode('Summon') then
         ImGui.SameLine()
-        necromancer.necromancer_settings.summonEnabled = ImGui.Checkbox('Enable', necromancer.necromancer_settings.summonEnabled)
-        if summonEnabled ~= necromancer.necromancer_settings.summonEnabled then
-            summonEnabled = necromancer.necromancer_settings.summonEnabled
-            necromancer.saveSettings()
+        shadowknight.shadowknight_settings.summonEnabled = ImGui.Checkbox('Enable', shadowknight.shadowknight_settings.summonEnabled)
+        if summonEnabled ~= shadowknight.shadowknight_settings.summonEnabled then
+            summonEnabled = shadowknight.shadowknight_settings.summonEnabled
+            shadowknight.saveSettings()
         end
         ImGui.Separator()
 
-        necromancer.necromancer_settings.summon_current_idx = GUI.CreateBuffBox:draw("Summon Spell", necromancer.necromancer_settings.summonSpells,
-            necromancer.necromancer_settings.summon_current_idx);
-        if summon_current_idx ~= necromancer.necromancer_settings.summon_current_idx then
-            summon_current_idx = necromancer.necromancer_settings.summon_current_idx
-            necromancer.saveSettings()
+        shadowknight.shadowknight_settings.summon_current_idx = GUI.CreateBuffBox:draw("Summon Spell", shadowknight.shadowknight_settings.summonSpells,
+            shadowknight.shadowknight_settings.summon_current_idx);
+        if summon_current_idx ~= shadowknight.shadowknight_settings.summon_current_idx then
+            summon_current_idx = shadowknight.shadowknight_settings.summon_current_idx
+            shadowknight.saveSettings()
         end
         imgui.TreePop()
     end
@@ -81,7 +81,7 @@ function necromancer.ShowClassBuffBotGUI()
     --
     -- Help
     --
-    if imgui.CollapsingHeader("Necromancer Options") then
+    if imgui.CollapsingHeader("Shadowknight Options") then
         Settings.advertise = ImGui.Checkbox('Enable Advertising', Settings.advertise)
         ImGui.SameLine()
         ImGui.HelpMarker('Enables adversing to the player about the bots capabilities.')
@@ -108,7 +108,7 @@ function necromancer.ShowClassBuffBotGUI()
         ImGui.Separator()
 
         if imgui.Button('REBUILD##Save File') then
-            SaveSettings(iniPath, necromancer.necromancer_settings)
+            SaveSettings(iniPath, shadowknight.shadowknight_settings)
         end
         ImGui.SameLine()
         ImGui.Text('Class File')
@@ -119,4 +119,4 @@ function necromancer.ShowClassBuffBotGUI()
 end
 end
 
-return necromancer
+return shadowknight

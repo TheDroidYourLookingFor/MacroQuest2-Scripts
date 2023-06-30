@@ -19,6 +19,45 @@ cleric.rez_Spell = {
     'Reanimation'
 }
 
+cleric.symbol_Buffs = {
+    "Unified Hand of the Diabo",
+    "Symbol of Sanguineous",
+    "Unity of the Sanguine",
+    "Unified Hand of Jorlleag",
+    "Unity of Jorlleag",
+    "Symbol of Jorlleag",
+    "Unified Hand of Emra",
+    "Unity of Emra",
+    "Unified Hand of Nonia",
+    "Unity of Nonia",
+    "Symbol of Nonia",
+    "Unified Hand of Gezat",
+    "Unity of Gezat",
+    "Symbol of Gezat",
+    "Unified Hand of the Triumvirate",
+    "Unity of the Triumvirate",
+    "Symbol of the Triumvirate",
+    "Ealdun's Mark",
+    "Symbol of Ealdun",
+    "Darianna's Mark",
+    "Symbol of Darianna",
+    "Kaerra's Mark",
+    "Symbol of Kaerra",
+    "Elushar's Mark",
+    "Symbol of Elushar",
+    "Balikor's Mark",
+    "Symbol of Balikor",
+    "Kazad's Mark",
+    "Symbol of Kazad",
+    "Marzin's Mark",
+    "Naltron's Mark",
+    "Symbol of Marzin",
+    "Symbol of Naltron",
+    "Symbol of Pinzarn",
+    "Symbol of Ryltan",
+    "Symbol of Transal"
+}
+
 cleric.hp_Buffs = {
     'Unified Hand of Persistence',
     'Unified Persistence',
@@ -52,6 +91,8 @@ cleric.hp_Buffs = {
     'Temerity',
     'Hand of Tenacity',
     'Tenacity',
+    'Hand of Conviction',
+    'Conviction',
     'Hand of Virtue',
     'Virtue',
     'Faith',
@@ -110,6 +151,7 @@ cleric.guard_Buffs = {
     'Armor of Vie',
     'Rallied Rampart of Vie',
     'Rampart of Vie',
+    'Rallied Palladium of Vie',
     'Palladium of Vie',
     'Rallied Aegis of Vie',
     'Aegis of Vie',
@@ -131,46 +173,49 @@ cleric.cleric_settings = {
     hpBuffs = cleric.hp_Buffs,
     hasteBuffs = cleric.haste_Buffs,
     guardBuffs = cleric.guard_Buffs,
+    symbolBuffs = cleric.symbol_Buffs,
     purityBuffs = cleric.purity_Buffs,
     resSpells = cleric.rez_Spell,
     rezEnabled = false,
     rez_current_idx = 1,
     buffs_1_45_Enabled = false,
-    hp_buff_1_45_current_idx = 1,
-    haste_buff_1_45_current_idx = 1,
-    guard_buff_1_45_current_idx = 1,
+    hp_buff_1_45_current_idx = 43,
+    haste_buff_1_45_current_idx = 23,
+    guard_buff_1_45_current_idx = 22,
 
     buffs_46_60_Enabled = false,
-    hp_buff_46_60_current_idx = 1,
-    haste_buff_46_60_current_idx = 1,
-    guard_buff_46_60_current_idx = 1,
+    hp_buff_46_60_current_idx = 38,
+    haste_buff_46_60_current_idx = 22,
+    guard_buff_46_60_current_idx = 21,
 
     buffs_61_70_Enabled = false,
-    hp_buff_61_70_current_idx = 1,
-    haste_buff_61_70_current_idx = 1,
-    guard_buff_61_70_current_idx = 1,
+    hp_buff_61_70_current_idx = 35,
+    haste_buff_61_70_current_idx = 21,
+    guard_buff_61_70_current_idx = 20,
     purity_buff_61_current_idx = 1,
 
     buffs_71_84_Enabled = false,
-    hp_buff_71_84_current_idx = 1,
-    haste_buff_71_84_current_idx = 1,
-    guard_buff_71_84_current_idx = 1,
+    hp_buff_71_84_current_idx = 7,
+    haste_buff_71_84_current_idx = 15,
+    guard_buff_71_84_current_idx = 15,
 
     buffs_85_plus_Enabled = false,
     hp_buff_85_plus_current_idx = 1,
     haste_buff_85_plus_current_idx = 1,
     guard_buff_85_plus_current_idx = 1,
+    symbol_buff_85_plus_current_idx = 1
 }
 
-local function saveClericSettings()
-    SaveSettings(iniClericPath, cleric.cleric_settings)
+function cleric.saveSettings()
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniClericPath, cleric.cleric_settings)
 end
 
-local function setup()
+function cleric.Setup()
     local conf
     local configData, err = loadfile(iniClericPath)
     if err then
-        saveClericSettings()
+        cleric.saveSettings()
     elseif configData then
         conf = configData()
         cleric.cleric_settings = conf
@@ -180,7 +225,6 @@ local function setup()
         cleric.guard_Buffs = cleric.cleric_settings.guardBuffs
     end
 end
-setup()
 
 function cleric.MemorizeSpells()
     if cleric.cleric_settings.buffs_1_45_Enabled then
@@ -212,6 +256,7 @@ function cleric.MemorizeSpells()
         Casting.MemSpell(cleric.cleric_settings.hpBuffs[cleric.cleric_settings.hp_buff_85_plus_current_idx], 14)
         Casting.MemSpell(cleric.cleric_settings.guardBuffs[cleric.cleric_settings.guard_buff_85_plus_current_idx], 15)
         Casting.MemSpell(cleric.cleric_settings.hasteBuffs[cleric.cleric_settings.haste_buff_85_plus_current_idx], 16)
+        Casting.MemSpell(cleric.cleric_settings.symbolBuffs[cleric.cleric_settings.symbol_buff_85_plus_current_idx], 16)
     end
 end
 
@@ -243,37 +288,9 @@ function cleric.Buff()
         Casting.CastBuff(cleric.cleric_settings.hpBuffs[cleric.cleric_settings.hp_buff_85_plus_current_idx], 'gem1')
         Casting.CastBuff(cleric.cleric_settings.hasteBuffs[cleric.cleric_settings.haste_buff_85_plus_current_idx], 'gem2')
         Casting.CastBuff(cleric.cleric_settings.guardBuffs[cleric.cleric_settings.guard_buff_85_plus_current_idx], 'gem3')
+        Casting.CastBuff(cleric.cleric_settings.symbolBuffs[cleric.cleric_settings.symbol_buff_85_plus_current_idx],
+            'gem3')
     end
-end
-
-cleric.CreateBuffBox = {
-    flags = 0
-}
-
-function cleric.CreateBuffBox:draw(cb_label, buffs, current_idx)
-    local combo_buffs = buffs[current_idx]
-    local spell_Icon = mq.TLO.Spell(buffs[current_idx]).SpellIcon()
-
-    local box = mq.FindTextureAnimation("A_SpellIcons")
-    box:SetTextureCell(spell_Icon)
-    ImGui.DrawTextureAnimation(box, 20, 20)
-    ImGui.SameLine();
-    if ImGui.BeginCombo(cb_label, combo_buffs) then
-        for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
-                spell_Icon = mq.TLO.Spell(buffs[n]).SpellIcon();
-            end
-
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-                ImGui.SetItemDefaultFocus()
-            end
-        end
-        ImGui.EndCombo()
-    end
-    return current_idx
 end
 
 local rez_Enabled
@@ -303,6 +320,7 @@ local buffs_85_plus_Enabled
 local hp_buff_85_plus_current_idx
 local haste_buff_85_plus_current_idx
 local guard_buff_85_plus_current_idx
+local symbol_buff_85_plus_current_idx
 
 local hp_buffs_current_idx
 function cleric.ShowClassBuffBotGUI()
@@ -323,16 +341,16 @@ function cleric.ShowClassBuffBotGUI()
             cleric.cleric_settings.rez_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.rez_Enabled)
             if rez_Enabled ~= cleric.cleric_settings.rez_Enabled then
                 rez_Enabled = cleric.cleric_settings.rez_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
 
-            cleric.cleric_settings.rez_current_idx = cleric.CreateBuffBox:draw("Res Spell", cleric.rez_Spell,
+            cleric.cleric_settings.rez_current_idx = GUI.CreateBuffBox:draw("Res Spell", cleric.rez_Spell,
                 cleric.cleric_settings.rez_current_idx);
             if rez_current_idx ~= cleric.cleric_settings.rez_current_idx then
                 rez_current_idx = cleric.cleric_settings.rez_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
             imgui.TreePop()
         end
@@ -343,33 +361,36 @@ function cleric.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('1-45 Spells:') then
             ImGui.SameLine()
-            cleric.cleric_settings.buffs_1_45_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.buffs_1_45_Enabled)
+            cleric.cleric_settings.buffs_1_45_Enabled = ImGui.Checkbox('Enable',
+                cleric.cleric_settings.buffs_1_45_Enabled)
             if buffs_1_45_Enabled ~= cleric.cleric_settings.buffs_1_45_Enabled then
                 buffs_1_45_Enabled = cleric.cleric_settings.buffs_1_45_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
 
-            cleric.cleric_settings.hp_buff_1_45_current_idx = cleric.CreateBuffBox:draw("1-45 HP", cleric.hp_Buffs,
+            cleric.cleric_settings.hp_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 HP", cleric.hp_Buffs,
                 cleric.cleric_settings.hp_buff_1_45_current_idx);
             if hp_buff_1_45_current_idx ~= cleric.cleric_settings.hp_buff_1_45_current_idx then
                 hp_buff_1_45_current_idx = cleric.cleric_settings.hp_buff_1_45_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.haste_buff_1_45_current_idx = cleric.CreateBuffBox:draw("1-45 HASTE", cleric.haste_Buffs,
+            cleric.cleric_settings.haste_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 HASTE",
+                cleric.haste_Buffs,
                 cleric.cleric_settings.haste_buff_1_45_current_idx);
             if haste_buff_1_45_current_idx ~= cleric.cleric_settings.haste_buff_1_45_current_idx then
                 haste_buff_1_45_current_idx = cleric.cleric_settings.haste_buff_1_45_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.guard_buff_1_45_current_idx = cleric.CreateBuffBox:draw("1-45 GUARD", cleric.guard_Buffs,
+            cleric.cleric_settings.guard_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 GUARD",
+                cleric.guard_Buffs,
                 cleric.cleric_settings.guard_buff_1_45_current_idx);
             if guard_buff_1_45_current_idx ~= cleric.cleric_settings.guard_buff_1_45_current_idx then
                 guard_buff_1_45_current_idx = cleric.cleric_settings.guard_buff_1_45_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
             imgui.TreePop()
         end
@@ -381,32 +402,35 @@ function cleric.ShowClassBuffBotGUI()
         if ImGui.TreeNode('46-60 Spells:') then
             ImGui.SameLine()
 
-            cleric.cleric_settings.buffs_46_60_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.buffs_46_60_Enabled)
+            cleric.cleric_settings.buffs_46_60_Enabled = ImGui.Checkbox('Enable',
+                cleric.cleric_settings.buffs_46_60_Enabled)
             if buffs_46_60_Enabled ~= cleric.cleric_settings.buffs_46_60_Enabled then
                 buffs_46_60_Enabled = cleric.cleric_settings.buffs_46_60_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
-            cleric.cleric_settings.hp_buff_46_60_current_idx = cleric.CreateBuffBox:draw("46-60 HP", cleric.hp_Buffs,
+            cleric.cleric_settings.hp_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 HP", cleric.hp_Buffs,
                 cleric.cleric_settings.hp_buff_46_60_current_idx);
             if hp_buff_46_60_current_idx ~= cleric.cleric_settings.hp_buff_46_60_current_idx then
                 hp_buff_46_60_current_idx = cleric.cleric_settings.hp_buff_46_60_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.haste_buff_46_60_current_idx = cleric.CreateBuffBox:draw("46-60 HASTE", cleric.haste_Buffs,
+            cleric.cleric_settings.haste_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 HASTE",
+                cleric.haste_Buffs,
                 cleric.cleric_settings.haste_buff_46_60_current_idx);
             if haste_buff_46_60_current_idx ~= cleric.cleric_settings.haste_buff_46_60_current_idx then
                 haste_buff_46_60_current_idx = cleric.cleric_settings.haste_buff_46_60_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.guard_buff_46_60_current_idx = cleric.CreateBuffBox:draw("46-60 GUARD", cleric.guard_Buffs,
+            cleric.cleric_settings.guard_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 GUARD",
+                cleric.guard_Buffs,
                 cleric.cleric_settings.guard_buff_46_60_current_idx);
             if guard_buff_46_60_current_idx ~= cleric.cleric_settings.guard_buff_46_60_current_idx then
                 guard_buff_46_60_current_idx = cleric.cleric_settings.guard_buff_46_60_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
             imgui.TreePop()
@@ -418,39 +442,43 @@ function cleric.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('61-70 Spells:') then
             ImGui.SameLine()
-            cleric.cleric_settings.buffs_61_70_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.buffs_61_70_Enabled)
+            cleric.cleric_settings.buffs_61_70_Enabled = ImGui.Checkbox('Enable',
+                cleric.cleric_settings.buffs_61_70_Enabled)
             if buffs_61_70_Enabled ~= cleric.cleric_settings.buffs_61_70_Enabled then
                 buffs_61_70_Enabled = cleric.cleric_settings.buffs_61_70_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
-            cleric.cleric_settings.hp_buff_61_70_current_idx = cleric.CreateBuffBox:draw("61-70 HP", cleric.hp_Buffs,
+            cleric.cleric_settings.hp_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 HP", cleric.hp_Buffs,
                 cleric.cleric_settings.hp_buff_61_70_current_idx);
             if hp_buff_61_70_current_idx ~= cleric.cleric_settings.hp_buff_61_70_current_idx then
                 hp_buff_61_70_current_idx = cleric.cleric_settings.hp_buff_61_70_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.haste_buff_61_70_current_idx = cleric.CreateBuffBox:draw("61-70 HASTE", cleric.haste_Buffs,
+            cleric.cleric_settings.haste_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 HASTE",
+                cleric.haste_Buffs,
                 cleric.cleric_settings.haste_buff_61_70_current_idx);
             if haste_buff_61_70_current_idx ~= cleric.cleric_settings.haste_buff_61_70_current_idx then
                 haste_buff_61_70_current_idx = cleric.cleric_settings.haste_buff_61_70_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.guard_buff_61_70_current_idx = cleric.CreateBuffBox:draw("61-70 GUARD", cleric.guard_Buffs,
+            cleric.cleric_settings.guard_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 GUARD",
+                cleric.guard_Buffs,
                 cleric.cleric_settings.guard_buff_61_70_current_idx);
             if guard_buff_61_70_current_idx ~= cleric.cleric_settings.guard_buff_61_70_current_idx then
                 guard_buff_61_70_current_idx = cleric.cleric_settings.guard_buff_61_70_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.purity_buff_61_current_idx = cleric.CreateBuffBox:draw("61+ PURITY", cleric.purity_Buffs,
+            cleric.cleric_settings.purity_buff_61_current_idx = GUI.CreateBuffBox:draw("61+ PURITY",
+                cleric.purity_Buffs,
                 cleric.cleric_settings.purity_buff_61_current_idx);
             if purity_buff_61_current_idx ~= cleric.cleric_settings.purity_buff_61_current_idx then
                 purity_buff_61_current_idx = cleric.cleric_settings.purity_buff_61_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
             imgui.TreePop()
         end
@@ -461,32 +489,35 @@ function cleric.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('71-84 Spells:') then
             ImGui.SameLine()
-            cleric.cleric_settings.buffs_71_84_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.buffs_71_84_Enabled)
+            cleric.cleric_settings.buffs_71_84_Enabled = ImGui.Checkbox('Enable',
+                cleric.cleric_settings.buffs_71_84_Enabled)
             if buffs_71_84_Enabled ~= cleric.cleric_settings.buffs_71_84_Enabled then
                 buffs_71_84_Enabled = cleric.cleric_settings.buffs_71_84_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
-            cleric.cleric_settings.hp_buff_71_84_current_idx = cleric.CreateBuffBox:draw("71-84 HP", cleric.hp_Buffs,
+            cleric.cleric_settings.hp_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 HP", cleric.hp_Buffs,
                 cleric.cleric_settings.hp_buff_71_84_current_idx);
             if hp_buff_71_84_current_idx ~= cleric.cleric_settings.hp_buff_71_84_current_idx then
                 hp_buff_71_84_current_idx = cleric.cleric_settings.hp_buff_71_84_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.haste_buff_71_84_current_idx = cleric.CreateBuffBox:draw("71-84 HASTE", cleric.haste_Buffs,
+            cleric.cleric_settings.haste_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 HASTE",
+                cleric.haste_Buffs,
                 cleric.cleric_settings.haste_buff_71_84_current_idx);
             if haste_buff_71_84_current_idx ~= cleric.cleric_settings.haste_buff_71_84_current_idx then
                 haste_buff_71_84_current_idx = cleric.cleric_settings.haste_buff_71_84_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.guard_buff_71_84_current_idx = cleric.CreateBuffBox:draw("71-84 GUARD", cleric.guard_Buffs,
+            cleric.cleric_settings.guard_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 GUARD",
+                cleric.guard_Buffs,
                 cleric.cleric_settings.guard_buff_71_84_current_idx);
             if guard_buff_71_84_current_idx ~= cleric.cleric_settings.guard_buff_71_84_current_idx then
                 guard_buff_71_84_current_idx = cleric.cleric_settings.guard_buff_71_84_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
             imgui.TreePop()
         end
@@ -497,32 +528,43 @@ function cleric.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('85+ Spells:') then
             ImGui.SameLine()
-            cleric.cleric_settings.buffs_85_plus_Enabled = ImGui.Checkbox('Enable', cleric.cleric_settings.buffs_85_plus_Enabled)
+            cleric.cleric_settings.buffs_85_plus_Enabled = ImGui.Checkbox('Enable',
+                cleric.cleric_settings.buffs_85_plus_Enabled)
             if buffs_85_plus_Enabled ~= cleric.cleric_settings.buffs_85_plus_Enabled then
                 buffs_85_plus_Enabled = cleric.cleric_settings.buffs_85_plus_Enabled
-                saveClericSettings()
+                cleric.saveSettings()
             end
             ImGui.Separator()
 
-            cleric.cleric_settings.hp_buff_85_plus_current_idx = cleric.CreateBuffBox:draw("85+ HP", cleric.hp_Buffs,
+            cleric.cleric_settings.hp_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ HP", cleric.hp_Buffs,
                 cleric.cleric_settings.hp_buff_85_plus_current_idx);
             if hp_buff_85_plus_current_idx ~= cleric.cleric_settings.hp_buff_85_plus_current_idx then
                 hp_buff_85_plus_current_idx = cleric.cleric_settings.hp_buff_85_plus_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.haste_buff_85_plus_current_idx = cleric.CreateBuffBox:draw("85+ HASTE", cleric.haste_Buffs,
+            cleric.cleric_settings.haste_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ HASTE",
+                cleric.haste_Buffs,
                 cleric.cleric_settings.haste_buff_85_plus_current_idx);
             if haste_buff_85_plus_current_idx ~= cleric.cleric_settings.haste_buff_85_plus_current_idx then
                 haste_buff_85_plus_current_idx = cleric.cleric_settings.haste_buff_85_plus_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
             end
 
-            cleric.cleric_settings.guard_buff_85_plus_current_idx = cleric.CreateBuffBox:draw("85+ GUARD", cleric.guard_Buffs,
+            cleric.cleric_settings.guard_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ GUARD",
+                cleric.guard_Buffs,
                 cleric.cleric_settings.guard_buff_85_plus_current_idx);
             if guard_buff_85_plus_current_idx ~= cleric.cleric_settings.guard_buff_85_plus_current_idx then
                 guard_buff_85_plus_current_idx = cleric.cleric_settings.guard_buff_85_plus_current_idx
-                saveClericSettings()
+                cleric.saveSettings()
+            end
+
+            cleric.cleric_settings.symbol_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ SYMBOL",
+                cleric.symbol_Buffs,
+                cleric.cleric_settings.symbol_buff_85_plus_current_idx);
+            if symbol_buff_85_plus_current_idx ~= cleric.cleric_settings.symbol_buff_85_plus_current_idx then
+                symbol_buff_85_plus_current_idx = cleric.cleric_settings.symbol_buff_85_plus_current_idx
+                cleric.saveSettings()
             end
             imgui.TreePop()
         end

@@ -170,36 +170,36 @@ druid.druid_settings = {
     runDebug = DEBUG,
 
     dsBuffs = druid.ds_Buffs,
-    ds_buff_1_45_current_idx = 1,
-    ds_buff_46_60_current_idx = 1,
-    ds_buff_61_70_current_idx = 1,
-    ds_buff_71_84_current_idx = 1,
+    ds_buff_1_45_current_idx = 29,
+    ds_buff_46_60_current_idx = 24,
+    ds_buff_61_70_current_idx = 6,
+    ds_buff_71_84_current_idx = 3,
     ds_buff_85_plus_current_idx = 1,
 
     bigDSBuffs = druid.big_ds_Buffs,
-    big_ds_buff_1_45_current_idx = 1,
-    big_ds_buff_46_60_current_idx = 1,
-    big_ds_buff_61_70_current_idx = 1,
-    big_ds_buff_71_84_current_idx = 1,
+    big_ds_buff_1_45_current_idx = 10,
+    big_ds_buff_46_60_current_idx = 8,
+    big_ds_buff_61_70_current_idx = 6,
+    big_ds_buff_71_84_current_idx = 3,
     big_ds_buff_85_plus_current_idx = 1,
 
     hpBuffs = druid.hp_Buffs,
-    hp_buff_1_45_current_idx = 1,
-    hp_buff_46_60_current_idx = 1,
-    hp_buff_61_70_current_idx = 1,
-    hp_buff_71_84_current_idx = 1,
+    hp_buff_1_45_current_idx = 29,
+    hp_buff_46_60_current_idx = 24,
+    hp_buff_61_70_current_idx = 8,
+    hp_buff_71_84_current_idx = 5,
     hp_buff_85_plus_current_idx = 1,
 
     regenBuffs = druid.regen_Buffs,
-    regen_buff_1_45_current_idx = 1,
-    regen_buff_46_60_current_idx = 1,
-    regen_buff_61_70_current_idx = 1,
-    regen_buff_71_84_current_idx = 1,
+    regen_buff_1_45_current_idx = 27,
+    regen_buff_46_60_current_idx = 22,
+    regen_buff_61_70_current_idx = 6,
+    regen_buff_71_84_current_idx = 3,
     regen_buff_85_plus_current_idx = 1,
 
     sowBuffs = druid.sow_Buffs,
     sow_1_45_current_idx = 1,
-    sow_46_plus_current_idx = 1,
+    sow_46_plus_current_idx = 5,
 
     buffs_1_45_Enabled = false,
     buffs_46_60_Enabled = false,
@@ -208,15 +208,16 @@ druid.druid_settings = {
     buffs_85_plus_Enabled = false
 }
 
-local function saveDruidSettings()
-    SaveSettings(iniPath, druid.druid_settings)
+function druid.saveSettings()
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniPath, druid.druid_settings_settings)
 end
 
-local function setup()
+function druid.Setup()
     local conf
     local configData, err = loadfile(iniPath)
     if err then
-        saveDruidSettings()
+        druid.saveSettings()
     elseif configData then
         conf = configData()
         druid.druid_settings = conf
@@ -226,8 +227,6 @@ local function setup()
         druid.sow_Buffs = druid.druid_settings.sowBuffs
     end
 end
-setup()
-
 
 function druid.MemorizeSpells()
     if druid.druid_settings.buffs_1_45_Enabled then
@@ -295,36 +294,6 @@ function druid.Buff()
     end
 end
 
-druid.CreateBuffBox = {
-    flags = 0
-}
-
-function druid.CreateBuffBox:draw(cb_label, buffs, current_idx)
-    local combo_buffs = buffs[current_idx]
-    local spell_Icon = mq.TLO.Spell(buffs[current_idx]).SpellIcon()
-
-    local box = mq.FindTextureAnimation("A_SpellIcons")
-    box:SetTextureCell(spell_Icon)
-    ImGui.DrawTextureAnimation(box, 20, 20)
-    ImGui.SameLine();
-    if ImGui.BeginCombo(cb_label, combo_buffs) then
-        for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
-                spell_Icon = mq.TLO.Spell(buffs[n]).SpellIcon();
-            end
-
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-                ImGui.SetItemDefaultFocus()
-            end
-        end
-        ImGui.EndCombo()
-    end
-    return current_idx
-end
-
 local sow_Enabled
 local sow_1_45_current_idx
 local sow_46_plus_current_idx
@@ -376,22 +345,22 @@ function druid.ShowClassBuffBotGUI()
             druid.druid_settings.sow_Enabled = ImGui.Checkbox('Enable', druid.druid_settings.sow_Enabled)
             if sow_Enabled ~= druid.druid_settings.sow_Enabled then
                 sow_Enabled = druid.druid_settings.sow_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
-            druid.druid_settings.sow_1_45_current_idx = druid.CreateBuffBox:draw("1-45 SoW", druid.sow_Buffs,
+            druid.druid_settings.sow_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 SoW", druid.sow_Buffs,
                 druid.druid_settings.sow_1_45_current_idx);
             if sow_1_45_current_idx ~= druid.druid_settings.sow_1_45_current_idx then
                 sow_1_45_current_idx = druid.druid_settings.sow_1_45_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.sow_46_plus_current_idx = druid.CreateBuffBox:draw("46+ SoW", druid.sow_Buffs,
+            druid.druid_settings.sow_46_plus_current_idx = GUI.CreateBuffBox:draw("46+ SoW", druid.sow_Buffs,
                 druid.druid_settings.sow_46_plus_current_idx);
             if sow_46_plus_current_idx ~= druid.druid_settings.sow_46_plus_current_idx then
                 sow_46_plus_current_idx = druid.druid_settings.sow_46_plus_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end
@@ -405,38 +374,38 @@ function druid.ShowClassBuffBotGUI()
             druid.druid_settings.buffs_1_45_Enabled = ImGui.Checkbox('Enable', druid.druid_settings.buffs_1_45_Enabled)
             if buffs_1_45_Enabled ~= druid.druid_settings.buffs_1_45_Enabled then
                 buffs_1_45_Enabled = druid.druid_settings.buffs_1_45_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
 
-            druid.druid_settings.hp_buff_1_45_current_idx = druid.CreateBuffBox:draw("1-45 HP", druid.hp_Buffs,
+            druid.druid_settings.hp_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 HP", druid.hp_Buffs,
                 druid.druid_settings.hp_buff_1_45_current_idx);
             if hp_buff_1_45_current_idx ~= druid.druid_settings.hp_buff_1_45_current_idx then
                 hp_buff_1_45_current_idx = druid.druid_settings.hp_buff_1_45_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.regen_buff_1_45_current_idx = druid.CreateBuffBox:draw("1-45 REGEN", druid.regen_Buffs,
+            druid.druid_settings.regen_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 REGEN", druid.regen_Buffs,
                 druid.druid_settings.regen_buff_1_45_current_idx);
             if regen_buff_1_45_current_idx ~= druid.druid_settings.regen_buff_1_45_current_idx then
                 regen_buff_1_45_current_idx = druid.druid_settings.regen_buff_1_45_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.ds_buff_1_45_current_idx = druid.CreateBuffBox:draw("1-45 DS", druid.ds_Buffs,
+            druid.druid_settings.ds_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 DS", druid.ds_Buffs,
                 druid.druid_settings.ds_buff_1_45_current_idx);
             if ds_buff_1_45_current_idx ~= druid.druid_settings.ds_buff_1_45_current_idx then
                 ds_buff_1_45_current_idx = druid.druid_settings.ds_buff_1_45_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.big_ds_buff_1_45_current_idx = druid.CreateBuffBox:draw("1-45 BIG DS",
+            druid.druid_settings.big_ds_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 BIG DS",
                 druid.big_ds_Buffs,
                 druid.druid_settings.big_ds_buff_1_45_current_idx);
             if big_ds_buff_1_45_current_idx ~= druid.druid_settings.big_ds_buff_1_45_current_idx then
                 big_ds_buff_1_45_current_idx = druid.druid_settings.big_ds_buff_1_45_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end
@@ -451,38 +420,38 @@ function druid.ShowClassBuffBotGUI()
             druid.druid_settings.buffs_46_60_Enabled = ImGui.Checkbox('Enable', druid.druid_settings.buffs_46_60_Enabled)
             if buffs_46_60_Enabled ~= druid.druid_settings.buffs_46_60_Enabled then
                 buffs_46_60_Enabled = druid.druid_settings.buffs_46_60_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
-            druid.druid_settings.hp_buff_46_60_current_idx = druid.CreateBuffBox:draw("46-60 HP", druid.hp_Buffs,
+            druid.druid_settings.hp_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 HP", druid.hp_Buffs,
                 druid.druid_settings.hp_buff_46_60_current_idx);
             if hp_buff_46_60_current_idx ~= druid.druid_settings.hp_buff_46_60_current_idx then
                 hp_buff_46_60_current_idx = druid.druid_settings.hp_buff_46_60_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.regen_buff_46_60_current_idx = druid.CreateBuffBox:draw("46-60 REGEN", druid
+            druid.druid_settings.regen_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 REGEN", druid
                 .regen_Buffs,
                 druid.druid_settings.regen_buff_46_60_current_idx);
             if regen_buff_46_60_current_idx ~= druid.druid_settings.regen_buff_46_60_current_idx then
                 regen_buff_46_60_current_idx = druid.druid_settings.regen_buff_46_60_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.ds_buff_46_60_current_idx = druid.CreateBuffBox:draw("46-60 DS", druid.ds_Buffs,
+            druid.druid_settings.ds_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 DS", druid.ds_Buffs,
                 druid.druid_settings.ds_buff_46_60_current_idx);
             if ds_buff_46_60_current_idx ~= druid.druid_settings.ds_buff_46_60_current_idx then
                 ds_buff_46_60_current_idx = druid.druid_settings.ds_buff_46_60_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.big_ds_buff_46_60_current_idx = druid.CreateBuffBox:draw("46-60 BIG DS",
+            druid.druid_settings.big_ds_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 BIG DS",
                 druid.big_ds_Buffs,
                 druid.druid_settings.big_ds_buff_46_60_current_idx);
             if big_ds_buff_46_60_current_idx ~= druid.druid_settings.big_ds_buff_46_60_current_idx then
                 big_ds_buff_46_60_current_idx = druid.druid_settings.big_ds_buff_46_60_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end
@@ -496,38 +465,38 @@ function druid.ShowClassBuffBotGUI()
             druid.druid_settings.buffs_61_70_Enabled = ImGui.Checkbox('Enable', druid.druid_settings.buffs_61_70_Enabled)
             if buffs_61_70_Enabled ~= druid.druid_settings.buffs_61_70_Enabled then
                 buffs_61_70_Enabled = druid.druid_settings.buffs_61_70_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
-            druid.druid_settings.hp_buff_61_70_current_idx = druid.CreateBuffBox:draw("61-70 HP", druid.hp_Buffs,
+            druid.druid_settings.hp_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 HP", druid.hp_Buffs,
                 druid.druid_settings.hp_buff_61_70_current_idx);
             if hp_buff_61_70_current_idx ~= druid.druid_settings.hp_buff_61_70_current_idx then
                 hp_buff_61_70_current_idx = druid.druid_settings.hp_buff_61_70_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.regen_buff_61_70_current_idx = druid.CreateBuffBox:draw("61-70 REGEN", druid
+            druid.druid_settings.regen_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 REGEN", druid
                 .regen_Buffs,
                 druid.druid_settings.regen_buff_61_70_current_idx);
             if regen_buff_61_70_current_idx ~= druid.druid_settings.regen_buff_61_70_current_idx then
                 regen_buff_61_70_current_idx = druid.druid_settings.regen_buff_61_70_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.ds_buff_61_70_current_idx = druid.CreateBuffBox:draw("61-70 DS", druid.ds_Buffs,
+            druid.druid_settings.ds_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 DS", druid.ds_Buffs,
                 druid.druid_settings.ds_buff_61_70_current_idx);
             if ds_buff_61_70_current_idx ~= druid.druid_settings.ds_buff_61_70_current_idx then
                 ds_buff_61_70_current_idx = druid.druid_settings.ds_buff_61_70_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.big_ds_buff_61_70_current_idx = druid.CreateBuffBox:draw("61-70 BIG DS",
+            druid.druid_settings.big_ds_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 BIG DS",
                 druid.big_ds_Buffs,
                 druid.druid_settings.big_ds_buff_61_70_current_idx);
             if big_ds_buff_61_70_current_idx ~= druid.druid_settings.big_ds_buff_61_70_current_idx then
                 big_ds_buff_61_70_current_idx = druid.druid_settings.big_ds_buff_61_70_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end
@@ -541,38 +510,38 @@ function druid.ShowClassBuffBotGUI()
             druid.druid_settings.buffs_71_84_Enabled = ImGui.Checkbox('Enable', druid.druid_settings.buffs_71_84_Enabled)
             if buffs_71_84_Enabled ~= druid.druid_settings.buffs_71_84_Enabled then
                 buffs_71_84_Enabled = druid.druid_settings.buffs_71_84_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
-            druid.druid_settings.hp_buff_71_84_current_idx = druid.CreateBuffBox:draw("71-84 HP", druid.hp_Buffs,
+            druid.druid_settings.hp_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 HP", druid.hp_Buffs,
                 druid.druid_settings.hp_buff_71_84_current_idx);
             if hp_buff_71_84_current_idx ~= druid.druid_settings.hp_buff_71_84_current_idx then
                 hp_buff_71_84_current_idx = druid.druid_settings.hp_buff_71_84_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.regen_buff_71_84_current_idx = druid.CreateBuffBox:draw("71-84 REGEN", druid
+            druid.druid_settings.regen_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 REGEN", druid
                 .regen_Buffs,
                 druid.druid_settings.regen_buff_71_84_current_idx);
             if regen_buff_71_84_current_idx ~= druid.druid_settings.regen_buff_71_84_current_idx then
                 regen_buff_71_84_current_idx = druid.druid_settings.regen_buff_71_84_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.ds_buff_71_84_current_idx = druid.CreateBuffBox:draw("71-84 DS", druid.ds_Buffs,
+            druid.druid_settings.ds_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 DS", druid.ds_Buffs,
                 druid.druid_settings.ds_buff_71_84_current_idx);
             if ds_buff_71_84_current_idx ~= druid.druid_settings.ds_buff_71_84_current_idx then
                 ds_buff_71_84_current_idx = druid.druid_settings.ds_buff_71_84_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.big_ds_buff_71_84_current_idx = druid.CreateBuffBox:draw("71-84 BIG DS",
+            druid.druid_settings.big_ds_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 BIG DS",
                 druid.big_ds_Buffs,
                 druid.druid_settings.big_ds_buff_71_84_current_idx);
             if big_ds_buff_71_84_current_idx ~= druid.druid_settings.big_ds_buff_71_84_current_idx then
                 big_ds_buff_71_84_current_idx = druid.druid_settings.big_ds_buff_71_84_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end
@@ -587,38 +556,38 @@ function druid.ShowClassBuffBotGUI()
                 druid.druid_settings.buffs_85_plus_Enabled)
             if buffs_85_plus_Enabled ~= druid.druid_settings.buffs_85_plus_Enabled then
                 buffs_85_plus_Enabled = druid.druid_settings.buffs_85_plus_Enabled
-                saveDruidSettings()
+                druid.saveSettings()
             end
             ImGui.Separator()
 
-            druid.druid_settings.hp_buff_85_plus_current_idx = druid.CreateBuffBox:draw("85+ HP", druid.hp_Buffs,
+            druid.druid_settings.hp_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ HP", druid.hp_Buffs,
                 druid.druid_settings.hp_buff_85_plus_current_idx);
             if hp_buff_85_plus_current_idx ~= druid.druid_settings.hp_buff_85_plus_current_idx then
                 hp_buff_85_plus_current_idx = druid.druid_settings.hp_buff_85_plus_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.regen_buff_85_plus_current_idx = druid.CreateBuffBox:draw("85+ REGEN", druid
+            druid.druid_settings.regen_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ REGEN", druid
                 .regen_Buffs,
                 druid.druid_settings.regen_buff_85_plus_current_idx);
             if regen_buff_85_plus_current_idx ~= druid.druid_settings.regen_buff_85_plus_current_idx then
                 regen_buff_85_plus_current_idx = druid.druid_settings.regen_buff_85_plus_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.ds_buff_85_plus_current_idx = druid.CreateBuffBox:draw("85+ DS", druid.ds_Buffs,
+            druid.druid_settings.ds_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ DS", druid.ds_Buffs,
                 druid.druid_settings.ds_buff_85_plus_current_idx);
             if ds_buff_85_plus_current_idx ~= druid.druid_settings.ds_buff_85_plus_current_idx then
                 ds_buff_85_plus_current_idx = druid.druid_settings.ds_buff_85_plus_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
 
-            druid.druid_settings.big_ds_buff_85_plus_current_idx = druid.CreateBuffBox:draw("85+ BIG DS",
+            druid.druid_settings.big_ds_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ BIG DS",
                 druid.big_ds_Buffs,
                 druid.druid_settings.big_ds_buff_85_plus_current_idx);
             if big_ds_buff_85_plus_current_idx ~= druid.druid_settings.big_ds_buff_85_plus_current_idx then
                 big_ds_buff_85_plus_current_idx = druid.druid_settings.big_ds_buff_85_plus_current_idx
-                saveDruidSettings()
+                druid.saveSettings()
             end
             imgui.TreePop()
         end

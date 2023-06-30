@@ -6,19 +6,107 @@ local shaman_version = '1.0.0'
 local shaman = {}
 shaman.haste_Buffs = {
     'Talisman of Celerity',
+    'Symbol of Celerity',
+    'Swift Like the Wind',
     'Celerity',
     'Alacrity',
     'Quickness'
 }
 shaman.hp_Buffs = {
-    'Talisman of Tnarg','Talisman of Altuna','Harnessing of Spirit','Talisman of Kragg','Focus of Soul','Unity of the Doomscale','Talisman of the Usurper'
+    'Talisman of the Usurper',
+    'Unity of the Vampyre',
+    'Vampyre Focusing',
+    'Talisman of the Ry\'Gorr',
+    'Unity of the Kromrif',
+    'Kromrif Focusing',
+    'Talisman of the Wulthan',
+    'Unity of the Wulthan',
+    'Wulthan Focusing',
+    'Talisman of the Doomscale',
+    'Unity of the Doomscale',
+    'Doomscale Focusing',
+    'Talisman of the Courageous',
+    'Unity of the Courageous',
+    'Insistent Focusing',
+    'Talisman of Kolos\' Unity',
+    'Unity of Kolos',
+    'Imperative Focusing',
+    'Talisman of Soul\'s Unity',
+    'Unity of the Soul',
+    'Exigent Focusing',
+    'Talisman of Unity',
+    'Unity of the Spirits',
+    'Talisman of the Bloodworg',
+    'Bloodworg Focusing',
+    'Talisman of the Dire',
+    'Dire Focusing',
+    'Talisman of Wunshi',
+    'Wunshi\'s Focusing',
+    'Focus of the Seventh',
+    'Focus of Soul',
+    'Khura\'s Focusing',
+    'Focus of Spirit',
+    'Talisman of Kragg',
+    'Harnessing of Spirit',
+    'Talisman of Altuna',
+    'Talisman of Tnarg',
+    'Inner Fire'
 }
 shaman.regen_Buffs = {
     'Talisman of the Tenacious',
+    'Spirit of the Tenacious',
+    'Talisman of the Enduring',
+    'Spirit of the Enduring',
+    'Talisman of the Unwavering',
+    'Spirit of the Unwavering',
+    'Talisman of the Faithful',
+    'Spirit of the Faithful',
+    'Talisman of the Steadfast',
+    'Spirit of the Steadfast',
+    'Talisman of the Indomitable',
+    'Spirit of the Indomitable',
+    'Talisman of the Relentless',
+    'Spirit of the Relentless',
+    'Talisman of the Resolute',
+    'Spirit of the Resolute',
+    'Talisman of the Stalwart',
+    'Spirit of the Stalwart',
+    'Talisman of the Stoic One',
+    'Spirit of the Stoic One',
+    'Talisman of Perseverance',
+    'Spirit of Perseverance',
+    'Blessing of Replenishment',
     'Replenishment',
     'Regrowth of Dar Khura',
+    'Regrowth',
     'Chloroplast',
     'Regeneration'
+}
+shaman.proc_Buffs = {
+    'Melancholy',
+    'Talisman of the Kerran',
+    'Ennui',
+    'Talisman of the Lioness',
+    'Incapacity',
+    'Talisman of the Sabretooth',
+    'Sluggishness',
+    'Talisman of the Leopard',
+    'Fatigue',
+    'Apathy',
+    'Talisman of the Lion',
+    'Lethargy',
+    'Talisman of the Tiger',
+    'Listlessness',
+    'Talisman of the Lynx',
+    'Languor',
+    'Talisman of the Cougar',
+    'Lassitude',
+    'Talisman of the Panther',
+    'Spirit of the Panther',
+    'Lingering Sloth',
+    'Spirit of the Leopard',
+    'Spirit of the Jaguar',
+    'Spirit of the Puma'
 }
 shaman.sow_Buffs = {
     'Spirit of Wolf',
@@ -29,7 +117,7 @@ shaman.sow_Buffs = {
 
 local toon = mq.TLO.Me.Name() or ''
 local class = mq.TLO.Me.Class() or ''
-local iniPath = mq.configDir .. '\\BuffBot\\Settings\\' .. 'BuffBot_' .. toon .. '_'.. class ..'.ini'
+local iniPath = mq.configDir .. '\\BuffBot\\Settings\\' .. 'BuffBot_' .. toon .. '_' .. class .. '.ini'
 
 shaman.shaman_settings = {
     runDebug = DEBUG,
@@ -37,6 +125,7 @@ shaman.shaman_settings = {
     hpBuffs = shaman.hp_Buffs,
     regenBuffs = shaman.regen_Buffs,
     sowBuffs = shaman.sow_Buffs,
+    procBuffs = shaman.proc_Buffs,
 
     haste_Enabled = false,
     sow_1_45_current_idx = 1,
@@ -44,6 +133,7 @@ shaman.shaman_settings = {
     buffs_1_45_Enabled = false,
     hp_buff_1_45_current_idx = 1,
     regen_buff_1_45_current_idx = 1,
+    proc_buff_1_45_current_idx = 1,
 
     haste_1_45_current_idx = 1,
     haste_46_plus_current_idx = 1,
@@ -51,29 +141,34 @@ shaman.shaman_settings = {
     buffs_46_60_Enabled = false,
     hp_buff_46_60_current_idx = 1,
     regen_buff_46_60_current_idx = 1,
+    proc_buff_46_60_current_idx = 1,
 
     buffs_61_70_Enabled = false,
     hp_buff_61_70_current_idx = 1,
     regen_buff_61_70_current_idx = 1,
+    proc_buff_61_70_current_idx = 1,
 
     buffs_71_84_Enabled = false,
     hp_buff_71_84_current_idx = 1,
     regen_buff_71_84_current_idx = 1,
+    proc_buff_71_84_current_idx = 1,
 
     buffs_85_plus_Enabled = false,
     hp_buff_85_plus_current_idx = 1,
-    regen_buff_85_plus_current_idx = 1
+    regen_buff_85_plus_current_idx = 1,
+    proc_buff_85_plus_current_idx = 1
 }
 
-local function saveShamanSettings()
-    SaveSettings(iniPath, shaman.shaman_settings)
+function shaman.saveSettings()
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniPath, shaman.shaman_settings)
 end
 
-local function setup()
+function shaman.Setup()
     local conf
     local configData, err = loadfile(iniPath)
     if err then
-        saveShamanSettings()
+        shaman.saveSettings()
     elseif configData then
         conf = configData()
         shaman.shaman_settings = conf
@@ -81,15 +176,16 @@ local function setup()
         shaman.regen_Buffs = shaman.shaman_settings.regenBuffs
         shaman.haste_Buffs = shaman.shaman_settings.hasteBuffs
         shaman.sow_Buffs = shaman.shaman_settings.sowBuffs
+        shaman.proc_Buffs = shaman.shaman_settings.procBuffs
     end
 end
-setup()
 
 function shaman.MemorizeSpells()
     if shaman.shaman_settings.buffs_1_45_Enabled then
         Casting.MemSpell(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_1_45_current_idx], 1)
         Casting.MemSpell(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.guard_buff_1_45_current_idx], 2)
         Casting.MemSpell(shaman.shaman_settings.sowBuffs[shaman.shaman_settings.sow_1_45_current_idx], 6)
+        Casting.MemSpell(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_1_45_current_idx], 6)
         Casting.MemSpell(shaman.shaman_settings.hasteBuffs[shaman.shaman_settings.haste_buff_1_45_current_idx], 3)
     end
 
@@ -98,21 +194,25 @@ function shaman.MemorizeSpells()
         Casting.MemSpell(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.guard_buff_46_60_current_idx], 5)
         Casting.MemSpell(shaman.shaman_settings.sowBuffs[shaman.shaman_settings.sow_46_plus_current_idx], 6)
         Casting.MemSpell(shaman.shaman_settings.hasteBuffs[shaman.shaman_settings.haste_46_plus_current_idx], 7)
+        Casting.MemSpell(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_46_60_current_idx], 8)
     end
 
     if shaman.shaman_settings.buffs_61_70_Enabled then
         Casting.MemSpell(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_61_70_current_idx], 7)
         Casting.MemSpell(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.guard_buff_61_70_current_idx], 8)
+        Casting.MemSpell(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_61_70_current_idx], 7)
     end
 
     if shaman.shaman_settings.buffs_71_84_Enabled then
         Casting.MemSpell(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_71_84_current_idx], 11)
         Casting.MemSpell(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.guard_buff_71_84_current_idx], 12)
+        Casting.MemSpell(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_71_84_current_idx], 6)
     end
 
     if shaman.shaman_settings.buffs_85_plus_Enabled then
         Casting.MemSpell(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_85_plus_current_idx], 14)
         Casting.MemSpell(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.guard_buff_85_plus_current_idx], 15)
+        Casting.MemSpell(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_85_plus_current_idx], 6)
     end
 end
 
@@ -120,6 +220,7 @@ function shaman.Buff()
     if mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() <= 45 then
         Casting.CastBuff(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_1_45_current_idx], 'gem1')
         Casting.CastBuff(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.regen_buff_1_45_current_idx], 'gem2')
+        Casting.CastBuff(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_1_45_current_idx], 'gem3')
         Casting.CastBuff(shaman.shaman_settings.sowBuffs[shaman.shaman_settings.sow_1_45_current_idx], 'gem4')
         Casting.CastBuff(shaman.shaman_settings.hasteBuffs[shaman.shaman_settings.haste_1_45_current_idx], 'gem3')
     end
@@ -130,49 +231,23 @@ function shaman.Buff()
     if mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() >= 46 and mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() <= 60 then
         Casting.CastBuff(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_46_60_current_idx], 'gem4')
         Casting.CastBuff(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.regen_buff_46_60_current_idx], 'gem5')
+        Casting.CastBuff(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_46_60_current_idx], 'gem3')
     end
     if mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() >= 61 and mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() <= 70 then
         Casting.CastBuff(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_61_70_current_idx], 'gem7')
         Casting.CastBuff(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.regen_buff_61_70_current_idx], 'gem8')
+        Casting.CastBuff(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_61_70_current_idx], 'gem3')
     end
     if mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() >= 71 and mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() <= 84 then
         Casting.CastBuff(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_71_84_current_idx], 'gem10')
         Casting.CastBuff(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.regen_buff_71_84_current_idx], 'gem11')
+        Casting.CastBuff(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_71_84_current_idx], 'gem3')
     end
     if mq.TLO.Spawn('ID ' .. mq.TLO.Target.ID()).Level() >= 85 then
         Casting.CastBuff(shaman.shaman_settings.hpBuffs[shaman.shaman_settings.hp_buff_85_plus_current_idx], 'gem1')
         Casting.CastBuff(shaman.shaman_settings.regenBuffs[shaman.shaman_settings.regen_buff_85_plus_current_idx], 'gem2')
+        Casting.CastBuff(shaman.shaman_settings.procBuffs[shaman.shaman_settings.proc_buff_85_plus_current_idx], 'gem3')
     end
-end
-
-shaman.CreateBuffBox = {
-    flags = 0
-}
-
-function shaman.CreateBuffBox:draw(cb_label, buffs, current_idx)
-    local combo_buffs = buffs[current_idx]
-    local spell_Icon = mq.TLO.Spell(buffs[current_idx]).SpellIcon()
-
-    local box = mq.FindTextureAnimation("A_SpellIcons")
-    box:SetTextureCell(spell_Icon)
-    ImGui.DrawTextureAnimation(box, 20, 20)
-    ImGui.SameLine();
-    if ImGui.BeginCombo(cb_label, combo_buffs) then
-        for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
-                spell_Icon = mq.TLO.Spell(buffs[n]).SpellIcon();
-            end
-
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-                ImGui.SetItemDefaultFocus()
-            end
-        end
-        ImGui.EndCombo()
-    end
-    return current_idx
 end
 
 local haste_Enabled
@@ -182,6 +257,7 @@ local sow_46_plus_current_idx
 local buffs_1_45_Enabled
 local hp_buff_1_45_current_idx
 local regen_buff_1_45_current_idx
+local proc_buff_1_45_current_idx
 
 local haste_1_45_current_idx
 local haste_46_plus_current_idx
@@ -189,18 +265,22 @@ local haste_46_plus_current_idx
 local buffs_46_60_Enabled
 local hp_buff_46_60_current_idx
 local regen_buff_46_60_current_idx
+local proc_buff_46_60_current_idx
 
 local buffs_61_70_Enabled
 local hp_buff_61_70_current_idx
 local regen_buff_61_70_current_idx
+local proc_buff_61_70_current_idx
 
 local buffs_71_84_Enabled
 local hp_buff_71_84_current_idx
 local regen_buff_71_84_current_idx
+local proc_buff_71_84_current_idx
 
 local buffs_85_plus_Enabled
 local hp_buff_85_plus_current_idx
 local regen_buff_85_plus_current_idx
+local proc_buff_85_plus_current_idx
 function shaman.ShowClassBuffBotGUI()
     --
     -- Help
@@ -218,22 +298,22 @@ function shaman.ShowClassBuffBotGUI()
             shaman.shaman_settings.haste_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.haste_Enabled)
             if haste_Enabled ~= shaman.shaman_settings.haste_Enabled then
                 haste_Enabled = shaman.shaman_settings.haste_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.sow_1_45_current_idx = shaman.CreateBuffBox:draw("1-45 SoW", shaman.sow_Buffs,
+            shaman.shaman_settings.sow_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 SoW", shaman.sow_Buffs,
                 shaman.shaman_settings.sow_1_45_current_idx);
             if sow_1_45_current_idx ~= shaman.shaman_settings.sow_1_45_current_idx then
                 sow_1_45_current_idx = shaman.shaman_settings.sow_1_45_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.sow_46_plus_current_idx = shaman.CreateBuffBox:draw("46+ SoW", shaman.sow_Buffs,
+            shaman.shaman_settings.sow_46_plus_current_idx = GUI.CreateBuffBox:draw("46+ SoW", shaman.sow_Buffs,
                 shaman.shaman_settings.sow_46_plus_current_idx);
             if sow_46_plus_current_idx ~= shaman.shaman_settings.sow_46_plus_current_idx then
                 sow_46_plus_current_idx = shaman.shaman_settings.sow_46_plus_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -247,22 +327,22 @@ function shaman.ShowClassBuffBotGUI()
             shaman.shaman_settings.haste_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.haste_Enabled)
             if haste_Enabled ~= shaman.shaman_settings.haste_Enabled then
                 haste_Enabled = shaman.shaman_settings.haste_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.haste_1_45_current_idx = shaman.CreateBuffBox:draw("1-45 Haste", shaman.haste_Buffs,
+            shaman.shaman_settings.haste_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 Haste", shaman.haste_Buffs,
                 shaman.shaman_settings.haste_1_45_current_idx);
             if haste_1_45_current_idx ~= shaman.shaman_settings.haste_1_45_current_idx then
                 haste_1_45_current_idx = shaman.shaman_settings.haste_1_45_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.haste_46_plus_current_idx = shaman.CreateBuffBox:draw("46+ Haste", shaman.haste_Buffs,
+            shaman.shaman_settings.haste_46_plus_current_idx = GUI.CreateBuffBox:draw("46+ Haste", shaman.haste_Buffs,
                 shaman.shaman_settings.haste_46_plus_current_idx);
             if haste_46_plus_current_idx ~= shaman.shaman_settings.haste_46_plus_current_idx then
                 haste_46_plus_current_idx = shaman.shaman_settings.haste_46_plus_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -273,26 +353,34 @@ function shaman.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('1-45 Spells:') then
             ImGui.SameLine()
-            shaman.shaman_settings.buffs_1_45_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.buffs_1_45_Enabled)
+            shaman.shaman_settings.buffs_1_45_Enabled = ImGui.Checkbox('Enable',
+                shaman.shaman_settings.buffs_1_45_Enabled)
             if buffs_1_45_Enabled ~= shaman.shaman_settings.buffs_1_45_Enabled then
                 buffs_1_45_Enabled = shaman.shaman_settings.buffs_1_45_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
 
-            shaman.shaman_settings.hp_buff_1_45_current_idx = shaman.CreateBuffBox:draw("1-45 HP", shaman.hp_Buffs,
+            shaman.shaman_settings.hp_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 HP", shaman.hp_Buffs,
                 shaman.shaman_settings.hp_buff_1_45_current_idx);
             if hp_buff_1_45_current_idx ~= shaman.shaman_settings.hp_buff_1_45_current_idx then
                 hp_buff_1_45_current_idx = shaman.shaman_settings.hp_buff_1_45_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.regen_buff_1_45_current_idx = shaman.CreateBuffBox:draw("1-45 REGEN", shaman.regen_Buffs,
+            shaman.shaman_settings.regen_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 REGEN", shaman.regen_Buffs,
                 shaman.shaman_settings.regen_buff_1_45_current_idx);
             if regen_buff_1_45_current_idx ~= shaman.shaman_settings.regen_buff_1_45_current_idx then
                 regen_buff_1_45_current_idx = shaman.shaman_settings.regen_buff_1_45_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
+            end
+
+            shaman.shaman_settings.proc_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 PROC", shaman.proc_Buffs,
+                shaman.shaman_settings.proc_buff_1_45_current_idx);
+            if proc_buff_1_45_current_idx ~= shaman.shaman_settings.proc_buff_1_45_current_idx then
+                proc_buff_1_45_current_idx = shaman.shaman_settings.proc_buff_1_45_current_idx
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -304,25 +392,35 @@ function shaman.ShowClassBuffBotGUI()
         if ImGui.TreeNode('46-60 Spells:') then
             ImGui.SameLine()
 
-            shaman.shaman_settings.buffs_46_60_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.buffs_46_60_Enabled)
+            shaman.shaman_settings.buffs_46_60_Enabled = ImGui.Checkbox('Enable',
+                shaman.shaman_settings.buffs_46_60_Enabled)
             if buffs_46_60_Enabled ~= shaman.shaman_settings.buffs_46_60_Enabled then
                 buffs_46_60_Enabled = shaman.shaman_settings.buffs_46_60_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.hp_buff_46_60_current_idx = shaman.CreateBuffBox:draw("46-60 HP", shaman.hp_Buffs,
+            shaman.shaman_settings.hp_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 HP", shaman.hp_Buffs,
                 shaman.shaman_settings.hp_buff_46_60_current_idx);
             if hp_buff_46_60_current_idx ~= shaman.shaman_settings.hp_buff_46_60_current_idx then
                 hp_buff_46_60_current_idx = shaman.shaman_settings.hp_buff_46_60_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.regen_buff_46_60_current_idx = shaman.CreateBuffBox:draw("46-60 REGEN", shaman.regen_Buffs,
+            shaman.shaman_settings.regen_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 REGEN",
+                shaman.regen_Buffs,
                 shaman.shaman_settings.regen_buff_46_60_current_idx);
             if regen_buff_46_60_current_idx ~= shaman.shaman_settings.regen_buff_46_60_current_idx then
                 regen_buff_46_60_current_idx = shaman.shaman_settings.regen_buff_46_60_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
+            end
+
+            shaman.shaman_settings.proc_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 PROC",
+                shaman.proc_Buffs,
+                shaman.shaman_settings.proc_buff_46_60_current_idx);
+            if proc_buff_46_60_current_idx ~= shaman.shaman_settings.proc_buff_46_60_current_idx then
+                proc_buff_46_60_current_idx = shaman.shaman_settings.proc_buff_46_60_current_idx
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -333,25 +431,35 @@ function shaman.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('61-70 Spells:') then
             ImGui.SameLine()
-            shaman.shaman_settings.buffs_61_70_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.buffs_61_70_Enabled)
+            shaman.shaman_settings.buffs_61_70_Enabled = ImGui.Checkbox('Enable',
+                shaman.shaman_settings.buffs_61_70_Enabled)
             if buffs_61_70_Enabled ~= shaman.shaman_settings.buffs_61_70_Enabled then
                 buffs_61_70_Enabled = shaman.shaman_settings.buffs_61_70_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.hp_buff_61_70_current_idx = shaman.CreateBuffBox:draw("61-70 HP", shaman.hp_Buffs,
+            shaman.shaman_settings.hp_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 HP", shaman.hp_Buffs,
                 shaman.shaman_settings.hp_buff_61_70_current_idx);
             if hp_buff_61_70_current_idx ~= shaman.shaman_settings.hp_buff_61_70_current_idx then
                 hp_buff_61_70_current_idx = shaman.shaman_settings.hp_buff_61_70_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.regen_buff_61_70_current_idx = shaman.CreateBuffBox:draw("61-70 REGEN", shaman.regen_Buffs,
+            shaman.shaman_settings.regen_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 REGEN",
+                shaman.regen_Buffs,
                 shaman.shaman_settings.regen_buff_61_70_current_idx);
             if regen_buff_61_70_current_idx ~= shaman.shaman_settings.regen_buff_61_70_current_idx then
                 regen_buff_61_70_current_idx = shaman.shaman_settings.regen_buff_61_70_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
+            end
+
+            shaman.shaman_settings.proc_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 PROC",
+                shaman.proc_Buffs,
+                shaman.shaman_settings.proc_buff_61_70_current_idx);
+            if proc_buff_61_70_current_idx ~= shaman.shaman_settings.proc_buff_61_70_current_idx then
+                proc_buff_61_70_current_idx = shaman.shaman_settings.proc_buff_61_70_current_idx
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -362,25 +470,35 @@ function shaman.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('71-84 Spells:') then
             ImGui.SameLine()
-            shaman.shaman_settings.buffs_71_84_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.buffs_71_84_Enabled)
+            shaman.shaman_settings.buffs_71_84_Enabled = ImGui.Checkbox('Enable',
+                shaman.shaman_settings.buffs_71_84_Enabled)
             if buffs_71_84_Enabled ~= shaman.shaman_settings.buffs_71_84_Enabled then
                 buffs_71_84_Enabled = shaman.shaman_settings.buffs_71_84_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.hp_buff_71_84_current_idx = shaman.CreateBuffBox:draw("71-84 HP", shaman.hp_Buffs,
+            shaman.shaman_settings.hp_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 HP", shaman.hp_Buffs,
                 shaman.shaman_settings.hp_buff_71_84_current_idx);
             if hp_buff_71_84_current_idx ~= shaman.shaman_settings.hp_buff_71_84_current_idx then
                 hp_buff_71_84_current_idx = shaman.shaman_settings.hp_buff_71_84_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.regen_buff_71_84_current_idx = shaman.CreateBuffBox:draw("71-84 REGEN", shaman.regen_Buffs,
+            shaman.shaman_settings.regen_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 REGEN",
+                shaman.regen_Buffs,
                 shaman.shaman_settings.regen_buff_71_84_current_idx);
             if regen_buff_71_84_current_idx ~= shaman.shaman_settings.regen_buff_71_84_current_idx then
                 regen_buff_71_84_current_idx = shaman.shaman_settings.regen_buff_71_84_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
+            end
+
+            shaman.shaman_settings.proc_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 PROC",
+                shaman.proc_Buffs,
+                shaman.shaman_settings.proc_buff_71_84_current_idx);
+            if proc_buff_71_84_current_idx ~= shaman.shaman_settings.proc_buff_71_84_current_idx then
+                proc_buff_71_84_current_idx = shaman.shaman_settings.proc_buff_71_84_current_idx
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
@@ -391,29 +509,39 @@ function shaman.ShowClassBuffBotGUI()
         --
         if ImGui.TreeNode('85+ Spells:') then
             ImGui.SameLine()
-            shaman.shaman_settings.buffs_85_plus_Enabled = ImGui.Checkbox('Enable', shaman.shaman_settings.buffs_85_plus_Enabled)
+            shaman.shaman_settings.buffs_85_plus_Enabled = ImGui.Checkbox('Enable',
+                shaman.shaman_settings.buffs_85_plus_Enabled)
             if buffs_85_plus_Enabled ~= shaman.shaman_settings.buffs_85_plus_Enabled then
                 buffs_85_plus_Enabled = shaman.shaman_settings.buffs_85_plus_Enabled
-                saveShamanSettings()
+                shaman.saveSettings()
             end
             ImGui.Separator()
 
-            shaman.shaman_settings.hp_buff_85_plus_current_idx = shaman.CreateBuffBox:draw("85+ HP", shaman.hp_Buffs,
+            shaman.shaman_settings.hp_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ HP", shaman.hp_Buffs,
                 shaman.shaman_settings.hp_buff_85_plus_current_idx);
             if hp_buff_85_plus_current_idx ~= shaman.shaman_settings.hp_buff_85_plus_current_idx then
                 hp_buff_85_plus_current_idx = shaman.shaman_settings.hp_buff_85_plus_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
             end
 
-            shaman.shaman_settings.regen_buff_85_plus_current_idx = shaman.CreateBuffBox:draw("85+ REGEN", shaman.regen_Buffs,
+            shaman.shaman_settings.regen_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ REGEN",
+                shaman.regen_Buffs,
                 shaman.shaman_settings.regen_buff_85_plus_current_idx);
             if regen_buff_85_plus_current_idx ~= shaman.shaman_settings.regen_buff_85_plus_current_idx then
                 regen_buff_85_plus_current_idx = shaman.shaman_settings.regen_buff_85_plus_current_idx
-                saveShamanSettings()
+                shaman.saveSettings()
+            end
+
+            shaman.shaman_settings.proc_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ PROC",
+                shaman.proc_Buffs,
+                shaman.shaman_settings.proc_buff_85_plus_current_idx);
+            if proc_buff_85_plus_current_idx ~= shaman.shaman_settings.proc_buff_85_plus_current_idx then
+                proc_buff_85_plus_current_idx = shaman.shaman_settings.proc_buff_85_plus_current_idx
+                shaman.saveSettings()
             end
             imgui.TreePop()
         end
-        
+
         --
         -- Help
         --

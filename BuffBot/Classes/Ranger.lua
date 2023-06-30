@@ -154,15 +154,16 @@ ranger.ranger_settings = {
     attack_buff_85_plus_current_idx = 1,
 }
 
-local function saveRangerSettings()
-    SaveSettings(iniPath, ranger.ranger_settings)
+function ranger.saveSettings()
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniPath, ranger.ranger_settings)
 end
 
-local function setup()
+function ranger.Setup()
     local conf
     local configData, err = loadfile(iniPath)
     if err then
-        saveRangerSettings()
+        ranger.saveSettings()
     elseif configData then
         conf = configData()
         ranger.ranger_settings = conf
@@ -172,7 +173,7 @@ local function setup()
         ranger.ac_Buffs = ranger.ranger_settings.acBuffs
     end
 end
-setup()
+
 function ranger.MemorizeSpells()
     if ranger.ranger_settings.buffs_1_45_Enabled then
         Casting.MemSpell(ranger.ranger_settings.hpBuffs[ranger.ranger_settings.hp_buff_1_45_current_idx], 1)
@@ -255,36 +256,6 @@ function ranger.Buff()
     end
 end
 
-local CreateBuffBox = {
-    flags = 0
-}
-
-function CreateBuffBox:draw(cb_label, buffs, current_idx)
-    local combo_buffs = buffs[current_idx]
-    local spell_Icon = mq.TLO.Spell(buffs[current_idx]).SpellIcon()
-
-    local box = mq.FindTextureAnimation("A_SpellIcons")
-    box:SetTextureCell(spell_Icon)
-    ImGui.DrawTextureAnimation(box, 20, 20)
-    ImGui.SameLine();
-    if ImGui.BeginCombo(cb_label, combo_buffs) then
-        for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
-                spell_Icon = mq.TLO.Spell(buffs[n]).SpellIcon();
-            end
-
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-                ImGui.SetItemDefaultFocus()
-            end
-        end
-        ImGui.EndCombo()
-    end
-    return current_idx
-end
-
 local sow_Enabled
 local sow_1_45_current_idx
 local sow_46_plus_current_idx
@@ -335,22 +306,22 @@ function ranger.ShowClassBuffBotGUI()
             ranger.ranger_settings.sow_Enabled = ImGui.Checkbox('Enable', ranger.ranger_settings.sow_Enabled)
             if sow_Enabled ~= ranger.ranger_settings.sow_Enabled then
                 sow_Enabled = ranger.ranger_settings.sow_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
-            ranger.ranger_settings.sow_1_45_current_idx = CreateBuffBox:draw("1-45 SoW", ranger.sow_Buffs,
+            ranger.ranger_settings.sow_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 SoW", ranger.sow_Buffs,
                 ranger.ranger_settings.sow_1_45_current_idx);
             if sow_1_45_current_idx ~= ranger.ranger_settings.sow_1_45_current_idx then
                 sow_1_45_current_idx = ranger.ranger_settings.sow_1_45_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.sow_46_plus_current_idx = CreateBuffBox:draw("46+ SoW", ranger.sow_Buffs,
+            ranger.ranger_settings.sow_46_plus_current_idx = GUI.CreateBuffBox:draw("46+ SoW", ranger.sow_Buffs,
                 ranger.ranger_settings.sow_46_plus_current_idx);
             if sow_46_plus_current_idx ~= ranger.ranger_settings.sow_46_plus_current_idx then
                 sow_46_plus_current_idx = ranger.ranger_settings.sow_46_plus_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end
@@ -365,37 +336,37 @@ function ranger.ShowClassBuffBotGUI()
                 ranger.ranger_settings.buffs_1_45_Enabled)
             if buffs_1_45_Enabled ~= ranger.ranger_settings.buffs_1_45_Enabled then
                 buffs_1_45_Enabled = ranger.ranger_settings.buffs_1_45_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
 
-            ranger.ranger_settings.hp_buff_1_45_current_idx = CreateBuffBox:draw("1-45 HP", ranger.hp_Buffs,
+            ranger.ranger_settings.hp_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 HP", ranger.hp_Buffs,
                 ranger.ranger_settings.hp_buff_1_45_current_idx);
             if hp_buff_1_45_current_idx ~= ranger.ranger_settings.hp_buff_1_45_current_idx then
                 hp_buff_1_45_current_idx = ranger.ranger_settings.hp_buff_1_45_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ds_buff_1_45_current_idx = CreateBuffBox:draw("1-45 DS", ranger.ds_Buffs,
+            ranger.ranger_settings.ds_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 DS", ranger.ds_Buffs,
                 ranger.ranger_settings.ds_buff_1_45_current_idx);
             if ds_buff_1_45_current_idx ~= ranger.ranger_settings.ds_buff_1_45_current_idx then
                 ds_buff_1_45_current_idx = ranger.ranger_settings.ds_buff_1_45_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.attack_buff_1_45_current_idx = CreateBuffBox:draw("1-45 ATTACK", ranger.attack_Buffs,
+            ranger.ranger_settings.attack_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 ATTACK", ranger.attack_Buffs,
                 ranger.ranger_settings.attack_buff_1_45_current_idx);
             if attack_buff_1_45_current_idx ~= ranger.ranger_settings.attack_buff_1_45_current_idx then
                 attack_buff_1_45_current_idx = ranger.ranger_settings.attack_buff_1_45_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ac_buff_1_45_current_idx = CreateBuffBox:draw("1-45 AC", ranger.ac_Buffs,
+            ranger.ranger_settings.ac_buff_1_45_current_idx = GUI.CreateBuffBox:draw("1-45 AC", ranger.ac_Buffs,
                 ranger.ranger_settings.ac_buff_1_45_current_idx);
             if ac_buff_1_45_current_idx ~= ranger.ranger_settings.ac_buff_1_45_current_idx then
                 ac_buff_1_45_current_idx = ranger.ranger_settings.ac_buff_1_45_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end
@@ -411,37 +382,37 @@ function ranger.ShowClassBuffBotGUI()
                 ranger.ranger_settings.buffs_46_60_Enabled)
             if buffs_46_60_Enabled ~= ranger.ranger_settings.buffs_46_60_Enabled then
                 buffs_46_60_Enabled = ranger.ranger_settings.buffs_46_60_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
-            ranger.ranger_settings.hp_buff_46_60_current_idx = CreateBuffBox:draw("46-60 HP", ranger.hp_Buffs,
+            ranger.ranger_settings.hp_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 HP", ranger.hp_Buffs,
                 ranger.ranger_settings.hp_buff_46_60_current_idx);
             if hp_buff_46_60_current_idx ~= ranger.ranger_settings.hp_buff_46_60_current_idx then
                 hp_buff_46_60_current_idx = ranger.ranger_settings.hp_buff_46_60_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ds_buff_46_60_current_idx = CreateBuffBox:draw("46-60 DS", ranger.ds_Buffs,
+            ranger.ranger_settings.ds_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 DS", ranger.ds_Buffs,
                 ranger.ranger_settings.ds_buff_46_60_current_idx);
             if ds_buff_46_60_current_idx ~= ranger.ranger_settings.ds_buff_46_60_current_idx then
                 ds_buff_46_60_current_idx = ranger.ranger_settings.ds_buff_46_60_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.attack_buff_46_60_current_idx = CreateBuffBox:draw("46-60 ATTACK", ranger
+            ranger.ranger_settings.attack_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 ATTACK", ranger
                 .attack_Buffs,
                 ranger.ranger_settings.attack_buff_46_60_current_idx);
             if attack_buff_46_60_current_idx ~= ranger.ranger_settings.attack_buff_46_60_current_idx then
                 attack_buff_46_60_current_idx = ranger.ranger_settings.attack_buff_46_60_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ac_buff_46_60_current_idx = CreateBuffBox:draw("46-60 AC", ranger.ac_Buffs,
+            ranger.ranger_settings.ac_buff_46_60_current_idx = GUI.CreateBuffBox:draw("46-60 AC", ranger.ac_Buffs,
                 ranger.ranger_settings.ac_buff_46_60_current_idx);
             if ac_buff_46_60_current_idx ~= ranger.ranger_settings.ac_buff_46_60_current_idx then
                 ac_buff_46_60_current_idx = ranger.ranger_settings.ac_buff_46_60_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end
@@ -456,37 +427,37 @@ function ranger.ShowClassBuffBotGUI()
                 ranger.ranger_settings.buffs_61_70_Enabled)
             if buffs_61_70_Enabled ~= ranger.ranger_settings.buffs_61_70_Enabled then
                 buffs_61_70_Enabled = ranger.ranger_settings.buffs_61_70_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
-            ranger.ranger_settings.hp_buff_61_70_current_idx = CreateBuffBox:draw("61-70 HP", ranger.hp_Buffs,
+            ranger.ranger_settings.hp_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 HP", ranger.hp_Buffs,
                 ranger.ranger_settings.hp_buff_61_70_current_idx);
             if hp_buff_61_70_current_idx ~= ranger.ranger_settings.hp_buff_61_70_current_idx then
                 hp_buff_61_70_current_idx = ranger.ranger_settings.hp_buff_61_70_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ds_buff_61_70_current_idx = CreateBuffBox:draw("61-70 DS", ranger.ds_Buffs,
+            ranger.ranger_settings.ds_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 DS", ranger.ds_Buffs,
                 ranger.ranger_settings.ds_buff_61_70_current_idx);
             if ds_buff_61_70_current_idx ~= ranger.ranger_settings.ds_buff_61_70_current_idx then
                 ds_buff_61_70_current_idx = ranger.ranger_settings.ds_buff_61_70_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.attack_buff_61_70_current_idx = CreateBuffBox:draw("61-70 ATTACK", ranger
+            ranger.ranger_settings.attack_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 ATTACK", ranger
                 .attack_Buffs,
                 ranger.ranger_settings.attack_buff_61_70_current_idx);
             if attack_buff_61_70_current_idx ~= ranger.ranger_settings.attack_buff_61_70_current_idx then
                 attack_buff_61_70_current_idx = ranger.ranger_settings.attack_buff_61_70_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ac_buff_61_70_current_idx = CreateBuffBox:draw("61-70 AC", ranger.ac_Buffs,
+            ranger.ranger_settings.ac_buff_61_70_current_idx = GUI.CreateBuffBox:draw("61-70 AC", ranger.ac_Buffs,
                 ranger.ranger_settings.ac_buff_61_70_current_idx);
             if ac_buff_61_70_current_idx ~= ranger.ranger_settings.ac_buff_61_70_current_idx then
                 ac_buff_61_70_current_idx = ranger.ranger_settings.ac_buff_61_70_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end
@@ -501,45 +472,45 @@ function ranger.ShowClassBuffBotGUI()
                 ranger.ranger_settings.buffs_71_84_Enabled)
             if buffs_71_84_Enabled ~= ranger.ranger_settings.buffs_71_84_Enabled then
                 buffs_71_84_Enabled = ranger.ranger_settings.buffs_71_84_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
-            ranger.ranger_settings.hp_buff_71_84_current_idx = CreateBuffBox:draw("71-84 HP", ranger.hp_Buffs,
+            ranger.ranger_settings.hp_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 HP", ranger.hp_Buffs,
                 ranger.ranger_settings.hp_buff_71_84_current_idx);
             if hp_buff_71_84_current_idx ~= ranger.ranger_settings.hp_buff_71_84_current_idx then
                 hp_buff_71_84_current_idx = ranger.ranger_settings.hp_buff_71_84_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ds_buff_71_84_current_idx = CreateBuffBox:draw("71-84 DS", ranger.ds_Buffs,
+            ranger.ranger_settings.ds_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 DS", ranger.ds_Buffs,
                 ranger.ranger_settings.ds_buff_71_84_current_idx);
             if ds_buff_71_84_current_idx ~= ranger.ranger_settings.ds_buff_71_84_current_idx then
                 ds_buff_71_84_current_idx = ranger.ranger_settings.ds_buff_71_84_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.attack_buff_71_84_current_idx = CreateBuffBox:draw("71-84 ATTACK", ranger
+            ranger.ranger_settings.attack_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 ATTACK", ranger
                 .attack_Buffs,
                 ranger.ranger_settings.attack_buff_71_84_current_idx);
             if attack_buff_71_84_current_idx ~= ranger.ranger_settings.attack_buff_71_84_current_idx then
                 attack_buff_71_84_current_idx = ranger.ranger_settings.attack_buff_71_84_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ac_buff_71_84_current_idx = CreateBuffBox:draw("71-84 AC", ranger.ac_Buffs,
+            ranger.ranger_settings.ac_buff_71_84_current_idx = GUI.CreateBuffBox:draw("71-84 AC", ranger.ac_Buffs,
                 ranger.ranger_settings.ac_buff_71_84_current_idx);
             if ac_buff_71_84_current_idx ~= ranger.ranger_settings.ac_buff_71_84_current_idx then
                 ac_buff_71_84_current_idx = ranger.ranger_settings.ac_buff_71_84_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.enrichment_buff_75_current_idx = CreateBuffBox:draw("75+ Enrichment",
+            ranger.ranger_settings.enrichment_buff_75_current_idx = GUI.CreateBuffBox:draw("75+ Enrichment",
                 ranger.enrichment_Buffs,
                 ranger.ranger_settings.enrichment_buff_75_current_idx);
             if enrichment_buff_75_current_idx ~= ranger.ranger_settings.enrichment_buff_75_current_idx then
                 enrichment_buff_75_current_idx = ranger.ranger_settings.enrichment_buff_75_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end
@@ -554,37 +525,37 @@ function ranger.ShowClassBuffBotGUI()
                 ranger.ranger_settings.buffs_85_plus_Enabled)
             if buffs_85_plus_Enabled ~= ranger.ranger_settings.buffs_85_plus_Enabled then
                 buffs_85_plus_Enabled = ranger.ranger_settings.buffs_85_plus_Enabled
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             ImGui.Separator()
 
-            ranger.ranger_settings.hp_buff_85_plus_current_idx = CreateBuffBox:draw("85+ HP", ranger.hp_Buffs,
+            ranger.ranger_settings.hp_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ HP", ranger.hp_Buffs,
                 ranger.ranger_settings.hp_buff_85_plus_current_idx);
             if hp_buff_85_plus_current_idx ~= ranger.ranger_settings.hp_buff_85_plus_current_idx then
                 hp_buff_85_plus_current_idx = ranger.ranger_settings.hp_buff_85_plus_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ds_buff_85_plus_current_idx = CreateBuffBox:draw("85+ DS", ranger.ds_Buffs,
+            ranger.ranger_settings.ds_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ DS", ranger.ds_Buffs,
                 ranger.ranger_settings.ds_buff_85_plus_current_idx);
             if ds_buff_85_plus_current_idx ~= ranger.ranger_settings.ds_buff_85_plus_current_idx then
                 ds_buff_85_plus_current_idx = ranger.ranger_settings.ds_buff_85_plus_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.ac_buff_85_plus_current_idx = CreateBuffBox:draw("85+ AC", ranger.ac_Buffs,
+            ranger.ranger_settings.ac_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ AC", ranger.ac_Buffs,
                 ranger.ranger_settings.ac_buff_85_plus_current_idx);
             if ac_buff_85_plus_current_idx ~= ranger.ranger_settings.ac_buff_85_plus_current_idx then
                 ac_buff_85_plus_current_idx = ranger.ranger_settings.ac_buff_85_plus_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
 
-            ranger.ranger_settings.attack_buff_85_plus_current_idx = CreateBuffBox:draw("85+ ATTACK", ranger
+            ranger.ranger_settings.attack_buff_85_plus_current_idx = GUI.CreateBuffBox:draw("85+ ATTACK", ranger
                 .attack_Buffs,
                 ranger.ranger_settings.attack_buff_85_plus_current_idx);
             if attack_buff_85_plus_current_idx ~= ranger.ranger_settings.attack_buff_85_plus_current_idx then
                 attack_buff_85_plus_current_idx = ranger.ranger_settings.attack_buff_85_plus_current_idx
-                saveRangerSettings()
+                ranger.saveSettings()
             end
             imgui.TreePop()
         end

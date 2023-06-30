@@ -110,50 +110,36 @@ wizard.wizard_settings = {
     commonPort13_Enabled = false
 }
 
-local function saveWizardSettings()
-    SaveSettings(iniPath, wizard.wizard_settings)
+function wizard.saveSettings()
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniPath, wizard.wizard_settings_settings)
 end
 
-local function setup()
+function wizard.Setup()
     local conf
     local configData, err = loadfile(iniPath)
     if err then
-        saveWizardSettings()
+        wizard.saveSettings()
     elseif configData then
         conf = configData()
         wizard.wizard_settings = conf
     end
 end
-setup()
 
-wizard.CreateBuffBox = {
-    flags = 0
-}
-
-function wizard.CreateBuffBox:draw(cb_label, buffs, current_idx)
-    local combo_buffs = buffs[current_idx]
-    local spell_Icon = mq.TLO.Spell(buffs[current_idx]).SpellIcon()
-
-    local box = mq.FindTextureAnimation("A_SpellIcons")
-    box:SetTextureCell(spell_Icon)
-    ImGui.DrawTextureAnimation(box, 20, 20)
-    ImGui.SameLine();
-    if ImGui.BeginCombo(cb_label, combo_buffs) then
-        for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
-                spell_Icon = mq.TLO.Spell(buffs[n]).SpellIcon();
-            end
-
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-                ImGui.SetItemDefaultFocus()
-            end
-        end
-        ImGui.EndCombo()
-    end
-    return current_idx
+function wizard.MemorizeSpells()
+    if wizard.wizard_settings.commonPort01_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort01], 1) end
+    if wizard.wizard_settings.commonPort02_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort02], 1) end
+    if wizard.wizard_settings.commonPort03_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort03], 1) end
+    if wizard.wizard_settings.commonPort04_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort04], 1) end
+    if wizard.wizard_settings.commonPort05_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort05], 1) end
+    if wizard.wizard_settings.commonPort06_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort06], 1) end
+    if wizard.wizard_settings.commonPort07_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort07], 1) end
+    if wizard.wizard_settings.commonPort08_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort08], 1) end
+    if wizard.wizard_settings.commonPort09_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort09], 1) end
+    if wizard.wizard_settings.commonPort10_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort10], 1) end
+    if wizard.wizard_settings.commonPort11_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort11], 1) end
+    if wizard.wizard_settings.commonPort12_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort12], 1) end
+    if wizard.wizard_settings.commonPort13_Enabled then Casting.MemSpell(wizard.wizard_settings.portList[wizard.wizard_settings.commonPort13], 1) end
 end
 
 local CommonPort01_Enabled
@@ -203,8 +189,8 @@ function wizard.ShowWizardBuffbot()
     -- Help
     --
     if imgui.CollapsingHeader("Wizard") then
-        ImGui.Text("Paladin Module:");
-        ImGui.BulletText("This module will be available shortly.");
+        ImGui.Text("WIZARD:");
+        ImGui.BulletText('Please say "ports" for a list of ports.')
         ImGui.Separator();
     end
     --
@@ -215,21 +201,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort01_Enabled)
         if CommonPort01_Enabled ~= wizard.wizard_settings.commonPort01_Enabled then
             CommonPort01_Enabled = wizard.wizard_settings.commonPort01_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort01_current_idx = wizard.CreateBuffBox:draw("Common Port:##01", wizard.portsList,
+        wizard.wizard_settings.commonPort01_current_idx = GUI.CreateBuffBox:draw("Common Port:##01", wizard.portsList,
             wizard.wizard_settings.commonPort01_current_idx);
         if CommonPort01_current_idx ~= wizard.wizard_settings.commonPort01_current_idx then
             CommonPort01_current_idx = wizard.wizard_settings.commonPort01_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort01_gem = wizard.CreateBuffBox:draw("Gem:##01", wizard.gemList,
+        wizard.wizard_settings.commonPort01_gem = GUI.CreateBuffBox:draw("Gem:##01", wizard.gemList,
             wizard.wizard_settings.commonPort01_gem);
         if CommonPort01_gem ~= wizard.wizard_settings.commonPort01_gem then
             CommonPort01_gem = wizard.wizard_settings.commonPort01_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -237,21 +223,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort02_Enabled)
         if CommonPort02_Enabled ~= wizard.wizard_settings.commonPort02_Enabled then
             CommonPort02_Enabled = wizard.wizard_settings.commonPort02_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort02_current_idx = wizard.CreateBuffBox:draw("Common Port:##02", wizard.portsList,
+        wizard.wizard_settings.commonPort02_current_idx = GUI.CreateBuffBox:draw("Common Port:##02", wizard.portsList,
             wizard.wizard_settings.commonPort02_current_idx);
         if CommonPort02_current_idx ~= wizard.wizard_settings.commonPort02_current_idx then
             CommonPort02_current_idx = wizard.wizard_settings.commonPort02_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort02_gem = wizard.CreateBuffBox:draw("Gem:##02", wizard.gemList,
+        wizard.wizard_settings.commonPort02_gem = GUI.CreateBuffBox:draw("Gem:##02", wizard.gemList,
             wizard.wizard_settings.commonPort02_gem);
         if CommonPort02_gem ~= wizard.wizard_settings.commonPort02_gem then
             CommonPort02_gem = wizard.wizard_settings.commonPort02_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -260,21 +246,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort03_Enabled)
         if CommonPort03_Enabled ~= wizard.wizard_settings.commonPort03_Enabled then
             CommonPort03_Enabled = wizard.wizard_settings.commonPort03_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort03_current_idx = wizard.CreateBuffBox:draw("Common Port:##03", wizard.portsList,
+        wizard.wizard_settings.commonPort03_current_idx = GUI.CreateBuffBox:draw("Common Port:##03", wizard.portsList,
             wizard.wizard_settings.commonPort03_current_idx);
         if CommonPort03_current_idx ~= wizard.wizard_settings.commonPort03_current_idx then
             CommonPort03_current_idx = wizard.wizard_settings.commonPort03_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort03_gem = wizard.CreateBuffBox:draw("Gem:##03", wizard.gemList,
+        wizard.wizard_settings.commonPort03_gem = GUI.CreateBuffBox:draw("Gem:##03", wizard.gemList,
             wizard.wizard_settings.commonPort03_gem);
         if CommonPort03_gem ~= wizard.wizard_settings.commonPort03_gem then
             CommonPort03_gem = wizard.wizard_settings.commonPort03_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -283,21 +269,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort04_Enabled)
         if CommonPort04_Enabled ~= wizard.wizard_settings.commonPort04_Enabled then
             CommonPort04_Enabled = wizard.wizard_settings.commonPort04_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort04_current_idx = wizard.CreateBuffBox:draw("Common Port:##04", wizard.portsList,
+        wizard.wizard_settings.commonPort04_current_idx = GUI.CreateBuffBox:draw("Common Port:##04", wizard.portsList,
             wizard.wizard_settings.commonPort04_current_idx);
         if CommonPort04_current_idx ~= wizard.wizard_settings.commonPort04_current_idx then
             CommonPort04_current_idx = wizard.wizard_settings.commonPort04_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort04_gem = wizard.CreateBuffBox:draw("Gem:##04", wizard.gemList,
+        wizard.wizard_settings.commonPort04_gem = GUI.CreateBuffBox:draw("Gem:##04", wizard.gemList,
             wizard.wizard_settings.commonPort04_gem);
         if CommonPort04_gem ~= wizard.wizard_settings.commonPort04_gem then
             CommonPort04_gem = wizard.wizard_settings.commonPort04_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -306,21 +292,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort05_Enabled)
         if CommonPort05_Enabled ~= wizard.wizard_settings.commonPort05_Enabled then
             CommonPort05_Enabled = wizard.wizard_settings.commonPort05_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort05_current_idx = wizard.CreateBuffBox:draw("Common Port:##05", wizard.portsList,
+        wizard.wizard_settings.commonPort05_current_idx = GUI.CreateBuffBox:draw("Common Port:##05", wizard.portsList,
             wizard.wizard_settings.commonPort05_current_idx);
         if CommonPort05_current_idx ~= wizard.wizard_settings.commonPort05_current_idx then
             CommonPort05_current_idx = wizard.wizard_settings.commonPort05_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort05_gem = wizard.CreateBuffBox:draw("Gem:##05", wizard.gemList,
+        wizard.wizard_settings.commonPort05_gem = GUI.CreateBuffBox:draw("Gem:##05", wizard.gemList,
             wizard.wizard_settings.commonPort05_gem);
         if CommonPort05_gem ~= wizard.wizard_settings.commonPort05_gem then
             CommonPort05_gem = wizard.wizard_settings.commonPort05_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -329,21 +315,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort06_Enabled)
         if CommonPort06_Enabled ~= wizard.wizard_settings.commonPort06_Enabled then
             CommonPort06_Enabled = wizard.wizard_settings.commonPort06_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort06_current_idx = wizard.CreateBuffBox:draw("Common Port:##06", wizard.portsList,
+        wizard.wizard_settings.commonPort06_current_idx = GUI.CreateBuffBox:draw("Common Port:##06", wizard.portsList,
             wizard.wizard_settings.commonPort06_current_idx);
         if CommonPort06_current_idx ~= wizard.wizard_settings.commonPort06_current_idx then
             CommonPort06_current_idx = wizard.wizard_settings.commonPort06_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort06_gem = wizard.CreateBuffBox:draw("Gem:##06", wizard.gemList,
+        wizard.wizard_settings.commonPort06_gem = GUI.CreateBuffBox:draw("Gem:##06", wizard.gemList,
             wizard.wizard_settings.commonPort06_gem);
         if CommonPort06_gem ~= wizard.wizard_settings.commonPort06_gem then
             CommonPort06_gem = wizard.wizard_settings.commonPort06_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -352,21 +338,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort07_Enabled)
         if CommonPort07_Enabled ~= wizard.wizard_settings.commonPort07_Enabled then
             CommonPort07_Enabled = wizard.wizard_settings.commonPort07_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort07_current_idx = wizard.CreateBuffBox:draw("Common Port:##07", wizard.portsList,
+        wizard.wizard_settings.commonPort07_current_idx = GUI.CreateBuffBox:draw("Common Port:##07", wizard.portsList,
             wizard.wizard_settings.commonPort07_current_idx);
         if CommonPort07_current_idx ~= wizard.wizard_settings.commonPort07_current_idx then
             CommonPort07_current_idx = wizard.wizard_settings.commonPort07_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort07_gem = wizard.CreateBuffBox:draw("Gem:##07", wizard.gemList,
+        wizard.wizard_settings.commonPort07_gem = GUI.CreateBuffBox:draw("Gem:##07", wizard.gemList,
             wizard.wizard_settings.commonPort07_gem);
         if CommonPort07_gem ~= wizard.wizard_settings.commonPort07_gem then
             CommonPort07_gem = wizard.wizard_settings.commonPort07_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -375,21 +361,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort08_Enabled)
         if CommonPort08_Enabled ~= wizard.wizard_settings.commonPort08_Enabled then
             CommonPort08_Enabled = wizard.wizard_settings.commonPort08_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort08_current_idx = wizard.CreateBuffBox:draw("Common Port:##08", wizard.portsList,
+        wizard.wizard_settings.commonPort08_current_idx = GUI.CreateBuffBox:draw("Common Port:##08", wizard.portsList,
             wizard.wizard_settings.commonPort08_current_idx);
         if CommonPort08_current_idx ~= wizard.wizard_settings.commonPort08_current_idx then
             CommonPort08_current_idx = wizard.wizard_settings.commonPort08_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort08_gem = wizard.CreateBuffBox:draw("Gem:##08", wizard.gemList,
+        wizard.wizard_settings.commonPort08_gem = GUI.CreateBuffBox:draw("Gem:##08", wizard.gemList,
             wizard.wizard_settings.commonPort08_gem);
         if CommonPort08_gem ~= wizard.wizard_settings.commonPort08_gem then
             CommonPort08_gem = wizard.wizard_settings.commonPort08_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -398,21 +384,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort09_Enabled)
         if CommonPort09_Enabled ~= wizard.wizard_settings.commonPort09_Enabled then
             CommonPort09_Enabled = wizard.wizard_settings.commonPort09_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort09_current_idx = wizard.CreateBuffBox:draw("Common Port:##09", wizard.portsList,
+        wizard.wizard_settings.commonPort09_current_idx = GUI.CreateBuffBox:draw("Common Port:##09", wizard.portsList,
             wizard.wizard_settings.commonPort09_current_idx);
         if CommonPort09_current_idx ~= wizard.wizard_settings.commonPort09_current_idx then
             CommonPort09_current_idx = wizard.wizard_settings.commonPort09_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort09_gem = wizard.CreateBuffBox:draw("Gem:##09", wizard.gemList,
+        wizard.wizard_settings.commonPort09_gem = GUI.CreateBuffBox:draw("Gem:##09", wizard.gemList,
             wizard.wizard_settings.commonPort09_gem);
         if CommonPort09_gem ~= wizard.wizard_settings.commonPort09_gem then
             CommonPort09_gem = wizard.wizard_settings.commonPort09_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -421,21 +407,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort10_Enabled)
         if CommonPort10_Enabled ~= wizard.wizard_settings.commonPort10_Enabled then
             CommonPort10_Enabled = wizard.wizard_settings.commonPort10_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort10_current_idx = wizard.CreateBuffBox:draw("Common Port:##10", wizard.portsList,
+        wizard.wizard_settings.commonPort10_current_idx = GUI.CreateBuffBox:draw("Common Port:##10", wizard.portsList,
             wizard.wizard_settings.commonPort10_current_idx);
         if CommonPort10_current_idx ~= wizard.wizard_settings.commonPort10_current_idx then
             CommonPort10_current_idx = wizard.wizard_settings.commonPort10_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort10_gem = wizard.CreateBuffBox:draw("Gem:##10", wizard.gemList,
+        wizard.wizard_settings.commonPort10_gem = GUI.CreateBuffBox:draw("Gem:##10", wizard.gemList,
             wizard.wizard_settings.commonPort10_gem);
         if CommonPort10_gem ~= wizard.wizard_settings.commonPort10_gem then
             CommonPort10_gem = wizard.wizard_settings.commonPort10_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -444,21 +430,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort11_Enabled)
         if CommonPort11_Enabled ~= wizard.wizard_settings.commonPort11_Enabled then
             CommonPort11_Enabled = wizard.wizard_settings.commonPort11_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort11_current_idx = wizard.CreateBuffBox:draw("Common Port:##11", wizard.portsList,
+        wizard.wizard_settings.commonPort11_current_idx = GUI.CreateBuffBox:draw("Common Port:##11", wizard.portsList,
             wizard.wizard_settings.commonPort11_current_idx);
         if CommonPort11_current_idx ~= wizard.wizard_settings.commonPort11_current_idx then
             CommonPort11_current_idx = wizard.wizard_settings.commonPort11_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort11_gem = wizard.CreateBuffBox:draw("Gem:##11", wizard.gemList,
+        wizard.wizard_settings.commonPort11_gem = GUI.CreateBuffBox:draw("Gem:##11", wizard.gemList,
             wizard.wizard_settings.commonPort11_gem);
         if CommonPort11_gem ~= wizard.wizard_settings.commonPort11_gem then
             CommonPort11_gem = wizard.wizard_settings.commonPort11_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -467,21 +453,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort12_Enabled)
         if CommonPort12_Enabled ~= wizard.wizard_settings.commonPort12_Enabled then
             CommonPort12_Enabled = wizard.wizard_settings.commonPort12_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort12_current_idx = wizard.CreateBuffBox:draw("Common Port:##12", wizard.portsList,
+        wizard.wizard_settings.commonPort12_current_idx = GUI.CreateBuffBox:draw("Common Port:##12", wizard.portsList,
             wizard.wizard_settings.commonPort12_current_idx);
         if CommonPort12_current_idx ~= wizard.wizard_settings.commonPort12_current_idx then
             CommonPort12_current_idx = wizard.wizard_settings.commonPort12_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort12_gem = wizard.CreateBuffBox:draw("Gem:##12", wizard.gemList,
+        wizard.wizard_settings.commonPort12_gem = GUI.CreateBuffBox:draw("Gem:##12", wizard.gemList,
             wizard.wizard_settings.commonPort12_gem);
         if CommonPort12_gem ~= wizard.wizard_settings.commonPort12_gem then
             CommonPort12_gem = wizard.wizard_settings.commonPort12_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.Separator();
 
@@ -490,21 +476,21 @@ function wizard.ShowWizardBuffbot()
             wizard.wizard_settings.commonPort13_Enabled)
         if CommonPort13_Enabled ~= wizard.wizard_settings.commonPort13_Enabled then
             CommonPort13_Enabled = wizard.wizard_settings.commonPort13_Enabled
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort13_current_idx = wizard.CreateBuffBox:draw("Common Port:##13", wizard.portsList,
+        wizard.wizard_settings.commonPort13_current_idx = GUI.CreateBuffBox:draw("Common Port:##13", wizard.portsList,
             wizard.wizard_settings.commonPort13_current_idx);
         if CommonPort13_current_idx ~= wizard.wizard_settings.commonPort13_current_idx then
             CommonPort13_current_idx = wizard.wizard_settings.commonPort13_current_idx
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         ImGui.SameLine()
-        wizard.wizard_settings.commonPort13_gem = wizard.CreateBuffBox:draw("Gem:##13", wizard.gemList,
+        wizard.wizard_settings.commonPort13_gem = GUI.CreateBuffBox:draw("Gem:##13", wizard.gemList,
             wizard.wizard_settings.commonPort13_gem);
         if CommonPort13_gem ~= wizard.wizard_settings.commonPort13_gem then
             CommonPort13_gem = wizard.wizard_settings.commonPort13_gem
-            saveWizardSettings()
+            wizard.saveSettings()
         end
         imgui.TreePop()
     end

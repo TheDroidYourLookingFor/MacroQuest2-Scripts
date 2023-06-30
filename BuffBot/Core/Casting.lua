@@ -176,6 +176,56 @@ function casting.castPort(portSpellName)
     end
 end
 
+function casting.castSummon(summonSpellName, summonIsAltAbility)
+    if DEBUG then print('Casting ' .. summonSpellName .. ' on ' .. mq.TLO.Target()) end
+    if summonIsAltAbility then
+        local altID = mq.TLO.Me.AltAbility(summonSpellName).ID()
+        mq.cmdf('/alt act %s', altID)
+    else
+        mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(summonSpellName).RankName() .. '" ')
+    end
+    mq.delay(15000, Casting.DoneCasting)
+    mq.doevents()
+    mq.delay(250)
+    if Fizzled_Last_Spell then
+        Fizzled_Last_Spell = false
+        casting.castSummon(summonSpellName, summonIsAltAbility)
+    end
+end
+
+
+function casting.SummonTarget(WhoToSummon, SummonSpell)
+    local TargAccBal = Accounting.GetBalance(WhoToSummon)
+    local TargIsFriend
+    local TargGuildIsFriend
+    if Settings.AccountMode then TargAccBal = Accounting.GetBalance(WhoToSummon) end
+    if Settings.FriendMode then TargIsFriend = Accounting.GetFriend(WhoToSummon) end
+    if Settings.GuildMode then TargGuildIsFriend = Accounting.GetGuild(WhoToSummon) end
+    if Settings.BuffGuildOnly and mq.TLO.Spawn('pc ' .. WhoToSummon).Guild ~= mq.TLO.Me.Guild and not (TargIsFriend or TargGuildIsFriend) then return end
+    if (Settings.AccountMode and TargAccBal < Settings.BuffCost) and not (TargIsFriend or TargGuildIsFriend or Settings.FriendFree or Settings.GuildFree) then
+        mq.cmd("/tell " ..
+        WhoToSummon ..
+            " (" ..
+            WhoToSummon ..
+            ")Balance:(" ..
+            TargAccBal .. ") Buff Cost:(" .. Settings.BuffCost .. ") Summon Cost:(" .. Settings.SummonCost .. "))")
+        return
+    end
+
+    if mq.TLO.Spawn('pc ' .. WhoToSummon) then
+        if mq.TLO.Me.Sitting() then mq.TLO.Me.Stand() end
+        mq.cmd('/target "' .. WhoToSummon .. '" corpse')
+        mq.delay(2000, mq.TLO.Target.ID)
+        mq.cmd('/face')
+        local summonIsAltAbility = false
+        if SummonSpell == 'Summon Remains' then summonIsAltAbility = true end
+        casting.castSummon(SummonSpell, summonIsAltAbility)
+        if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
+            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToSummon, mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToSummon) - Settings.RezCost))
+        end
+    end
+end
+
 local userHasCorpse = true
 local function event_Failed_Target_Corpse()
     userHasCorpse = false
