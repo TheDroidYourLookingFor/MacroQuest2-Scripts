@@ -10,7 +10,8 @@ function storage.ReadINI(filename, section, option)
 end
 
 function storage.SetINI(filename, section, option, value)
-    mq.cmd('/ini ' .. filename .. ' ' .. section .. ' ' .. option .. ' ' .. value)
+	print(filename, section, option, value)
+    mq.cmdf('/ini "%s" "%s" "%s" "%s"',filename, section, option, value)
 end
 
 storage.dir_exists = function(path)

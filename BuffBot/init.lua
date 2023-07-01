@@ -1,11 +1,11 @@
-local version = '1.0.6'
+local version = '1.0.7'
 ---|------------------------------------------------------------|
 ---|                   BuffBot
 ---|
 ---|              Created by: TheDroidUrLookingFor
 ---|              Modified by: TheDroidUrLookingFor
 ---|
----|		     Version: 1.0.6
+---|		     Version: 1.0.7
 ---|
 ---|------------------------------------------------------------|
 
@@ -30,12 +30,13 @@ SettingsDir = mq.configDir .. '\\BuffBot\\Settings'
 FileName = '\\BuffBot_' .. my_Name .. '.ini'
 IniPath = SettingsDir .. FileName
 
+Class = require('BuffBot.Classes.' .. my_Class .. '')
 Storage = require('BuffBot.Core.Storage')
 Casting = require('BuffBot.Core.Casting')
 Accounting = require('BuffBot.Accounting.Accounting')
 GUI = require('BuffBot.Core.Gui')
 
-DEBUG = true
+DEBUG = false
 MedAtPct = 30
 DoneMeddingPct = 75
 UseAFKMessage = true
@@ -64,7 +65,7 @@ local BotRunning = true
 local supported_Class = false
 
 Settings = {
-    debug = true,
+    debug = DEBUG,
     medAtPct = 35,
     medDonePct = 75,
     useAFKMessage = true,
@@ -89,7 +90,7 @@ Settings = {
     guildFree = true
 }
 
-local versionOrder = { "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2", "1.0.1", "1.0.0" }
+local versionOrder = { "1.0.7", "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2", "1.0.1", "1.0.0" }
 local change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added Cleric Class support',
@@ -128,7 +129,18 @@ local change_Log = {
     ['1.0.6'] = { 'General Update',
         '- Added Conviction and Hand of Conviction to the default cleric hp buff spell list',
         '- Added Unity and Talisman buffs to Shaman HP buff spell list',
-        '- Added Proc line of buffs to Shaman' }
+        '- Added Proc line of buffs to Shaman' },
+    ['1.0.7'] = { 'General Update',
+        '- Added /bb gui command',
+        '- Added /bb quit command',
+        '- Added /bb balance command',
+        '- Added /bb friend command',
+        '- Added /bb guild command',
+        '- Added /bb buff command',
+        '- Added buffing via tells when told "buff me"',
+        '- Added a memorize check into Casting.CastBuff',
+        '- Added a memorize check into Casting.CastRez',
+        '- Added a memorize check into Casting.CastSummon' }
 }
 
 function ScriptInfo()
@@ -151,6 +163,10 @@ function CONSOLEMETHOD(consoleMessage, ...)
     end
 end
 
+function PRINTMETHOD(printMessage, ...)
+    printf("[BuffBot] " .. printMessage, ...)
+end
+
 function SaveSettings(iniFile, settingsList)
     CONSOLEMETHOD('function SaveSettings(iniFile, settingsList) Entry')
     ---@diagnostic disable-next-line: undefined-field
@@ -161,7 +177,6 @@ function Setup()
     CONSOLEMETHOD('function Setup() Entry')
     if not Storage.dir_exists(ConfigDir) then Storage.make_dir(mq.configDir, 'BuffBot') end
     if not Storage.dir_exists(SettingsDir) then Storage.make_dir(mq.configDir, 'BuffBot\\Settings') end
-    print(IniPath)
 
     local conf
     local configData, err = loadfile(IniPath)
@@ -171,13 +186,12 @@ function Setup()
         conf = configData()
         Settings = conf
     end
+
+    PRINTMETHOD('Class detected as %s', my_Class)
+    Class.Setup()
 end
 
 Setup()
-
-CONSOLEMETHOD('Class detected as %s', my_Class)
-Class = require('BuffBot.Classes.' .. my_Class .. '')
-Class.Setup()
 
 local function CheckClassSupport()
     local supported_Classes = {
@@ -251,7 +265,6 @@ local function event_port_handler(line, sender, destination)
         local portSpell = string.lower(string.gsub(port, 'Zephyr: ', ''))
         local portRequested = string.lower(destination)
         if portSpell == portRequested then
-            print(tempHolder)
             portName = tempHolder
             break
         end
@@ -261,7 +274,6 @@ local function event_port_handler(line, sender, destination)
     local portNameShort = string.gsub(portSpellName, 'Zephyr: ', '')
     local portRequested = string.lower(destination)
     if string.lower(portNameShort) == portRequested then
-        print(mq.TLO.Me.Gem(portSpellName)())
         if mq.TLO.Me.Gem(portSpellName)() == nil then Casting.MemSpell(portSpellName, 4) end
         Casting.PortTarget(sender, portSpellName)
         return
@@ -269,7 +281,9 @@ local function event_port_handler(line, sender, destination)
 end
 
 mq.event('Hail', "#1# says, 'Hail, " .. mq.TLO.Me.Name() .. "#*#'", event_buff_handler)
-mq.event('Hail2', "#1# says, in #2#, 'Hail, " .. mq.TLO.Me.Name() .. "#*#'", event_buff_handler)
+mq.event('Hail2', "#1# says, in #*#, 'Hail, " .. mq.TLO.Me.Name() .. "#*#'", event_buff_handler)
+mq.event('Hail3', "#1# tells you, 'buff me#*#'", event_buff_handler)
+mq.event('Hail4', "#1# tells you, in #*#, 'buff me#*#'", event_buff_handler)
 
 mq.event('Ports', "#1# says, 'ports'", event_ports_handler)
 mq.event('Ports2', "#1# says, in #*#, 'ports'", event_ports_handler)
@@ -283,16 +297,7 @@ mq.event('Rez2', "#1# says, in #*#, 'rez'", event_rez_handler)
 mq.event('Summon', "#1# says, in #*#, 'summon'", event_summon_handler)
 mq.event('Summon2', "#1# says, in #*#, 'summon'", event_summon_handler)
 
-function LogPrint()
-    for _, log in pairs(change_Log) do
-        local fullLogVersion
-        for _, logItem in pairs(log) do
-            print(logItem)
-        end
-    end
-end
-
-function LogTest()
+function ChangeLog()
     imgui.Text("Change Log:")
     local logText = ""
     -- Iterate over the versionOrder table
@@ -319,13 +324,13 @@ function LogTest()
     imgui.InputTextMultiline("##changeLog", logText, ImGui.GetWindowSize(), 300, ImGuiInputTextFlags.ReadOnly)
 end
 
-local Open = true
-local ShowUI = true
+local Open = false
+local ShowUI = false
 local function BuffBotGUI()
     if Open then
         Open, ShowUI = ImGui.Begin('TheDroid Buff Bot v' .. version, Open)
-        ImGui.SetWindowSize(610, 680, ImGuiCond.Once)
-        local x_size = 610
+        ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
+        local x_size = 620
         local y_size = 680
         local io = ImGui.GetIO()
         local center_x = io.DisplaySize.x / 2
@@ -347,6 +352,13 @@ local function BuffBotGUI()
                     BotRunning = true
                 end
             end
+            ImGui.SameLine(450)
+            ImGui.Spacing()
+            ImGui.SameLine()
+            if ImGui.Button('Quit BuffBot', buttonImVec2) then
+                MainLoop = false
+            end
+            ImGui.Spacing()
             --
             -- Buff Bot
             --
@@ -418,7 +430,7 @@ local function BuffBotGUI()
                 ImGui.BulletText("TheDroidUrLookingFor");
                 ImGui.Separator();
                 if imgui.CollapsingHeader("Change Log") then
-                    LogTest()
+                    ChangeLog()
                 end
             end
 
@@ -641,6 +653,102 @@ local function BuffBotGUI()
     end
 end
 mq.imgui.init('BuffBot', BuffBotGUI)
+Open = true
+
+local function addComma(number)
+    local formatted = tostring(number)
+    local integerPart, decimalPart = formatted:match("([^%.]+)%.(.*)")
+    local k = integerPart:len()
+    for i = k - 3, 1, -3 do
+        integerPart = integerPart:sub(1, i) .. ',' .. integerPart:sub(i + 1)
+    end
+    return integerPart .. '.' .. decimalPart
+end
+
+local function bb_command(...)
+    local args = { ... }
+    if args ~= nil then
+        if args[1] == 'friend' then
+            if args[2] == 'add' then
+                Storage.SetINI(Accounting.FriendsPath, 'Friends', args[3], true)
+            elseif args[2] == 'del' then
+                Storage.SetINI(Accounting.FriendsPath, 'Friends', args[3], false)
+            elseif args[2] == 'get' then
+                if Accounting.GetFriend(args[3])() == 'TRUE' then
+                    PRINTMETHOD('%s is a friend: %s', args[3], Accounting.GetFriend(args[3]))
+                else
+                    PRINTMETHOD('%s is not a friend: %s', args[3], Accounting.GetFriend(args[3]))
+                end
+            end
+            return
+        elseif args[1] == 'guild' then
+            if args[2] == 'add' then
+                Storage.SetINI(Accounting.GuildsPath, 'Guilds', args[3], true)
+            elseif args[2] == 'del' then
+                Storage.SetINI(Accounting.GuildsPath, 'Guilds', args[3], false)
+            elseif args[2] == 'get' then
+                if Accounting.GetGuild(args[3])() == 'TRUE' then
+                    PRINTMETHOD('%s is a friend: %s', args[3], Accounting.GetGuild(args[3]))
+                else
+                    PRINTMETHOD('%s is not a friend: %s', args[3], Accounting.GetGuild(args[3]))
+                end
+            end
+            return
+        elseif args[1] == 'gui' then
+            if Open then
+                PRINTMETHOD('Hiding Buff Bot GUI')
+                Open = false
+            else
+                PRINTMETHOD('Restoring Buff Bot GUI')
+                Open = true
+            end
+            return
+        elseif args[1] == 'balance' then
+            if args[2] == 'add' then
+                Accounting.AddBalance(args[3], args[4])
+                local accountBalance = Accounting.GetBalance(args[3])
+                accountBalance = string.format("%0.2f", accountBalance)
+                accountBalance = addComma(accountBalance)
+                PRINTMETHOD('%s\'s Balance: $%s', args[3], accountBalance)
+            elseif args[2] == 'del' then
+                Accounting.RemoveBalance(args[3], args[4])
+                local accountBalance = Accounting.GetBalance(args[3])
+                accountBalance = string.format("%0.2f", accountBalance)
+                accountBalance = addComma(accountBalance)
+                PRINTMETHOD('%s\'s Balance: $%s', args[3], accountBalance)
+            elseif args[2] == 'get' then
+                local accountBalance = Accounting.GetBalance(args[3])
+                accountBalance = string.format("%0.2f", accountBalance)
+                accountBalance = addComma(accountBalance)
+                PRINTMETHOD('%s\'s Balance: $%s', args[3], accountBalance)
+            end
+            return
+        elseif args[1] == 'buff' then
+            event_buff_handler('', args[2])
+            return
+        elseif args[1] == 'quit' then
+            MainLoop = false
+            return
+        else
+            PRINTMETHOD('Valid Commands:')
+            PRINTMETHOD('/bb gui - Toggles the BuffBot GUI')
+            PRINTMETHOD('/bb quit - Quits the BuffBot lua script.')
+            PRINTMETHOD('/bb buff friendName - Forces a Buff cycle on friendName')
+            PRINTMETHOD('/bb balance add|del|get friendName - Adds/Removes or checks friends balance')
+            PRINTMETHOD('/bb friend add|del|get friendName - Adds/Removes or checks friend status')
+            PRINTMETHOD('/bb guild add|del|get guildName - Adds/Removes or checks friend status for an entire guild')
+        end
+    else
+        PRINTMETHOD('Valid Commands:')
+        PRINTMETHOD('/bb gui - Toggles the BuffBot GUI')
+        PRINTMETHOD('/bb quit - Quits the BuffBot lua script.')
+        PRINTMETHOD('/bb buff friendName - Forces a Buff cycle on friendName')
+        PRINTMETHOD('/bb balance add|del|get friendName - Adds/Removes or checks friends balance')
+        PRINTMETHOD('/bb friend add|del|get friendName - Adds/Removes or checks friend status')
+        PRINTMETHOD('/bb guild add|del|get guildName - Adds/Removes or checks friend status for an entire guild')
+    end
+end
+mq.bind('/bb', bb_command)
 
 local function med()
     CONSOLEMETHOD('function med() Entry')
@@ -651,9 +759,8 @@ local function med()
     if Settings.useAFKMessage then mq.cmd('/afk ' .. Settings.afkMessage) end
 end
 
-CONSOLEMETHOD('function StartupMessage() Entry')
-print('[NBB]+ Initialized ++[NBB]')
-print('[NBB]++ NEWBIE BUFF BOT STARTED ++[NBB]')
+PRINTMETHOD('+ Initialized ++')
+PRINTMETHOD('++ BUFF BOT STARTED ++')
 Class.MemorizeSpells()
 if Settings.useAFKMessage then mq.cmd('/afk ' .. Settings.afkMessage) end
 
@@ -673,7 +780,11 @@ while MainLoop do
         end
         mq.doevents()
     end
-    mq.delay(1250)
-    if not Open then return end
+    mq.delay(250)
+    if not ShowUI then return end
 end
 CONSOLEMETHOD('Main Loop Exit')
+
+if not MainLoop then
+    mq.unbind('/bb')
+end

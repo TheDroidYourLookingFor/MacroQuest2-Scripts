@@ -40,9 +40,10 @@ local cast_Mode = 'casting'
 function casting.CastBuff(buffName, buffGem)
     CONSOLEMETHOD('[' .. ScriptInfo() .. '] ---> function CastBuff(' .. buffName .. ',' .. buffGem .. ') Entry')
     if mq.TLO.Me.SpellInCooldown() then
-        mq.delay('2s')
+        mq.delay(2000)
         casting.CastBuff(buffName, buffGem)
     end
+    casting.MemSpell(buffName, buffGem)
     CONSOLEMETHOD('[' .. ScriptInfo() .. '] ---> Casting ' .. buffName .. ' on ' .. mq.TLO.Target())
     mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(buffName).RankName() .. '" ' .. buffGem)
     while mq.TLO.Me.Casting() do
@@ -58,7 +59,7 @@ end
 
 function casting.CastItem(itemName)
     CONSOLEMETHOD('[' .. ScriptInfo() .. '] ---> function CastItem(' .. itemName .. ') Entry')
-    if DEBUG then print('Casting ' .. itemName .. ' on ' .. mq.TLO.Target()) end
+    CONSOLEMETHOD('Casting ' .. itemName .. ' on ' .. mq.TLO.Target())
     mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. itemName .. '" item')
     mq.delay(15000, casting.DoneCasting)
     mq.doevents()
@@ -96,7 +97,7 @@ function casting.BuffTarget(WhoToBuff)
     mq.TLO.Spawn('pc ' .. WhoToBuff).DoTarget()
     mq.delay(2, mq.TLO.Target.ID)
 
-    if mq.TLO.Target() == WhoToBuff then print('Buffing started on ' .. mq.TLO.Target() .. '!') else return end
+    if mq.TLO.Target() == WhoToBuff then PRINTMETHOD('Buffing started on ' .. mq.TLO.Target() .. '!') else return end
 
     local windowOpen = mq.TLO.Window('TradeWnd').Open()
     if windowOpen then Accounting.ProcessTrade() end
@@ -106,14 +107,14 @@ function casting.BuffTarget(WhoToBuff)
         mq.delay(2, mq.TLO.Target.ID)
         mq.cmd('/face')
         Buff()
-        print('Serviced: ' .. mq.TLO.Target())
+        PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
             Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
                 mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
                     Settings.BuffCost))
         end
     else
-        print(WhoToBuff .. ' has no Pet moving on.')
+        PRINTMETHOD(WhoToBuff .. ' has no Pet moving on.')
     end
 
     if TargMercID > 0 then
@@ -121,14 +122,14 @@ function casting.BuffTarget(WhoToBuff)
         mq.delay(2, mq.TLO.Target.ID)
         mq.cmd('/face')
         Buff()
-        print('Serviced: ' .. mq.TLO.Target())
+        PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
             Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
                 mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
                     Settings.BuffCost))
         end
     else
-        print(WhoToBuff .. ' has no Merc moving on.')
+        PRINTMETHOD(WhoToBuff .. ' has no Merc moving on.')
     end
 
     if mq.TLO.Spawn('pc ' .. mq.TLO.Target()) then
@@ -136,7 +137,7 @@ function casting.BuffTarget(WhoToBuff)
         mq.delay(2, mq.TLO.Target.ID)
         mq.cmd('/face')
         Buff()
-        print('Serviced: ' .. mq.TLO.Target())
+        PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
             Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
                 mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
@@ -144,15 +145,16 @@ function casting.BuffTarget(WhoToBuff)
         end
     end
 
-    print('Buffing Finished on ' .. mq.TLO.Target() .. '!')
+    PRINTMETHOD('Buffing Finished on ' .. mq.TLO.Target() .. '!')
 end
 
 local cast_Mode = 'Casting'
 function casting.castRez(rezSpellName)
-    if DEBUG then print('Casting ' .. rezSpellName .. ' on ' .. mq.TLO.Target()) end
+    CONSOLEMETHOD('Casting ' .. rezSpellName .. ' on ' .. mq.TLO.Target())
     if rezSpellName == 'Blessing of Resurrection' then
         mq.cmd('/alt act 3800')
     else
+        casting.MemSpell(rezSpellName, 5)
         mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(rezSpellName).RankName() .. '" ')
     end
     mq.delay(15000, Casting.DoneCasting)
@@ -165,7 +167,8 @@ function casting.castRez(rezSpellName)
 end
 
 function casting.castPort(portSpellName)
-    if DEBUG then print('Casting ' .. portSpellName .. ' on ' .. mq.TLO.Target()) end
+    CONSOLEMETHOD('Casting ' .. portSpellName .. ' on ' .. mq.TLO.Target())
+    casting.MemSpell(portSpellName, 5)
     mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(portSpellName).RankName() .. '" ')
     mq.delay(15000, Casting.DoneCasting)
     mq.doevents()
@@ -177,11 +180,12 @@ function casting.castPort(portSpellName)
 end
 
 function casting.castSummon(summonSpellName, summonIsAltAbility)
-    if DEBUG then print('Casting ' .. summonSpellName .. ' on ' .. mq.TLO.Target()) end
+    CONSOLEMETHOD('Casting ' .. summonSpellName .. ' on ' .. mq.TLO.Target())
     if summonIsAltAbility then
         local altID = mq.TLO.Me.AltAbility(summonSpellName).ID()
         mq.cmdf('/alt act %s', altID)
     else
+        casting.MemSpell(summonSpellName, 5)
         mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(summonSpellName).RankName() .. '" ')
     end
     mq.delay(15000, Casting.DoneCasting)
@@ -257,7 +261,7 @@ function casting.RezTarget(WhoToRez, RezSpell)
         mq.delay(2000, mq.TLO.Target.ID)
         mq.doevents()
         if not userHasCorpse then
-            if DEBUG then print('User has no corpse.') end
+            CONSOLEMETHOD('User has no corpse.')
             return
         end
         mq.cmd('/face')
