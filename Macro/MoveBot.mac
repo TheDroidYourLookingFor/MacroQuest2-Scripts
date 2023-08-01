@@ -1,0 +1,463 @@
+|------------------------------------------------------------| 
+|          MoveBot.mac 
+| 
+|      Last Modified by: TheDroidUrLookingFor 
+|
+|		Version:	1.0.3
+|
+|------------------------------------------------------------| 
+#turbo
+|------------------------------------------------------------| 
+|          Includes 
+|------------------------------------------------------------| 
+	#include spell_routines.inc
+	#include MQ2Cast_Spell_Routines.inc
+	#include MoveBot.Locations.inc
+|------------------------------------------------------------|
+|          Defines
+|------------------------------------------------------------|
+	#define CASTMODE "MQ2Cast"
+	#define CHATMETHOD       "/echo"
+	#define CHATMETHOD1      "/bc"
+	#define CHATMETHOD2      "/t"
+|------------------------------------------------------------| 
+|          Events 
+|------------------------------------------------------------| 
+	#Event Summon "You have been summoned!"
+|------------------------------------------------------------|
+|          Main Rountine
+|------------------------------------------------------------|
+
+Sub Main
+CHATMETHOD [MB] MoveBot Started up! [MB]
+/if (!${Bool[${Plugin[MQ2Nav]}]}) /plugin mq2nav load
+/call DeclareVars
+
+:MainLoop
+/call Checks
+/if (${Mode.Equal[Camp]}) /call CampMode
+/if (${Mode.Equal[Hunt]}) /call HuntMode
+/if (${Zone.Name.Equal[Hatchery Wing]} && ${Mode.Equal[BuiltIn]}) /call Hatchery
+/if (${Zone.Name.Equal[Wall of Slaughter]} && ${Mode.Equal[BuiltIn]}) /call WallofSlaughter
+/if (${Zone.Name.Equal[Riftseekers' Sanctum]} && ${Mode.Equal[BuiltIn]}) /call RiftSeekers
+/if (${Zone.Name.Equal[Muramite Proving Grounds]} && ${Mode.Equal[BuiltIn]}) /call MuramiteProvingGrounds
+/delay 1s
+/goto :MainLoop
+/return
+|------------------------------------------------------------|
+|          End Main Rountine
+|------------------------------------------------------------|
+Sub CampMode
+/if (${Math.Distance[${AnchorY},${AnchorX}]}>${AnchorRadius} && ${ReturnToCamp}) /call Move ${AnchorX} ${AnchorY} ${AnchorZ}
+/call Pull "TRUE"
+/delay 5
+/call KillAllNear
+/return
+
+Sub HuntMode
+/if (${Math.Distance[${AnchorY},${AnchorX}]}>${AnchorRadius} && ${ReturnToCamp}) /call Move ${AnchorX} ${AnchorY} ${AnchorZ}
+/call Pull "FALSE"
+/delay 5
+/call KillAllNear
+/return
+|------------------------------------------------------------|
+|          Declare Rountine
+|------------------------------------------------------------|
+Sub DeclareVars
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Info" "Examples: Hunt, Camp, or BuiltIn"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Mode].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Mode" "Camp"
+/Declare Mode				string outer ${Ini[MoveBot.${Me}.Settings.ini,General,Mode]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Return to Camp].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Return to Camp" "TRUE"
+/Declare ReturnToCamp		bool outer ${Ini[MoveBot.${Me}.Settings.ini,General,Return to Camp]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Aggro Radius].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Aggro Radius" "100"
+/Declare AggroRadius		int outer ${Ini[MoveBot.${Me}.Settings.ini,General,Aggro Radius]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Aggro zRadius].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Aggro zRadius" "10"
+/Declare ZAggroRadius		int outer ${Ini[MoveBot.${Me}.Settings.ini,General,Aggro zRadius]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Med].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Med" "FALSE"
+/Declare Med				bool outer ${Ini[MoveBot.${Me}.Settings.ini,General,Med]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,General,Med At].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "General" "Med At" "25"
+/Declare MedAt				int outer ${Ini[MoveBot.${Me}.Settings.ini,General,Med At]}
+|-----------EQBC---------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,EQBC,Use EQBC].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "EQBC" "Use EQBC" "FALSE"
+/Declare UseEQBC			bool outer ${Ini[MoveBot.${Me}.Settings.ini,EQBC,Use EQBC]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,EQBC,Server].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "EQBC" "Server" "192.168.1.251"
+/Declare EQBCServerAddr		string outer ${Ini[MoveBot.${Me}.Settings.ini,EQBC,Server]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,EQBC,Port].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "EQBC" "Port" "2112"
+/Declare EQBCPort			string outer ${Ini[MoveBot.${Me}.Settings.ini,EQBC,Port]}
+/if (!${Ini[MoveBot.${Me}.Settings.ini,EQBC,Password].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "EQBC" "Password" ""
+/Declare EQBCPassword		string outer ${Ini[MoveBot.${Me}.Settings.ini,EQBC,Password]}
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Pet,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Pet" "Info" "Examples: Spirit of Khaliz|gem3"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Pet,Pet Summon Spell].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Pet" "Pet Summon Spell" "NULL"
+/Declare PetSummon			string outer ${Ini[MoveBot.${Me}.Settings.ini,Pet,Pet Summon Spell]}
+/Declare PetSummonGem		string outer
+/if (${PetSummon.Find[|]}) {
+		/varset PetSummon ${PetSummon.Arg[1,|]}
+		/varset PetSummonGem ${PetSummon.Arg[2,|]}
+}
+|------------------------------------------------------------|
+/declare AnchorY string outer ${Me.Y}
+/declare AnchorX string outer ${Me.X}
+/declare AnchorZ string outer ${Me.Z}
+/declare LastY int outer
+/declare LastX int outer
+/declare LastZ int outer
+|------------------------------------------------------------|
+/declare SoftDelay int outer 5
+/declare HardDelay int outer 1
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Pull,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Pull" "Info" "Examples: Burst of Flame|gem1"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Pull,Pull Spell].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Pull" "Pull Spell" "NULL"
+/Declare PullSpell			string outer ${Ini[MoveBot.${Me}.Settings.ini,Pull,Pull Spell]}
+/Declare PullSpellGem		string outer
+/if (${PullSpell.Find[|]}) {
+		/varset PullSpell ${PullSpell.Arg[1,|]}
+		/varset PullSpellGem ${PullSpell.Arg[2,|]}
+}
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,DPS,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "DPS" "Info" "Examples: Flame Lick|100|gem3"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,DPS,DPSSize].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "DPS" "DPSSize" "10"
+/Declare DPSSize int outer ${Ini[MoveBot.${Me}.Settings.ini,DPS,DPSSize]}
+/Declare DEEPS string outer
+/Declare DPS[999] string outer
+/Declare DPSHP[999] int outer
+/Declare DPSGem[999] string outer
+/declare i int local
+/for i 1 to ${DPSSize}
+	/if (!${Ini[MoveBot.${Me}.Settings.ini,DPS,DPS${i}].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "DPS" "DPS${i}" "NULL"
+	/if (${Ini[MoveBot.${Me}.Settings.ini,DPS,DPS${i}].Length}) /varset DEEPS ${Ini[MoveBot.${Me}.Settings.ini,DPS,DPS${i}]}
+	/if (${DEEPS.Find[|]}) {
+			/varset DPS[${i}] ${DEEPS.Arg[1,|]}
+			/varset DPSHP[${i}] ${DEEPS.Arg[2,|]}
+			/varset DPSGem[${i}] ${DEEPS.Arg[3,|]}
+		}
+/next i
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Heals,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Heals" "Info" "Examples: Minor Healing|Self|97|gem3 or Minor Healing|Pet|97|gem3"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Heals,HealSize].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Heals" "HealSize" "10"
+/Declare HealSize int outer ${Ini[MoveBot.${Me}.Settings.ini,Heals,HealSize]}
+/Declare Heal string outer
+/Declare Heals[999] string outer
+/Declare HealType[999] string outer
+/Declare HealGem[999] string outer
+/Declare HealPct[999] int outer
+/declare j int local
+/for j 1 to ${HealSize}
+	/if (!${Ini[MoveBot.${Me}.Settings.ini,Heals,Heal${j}].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Heals" "Heal${j}" "NULL"
+	/if (${Ini[MoveBot.${Me}.Settings.ini,Heals,Heal${j}].Length}) /varset Heal ${Ini[MoveBot.${Me}.Settings.ini,Heals,Heal${j}]} 
+		/if (${Heal.Find[|]}) {
+			/varset Heals[${j}] ${Heal.Arg[1,|]}
+			/varset HealType[${j}] ${Heal.Arg[2,|]}
+			/varset HealPct[${j}] ${Heal.Arg[3,|]}
+			/varset HealGem[${j}] ${Heal.Arg[4,|]}
+		}
+/next j
+|------------------------------------------------------------|
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Buffs,Info].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Buffs" "Info" "Examples: Courage|Self|gem3 or Courage|Pet|gem3"
+/if (!${Ini[MoveBot.${Me}.Settings.ini,Buffs,BuffSize].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Buffs" "BuffSize" "10"
+/Declare BuffSize int outer ${Ini[MoveBot.${Me}.Settings.ini,Buffs,BuffSize]}
+/Declare Buffs string outer
+/Declare Buff[999] string outer
+/Declare BuffType[999] string outer
+/Declare BuffGem[999] string outer
+/declare k int local
+/for k 1 to ${BuffSize}
+	/if (!${Ini[MoveBot.${Me}.Settings.ini,Buffs,Buff${k}].Length}) /call SetIni "MoveBot.${Me}.Settings.ini" "Buffs" "Buff${k}" "NULL"
+	/if (${Ini[MoveBot.${Me}.Settings.ini,Buffs,Buff${k}].Length}) /varset Buffs ${Ini[MoveBot.${Me}.Settings.ini,Buffs,Buff${k}]}
+		/if (${Buffs.Find[|]}) {
+			/varset Buff[${k}] ${Buffs.Arg[1,|]}
+			/varset BuffType[${k}] ${Buffs.Arg[2,|]}
+			/varset BuffGem[${k}] ${Buffs.Arg[3,|]}
+		 }
+/next k
+|------------------------------------------------------------|
+/if (${UseEQBC}) /bccmd connect ${EQBCServerAddr} ${EQBCPort} ${EQBCPassword}
+/return
+|------------------------------------------------------------|
+|          Declare Rountine
+|------------------------------------------------------------|
+|------------------------------------------------------------|
+|          INI Rountine
+|------------------------------------------------------------|
+Sub SetIni(string filename, string section, string option, string value)
+/ini "${filename}" "${section}" "${option}" "${value}"
+/return
+
+Sub GetIni(string filename, string section, string option, string defaultvalue)
+/if (!${Ini[${filename},${section},${option}].Length}) /call SetIni "${filename}" "${section}" "${option}" "${defaultvalue}"
+/return ${Ini[${filename},${section},${option}]}
+|------------------------------------------------------------|
+|          INI Rountine
+|------------------------------------------------------------|
+Sub DebugMSG(string MSG)
+CHATMETHOD [${Macro.Name} @ ${Macro.CurLine}] [${MSG}]
+/if (${UseEQBC}) CHATMETHOD1 [${Macro.Name} @ ${Macro.CurLine}] [${MSG}]
+/return
+|------------------------------------------------------------|
+|          Movement Routines
+|------------------------------------------------------------|
+Sub SetAnchor
+/varset AnchorX ${Me.X}
+/varset AnchorY ${Me.Y}
+/varset AnchorZ ${Me.Z}
+/return
+
+Sub Move(int X, int Y, int Z, int StopDist)
+/varset LastX ${X}
+/varset LastY ${Y}
+/varset LastZ ${Z}
+:LetsRoll
+/call Checks
+/delay 1
+/if (${Navigation.MeshLoaded} && !${Navigation.Active}) /nav ${X} ${Y} ${Z}
+/delay 1
+/if (${Math.Distance[${X},${Y},${Z}:${Me.X},${Me.Y},${Me.Z}]}>=${StopDist}) /goto :LetsRoll
+/if (${Math.Distance[${X},${Y},${Z}:${Me.X},${Me.Y},${Me.Z}]}<=${StopDist}) {
+	/if (${Navigation.Active}) /nav pause
+	/return
+}
+ /if (${Navigation.Active}) /goto :LetsRoll
+/return
+|------------------------------------------------------------|
+|          Movement Routines
+|------------------------------------------------------------|
+|------------------------------------------------------------|
+|          Combat Routines
+|------------------------------------------------------------|
+Sub KillAllNear
+/declare i int local
+
+:FindTarget
+/if (${AdvPath.Playing}) /nav pause
+/if (${Navigation.Active}) /nav pause
+
+/if (${SpawnCount[npc los radius ${AggroRadius} zradius ${ZAggroRadius}]} > 0) {
+/echo Mobs Found!
+/target id ${NearestSpawn[npc targetable los radius ${AggroRadius} zradius ${ZAggroRadius} noalert 3].ID}
+/delay 5s ${Target.ID}
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance}<${AggroRadius} && ${Target.LineOfSight}) /goto :LockedOn
+/goto :FindTarget
+} else {
+/goto :ExitSub
+}
+
+:LockedOn
+/squelch /face fast nolook
+/delay ${SoftDelay}
+/if (${Me.Pet.Distance}>=${AggroRadius} && ${Me.Pet.ID} && ${Me.AltAbilityReady[Summon Companion]}) /alt act ${Me.AltAbility[Summon Companion].ID}
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance}<=${AggroRadius} && !${Me.Pet.Combat} && ${Me.Pet.ID} && ${Target.Type.Equal[NPC]} && ${Target.Distance} <= 20) /pet attack
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance}<=${AggroRadius} && !${Me.Combat} && ${Target.Type.Equal[NPC]} && ${Target.Distance} <= 20) /attack on
+
+/for i 1 to ${DPSSize} 
+	/if (${Target.Type.Equal[NPC]} && ${Target.Distance} <= ${AggroRadius}  && ${Ini[MoveBot.${Me}.Settings.ini,DPS,DPS${i}].Length} && ${Target.PctHPs} <= ${DPSHP[${i}]}) /call DoDps "${DPS[${i}]}" "${DPSGem[${i}]}"
+/next i
+
+/delay ${HardDelay}s
+/if (${SpawnCount[npc los radius ${AggroRadius} zradius ${ZAggroRadius}]} > 0 && !${Target.ID}) /goto :FindTarget
+/if (${SpawnCount[npc los radius ${AggroRadius} zradius ${ZAggroRadius}]} == 0 && !${Target.ID}) /goto :ExitSub
+/if (!${Target.Type.Equal[NPC]} || !${Target.ID}) /goto :FindTarget
+/goto :LockedOn
+
+:ExitSub
+/if (${AdvPath.Playing}) /nav pause
+/if (!${AdvPath.Playing} && ${LastX}) /nav ${LastX} ${LastY} ${LastZ}
+/return
+
+Sub DoDps(string DpsToCast,string DpsToCastGem)
+:Cast_Loop
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance} <= ${Spell[${Spell[${DpsToCast}].RankName}].MyRange} && ${Me.SpellReady[${Spell[${DpsToCast}].RankName}]} && !${Target.Buff[${Spell[${DpsToCast}].RankName}].Name.Equal[${Spell[${DpsToCast}].RankName}]}) {
+	/call CASTMODE "${Spell[${DpsToCast}].RankName}" gem1
+	/delay ${HardDelay}s !${Me.Casting.ID}
+		/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :Cast_Loop
+}
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance} <= ${AggroRadius} && ${Me.Ability["${DpsToCast}"]}) /doability ${Me.Ability["${DpsToCast}"]}
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance} <= ${AggroRadius} && ${Me.CombatAbilityReady["${DpsToCast}"]}) /disc "${Me.CombatAbility["${DpsToCast}"]}"
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance} <= ${AggroRadius} && ${Me.AltAbility["${DpsToCast}"]}) /alt act "${Me.AltAbility["${DpsToCast}"]}"
+/return
+
+Sub Pull(bool ReturnHome)
+/declare PullCount int local
+/declare PathArray[999] int local     0
+/declare PathDistance[999] float local     0
+/declare PullMob int local 0
+/declare PullMobValid int local 0
+/declare i int local
+/declare j int local
+/declare k int local
+/declare l int local
+/declare Smallsub int local     0
+/declare tempSortID int local 		0
+/declare tempSortDist float local 		0
+/declare PullMobName string local 0
+
+:FindTarget
+/if (${Math.Distance[${AnchorY},${AnchorX}]}>${AnchorRadius} && ${ReturnHome}) /return
+/varset PullCount ${SpawnCount[npc loc ${AnchorX} ${AnchorY} radius ${AggroRadius} zradius ${ZAggroRadius} targetable noalert 1]}
+
+	/for i 1 to ${PullCount}
+      /varset PathArray[${i}] ${NearestSpawn[${i}, npc loc ${AnchorX} ${AnchorY} radius ${AggroRadius} zradius ${ZAggroRadius} targetable noalert 1].ID}
+      /varset PullMob	${PathArray[${i}]}
+      /varset PathDistance[${i}] ${Navigation.PathLength[${Spawn[${PullMob}].X} ${Spawn[${PullMob}].Y} ${Spawn[${PullMob}].Z}]}
+    /next i
+
+    /for l 1 to ${PullCount}
+      /varset Smallsub ${l}
+      /varset k ${Math.Calc[${l} + 1]}
+      /for j ${k} to ${PullCount}
+        /if (${PathDistance[${j}]} < ${PathDistance[${Smallsub}]}) /varset Smallsub ${j}
+      /next j
+      /varset tempSortID ${PathArray[${l}]}
+      /varset tempSortDist ${PathDistance[${l}]}
+      /varset PathArray[${l}] ${PathArray[${Smallsub}]}
+      /varset PathArray[${Smallsub}] ${tempSortID}
+      /varset PathDistance[${l}] ${PathDistance[${Smallsub}]}
+      /varset PathDistance[${Smallsub}] ${tempSortDist}
+    /next l
+
+    /for i 1 to ${PullCount}
+		/varset PullMob ${PathArray[${i}]}
+		/varset PullMobName ${Spawn[id ${PullMob}].CleanName}
+		/varset PullMobValid 0
+		/if (${PullMob}) {
+			/call CheckMobName ${PullMob}
+			/if (${Macro.Return}) /varset PullMobValid 1
+		}
+		/if (${PullMobValid}) /goto :PullEm
+	/next i
+}
+
+:PullEm
+/if (${PullMob}==NULL) {
+/if (${ReturnHome}) /goto :PullReturn
+/if (!${ReturnHome}) /return
+}
+/if (${Math.Distance[${Me.X},${Me.Y}:${Spawn[id ${PullMob}].X},${Spawn[id ${PullMob}].Y}]}>=10) /call Move "${Spawn[id ${PullMob}].X}" "${Spawn[id ${PullMob}].Y}" "${Spawn[id ${PullMob}].Z}" "10"
+	/if (${Math.Distance[${Spawn[id ${PullMob}].X},${Spawn[id ${PullMob}].Y}:${Me.X},${Me.Y}]}>=10  || ${Target.LineOfSight} && ${Math.Distance[${Spawn[id ${PullMob}].X},${Spawn[id ${PullMob}].Y}:${Me.X},${Me.Y}]}>=10) {
+		/nav stop
+		/goto :TagEm
+	}
+/goto :PullEm
+
+:TagEm
+/target id ${PullMob}
+/delay 15s ${Target.ID}
+/if (${Target.Type.Equal[NPC]} && ${Target.Distance}<=25 && ${Target.LineOfSight}) {
+	/call DoDps "${PullSpell}" ${PullGem}
+	/if (${ReturnHome}) /goto :PullReturn
+	/if (!${ReturnHome}) /return
+	}
+/goto :TagEm
+
+:PullReturn
+/if (${Math.Distance[${AnchorX},${AnchorY}:${Me.X},${Me.Y}]}>=5 && ${ReturnHome}) {
+/call Move "${AnchorX}" "${AnchorY}" "${AnchorZ}" "5"
+} else {
+/return
+}
+/goto :PullReturn
+/return
+
+sub CheckMobName(int MobID)
+/declare i int local
+/declare IgnoreMob string local "Bob"
+/for i 0 to ${IgnoreMob.Length}
+/if (${Spawn[id ${MobID}].Name.Equal[${IgnoreMob}]}) /return FALSE
+/next i
+/return TRUE
+|------------------------------------------------------------|
+|          End Combat Routines
+|------------------------------------------------------------|
+|------------------------------------------------------------|
+|         Checks Routines
+|------------------------------------------------------------|
+Sub Checks
+/doevents
+/call CheckHP
+/call CheckMP
+/call CheckBuffs
+/return
+
+Sub CheckHP
+/declare i int local
+/for i 1 to ${HealSize}
+:SelfHeal
+/if (${Me.PctHPs}<=${HealPct[i]} && ${HealType[i]}.Equal["Self"]) {
+	/if (${AdvPath.Playing}) /nav stop
+	/target id ${Me.ID}
+	/delay 15s ${Target.ID}
+	/call CASTMODE "${Heal[${i}]}" ${HealGem[${i}]} 15s
+	/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :SelfHeal
+	/if (!${Macro.Return.Equal["CAST_SUCCESS"]}) /goto :SelfHeal
+}
+:PetHeal
+/if (${Me.Pet.ID} && ${Me.Pet.PctHPs}<=${HealPct[i]} && ${HealType[i]}.Equal["Pet"]) {
+	/if (${AdvPath.Playing}) /nav stop
+	/target id ${Me.Pet.ID}
+	/delay 15s ${Target.ID}
+	/call CASTMODE "${Heal[${i}]}" ${HealGem[${i}]} 15s
+	/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :PetHeal
+	/if (!${Macro.Return.Equal["CAST_SUCCESS"]}) /goto :PetHeal
+}
+/next i
+/if (!${AdvPath.Playing} && ${LastX}) /nav ${LastX} ${LastY} ${LastZ}
+/return
+
+Sub CheckMP
+:Med_Loop
+/if (${Med} && ${Me.Standing} && !${Me.Mount.ID} && ${Me.PctMana} <= ${MedAt} && !${Me.Combat}) {
+	/if (${AdvPath.Playing}) /nav stop
+	/sit
+	/goto :Med_Loop
+}
+/if (!${AdvPath.Playing} && ${LastX}) /nav ${LastX} ${LastY} ${LastZ}
+/return
+
+Sub CheckBuffs
+/declare i int local
+/for i 1 to ${BuffSize}
+
+:SelfBuff 
+/if (!${Me.Buff[${Spell[${Spell[${Buff[${i}]}].ID}].RankName}].ID} && ${BuffType[${i}].Equal[Self]}) {
+	/call CASTMODE "${Spell[${Spell[${Buff[${i}]}].ID}].RankName}" ${BuffGem[${i}]} 15s 
+	/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :SelfBuff
+	/if (!${Macro.Return.Equal["CAST_SUCCESS"]}) /goto :SelfBuff
+}
+	
+/if (!${Me.PetBuff[${Spell[${Spell[${Buff[${i}]}].ID}].RankName}].ID} && ${BuffType[${i}].Equal[Pet]}) {	
+	/if (${Me.Pet.ID}) { 
+	:PetBuff 
+	  /if (${Me.Pet.ID}!=null && !${Me.PetBuff[${Buff[${i}]}]}) {
+		/target ${Me.Pet}
+		/echo Pet needed "${Spell[${Spell[${Buff[${i}]}].ID}].RankName}"
+		/call CASTMODE "${Buff[${i}]}" ${BuffGem[${i}]} 15s
+			/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :PetBuff
+			/if (!${Macro.Return.Equal["CAST_SUCCESS"]}) /goto :PetBuff
+	  } 
+	} else {
+	/echo You dont have a pet! Making one!
+	:MakePet_Loop
+		/if (${Me.Pet.ID}==null) {
+			/echo Summoning your pet with spell: ${PetSummon}
+			/call CASTMODE "${PetSummon}" gem6 15s
+			/delay 20
+				/if (${Macro.Return.Equal["CAST_INTERRUPTED"]}) /goto :MakePet_Loop
+				/if (!${Macro.Return.Equal["CAST_SUCCESS"]}) /goto :MakePet_Loop
+		} 
+	} 
+}
+/next i
+/return
+|------------------------------------------------------------|
+|          End Checks Routines
+|------------------------------------------------------------|
+|------------------------------------------------------------|
+|          Events
+|------------------------------------------------------------|
+Sub Event_Summon
+/nav stop
+/call KillAllNear
+/return
+|------------------------------------------------------------|
+|          End Events
+|------------------------------------------------------------|

@@ -1,0 +1,61 @@
+sub Main
+	/declare bookCount int outer 0
+	/declare havePage01 string outer X
+	/declare havePage02 string outer X
+	/declare havePage03 string outer X
+	/declare havePage04 string outer X
+	/declare havePage05 string outer X
+	/declare havePage06 string outer X
+	/declare havePage07 string outer X
+	/declare havePage08 string outer X
+	/declare havePage09 string outer X
+	/declare havePage10 string outer X
+	
+	/if (${FindItem[Weapon Book 1.5 Page 1 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage01 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 2 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage02 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 3 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage03 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 4 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage04 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 5 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage05 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 6 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage06 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 7 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage07 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 8 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage08 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 9 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage09 ✓
+	}
+	/if (${FindItem[Weapon Book 1.5 Page 10 of 10].Name.NotEqual["NULL"]}) { 
+		/varset bookCount ${Math.Calc[${bookCount}+1]}
+		/varset havePage10 ✓
+	}
+	
+	/if (${bookCount} == 10) {
+		/rsay Has all books for 1.5
+	} else {
+		/rsay ${bookCount}/10 (1:${havePage01} / 2:${havePage02} / 3:${havePage03} / 4:${havePage04} / 5:${havePage05} / 6:${havePage06} / 7:${havePage07} / 8:${havePage08} / 9:${havePage09} / 10:${havePage10})
+	}
+	
+/return

@@ -1,0 +1,526 @@
+| Version: 1.8b --Author: Bruise Lee aka Warriduh aka Handjabs--
+|		Updated By: TheDroidUrLookingFor 07/31/2023
+|
+|	Changes:
+|		- Added useCorpseFix for toggling #CorpseFix
+|		- Moved HowMany/1/2/3 into the main declares
+|		- Added "feedback" so certain events like starting/stopping
+|		- Added useClass for toggling lotting  based on armor type or one generic list for all
+|
+
+Sub Main
+	/declare dummy int local
+	/declare turbolootitems	string outer
+	/declare AlertIndex int outer 1
+	/declare loottry int outer 0
+	/declare Skip bool outer FALSE
+	/declare useClass bool outer FALSE
+	/declare useCorpseFix bool outer FALSE
+	/declare useMQ2Nav bool outer FALSE
+	/declare minLootValue int outer
+	/declare loottotal int outer 
+	/declare sometotal int outer
+	/declare sometotal1 int outer
+	/declare sometotal2 int outer
+	/declare sometotal3 int outer	
+	/declare singletotal int outer
+	/declare lootslot int outer 
+	/declare someslot int outer
+	/declare someslot1 int outer
+	/declare someslot2 int outer
+	/declare someslot3 int outer		
+	/declare singleslot int outer
+	/declare lootAll string outer
+	/declare someItems string outer
+	/declare someItems1 string outer
+	/declare someItems2 string outer
+	/declare someItems3 string outer	
+	/declare singleItems string outer
+	/declare lootName string outer
+	/declare lootSome string outer
+	/declare lootSome1 string outer	
+	/declare lootSome2 string outer
+	/declare lootSome3 string outer			
+	/declare lootSingle string outer
+	/declare itemCount int outer
+	/declare someCount int outer
+	/declare someCount1 int outer	
+	/declare someCount2 int outer
+	/declare someCount3 int outer		
+	/declare singleCount int outer
+	/declare announceItems string outer
+	/declare lootingItems string outer
+	/declare feedback string outer
+	/declare howMany int outer
+	/declare howMany1 int outer
+	/declare howMany2 int outer
+	/declare howMany3 int outer
+
+| --------------------------------------------- Configurable Variables section ----------------------------------------------------
+	|Would you like to use #CorpseFix before looting? TRUE/FALSE
+	/varset useCorpseFix TRUE
+
+	| Would you like to define looting via Armor Type or one Generic list for everyone? TRUE/FALSE
+	| TRUE = Armor Type
+	| FALSE = Generic list for all
+	/varset useClass FALSE
+
+	| Would you like to use MQ2Nav for movement? TRUE/FALSE
+	| TRUE = use MQ2Nav
+	| FALSE = use MQ2MoveUtils
+	/varset useMQ2Nav FALSE
+	
+	|What do you want the loot radius to be? Corpses further than this will NOT be looted.
+	/declare corpseDistance int outer 300
+
+	|Set lootSpells to 1 to loot spells that are usable by your class. Checks to see if you have one in bank/inv or already scribed.
+	/declare lootSpells int outer 1
+
+	|Set this to 1 if you want to loot an item that you don't currently have, isn't in any of the 3 lists below but is usable and can be equipped.
+	/declare lootUsable int outer 0
+
+	| Will loot any item with a vendor price >= this amount (in plat) that's not No Drop and isn't in any loot lists below.
+	/varset minLootValue 1000
+
+	| How should found items be announced when found and when looted? ie echo, bc, rsay, etc
+	/varset announceItems echo
+	/varset lootingItems rsay
+	/varset feedback rsay
+
+	| lootAll list will loot this item any time it comes across it on a corpse. 
+	/varset lootAll /Gemstone of the Ages/Glowing Sun Shard/Lesser Rainbow Crystal/Minor Rainbow Crystal/Greater Rainbow Crystal/Major Rainbow Crystal/Superior Lightstone/Greater Lightstone/Essence of Norrath/Essence of Qvic/Essence of Cazic Thule/Essence of Dragons Minor/Essence of Dragons Major/Essence of Gods Minor/Essence of Gods Major/Essence of the Abyss/Essence of Anguish/Essence of Loping Plains/Essence of Temple Veeshan/Essence of Old Commons/Essence of Sunderock//Supreme Rainbow Crystal/Flawless Rainbow Crystal/Foxy's Gambling Coin/Orb of Cleansing/Orb of Replenishment/Fire Crystal/Water Crystal/Ice Crystal/Earth Crystal/Charm Prism Upgrade/Blue Diamond/Black Sapphire/Greater Lightstone/Expensive Blue Diamond/Citrine Gemstone of Vitality I/Stone of Heroic Resistance IX/
+	
+	| singleItems will loot until you have 1 in total. Combines bank + inventory when calculating.
+	/varset singleItems /Mount: Crack'n Crazy Traveler/Arcing Demon Familiar (Halloween Reward)/Angryface Familiar (Halloween Reward)/Mistress of Flame Familiar (Halloween Reward)/Black Unicorn Familiar (Halloween Reward)/Cazic Thule Familiar (Halloween Reward)/Chilled Devil Familiar (Halloween Reward)/Insane Goblin Familiar (Halloween Reward)/Stone Monster Familiar (Halloween Reward)/Battle-Hardened Army Ant/Foxy's Rusted Augment/Mount: The Beast/
+	
+	| someItems through someItems3 are paired with the corresponding howMany through howMany3 vars. List the items in one of the someItems fields and set how many to loot for that list in the howMany above it. 
+	/if (!${useClass}) {
+		| Start of editing generic list
+		| Edit here if you wish to use one generic list
+		/varset howMany 0
+		/varset someItems /
+
+		/varset howMany1 0
+		/varset someItems1 /
+
+		/varset howMany2 1
+		/varset someItems2 /Weapon Book 1.5 Page 1 of 10/Weapon Book 1.5 Page 2 of 10/Weapon Book 1.5 Page 3 of 10/Weapon Book 1.5 Page 4 of 10/Weapon Book 1.5 Page 5 of 10/Weapon Book 1.5 Page 6 of 10/Weapon Book 1.5 Page 7 of 10/Weapon Book 1.5 Page 8 of 10/Weapon Book 1.5 Page 9 of 10/Weapon Book 1.5 Page 10 of 10/
+
+		/varset howMany3 0
+		/varset someItems3 /
+		| End of editing generic list
+	} else {
+		| Edit below here if you wish to use Armor Type based lists
+
+		| Plate Classes
+		/if (${Me.Class.Name.Equal[Bard]} || ${Me.Class.Name.Equal[Cleric]} || ${Me.Class.Name.Equal[Paladin]} || ${Me.Class.Name.Equal[Shadowknight]} || ${Me.Class.Name.Equal[Warrior]}) {
+			/varset howMany 0
+			/varset someItems /
+
+			/varset howMany1 0
+			/varset someItems1 /
+
+			/varset howMany2 0
+			/varset someItems2 /
+
+			/varset howMany3 0
+			/varset someItems3 /
+		}
+
+		| Chain Classes
+		/if (${Me.Class.Name.Equal[Berserker]} || ${Me.Class.Name.Equal[Ranger]} || ${Me.Class.Name.Equal[Rogue]} || ${Me.Class.Name.Equal[Shaman]}) {
+			/varset howMany 0
+			/varset someItems /
+
+			/varset howMany1 0
+			/varset someItems1 /
+
+			/varset howMany2 0
+			/varset someItems2 /
+
+			/varset howMany3 0
+			/varset someItems3 /
+		}
+
+		| Cloth Classes
+		/if (${Me.Class.Name.Equal[Enchanter]} || ${Me.Class.Name.Equal[Magician]} || ${Me.Class.Name.Equal[Necromancer]} || ${Me.Class.Name.Equal[Wizard]}) {
+			/varset howMany 0
+			/varset someItems /
+
+			/varset howMany1 0
+			/varset someItems1 /
+
+			/varset howMany2 0
+			/varset someItems2 /
+
+			/varset howMany3 0
+			/varset someItems3 /
+		}
+
+		| Leather Classes
+		/if (${Me.Class.Name.Equal[Beastlord]} || ${Me.Class.Name.Equal[Druid]} || ${Me.Class.Name.Equal[Monk]}) {
+			/varset howMany 0
+			/varset someItems /
+
+			/varset howMany1 0
+			/varset someItems1 /
+
+			/varset howMany2 0
+			/varset someItems2 /
+
+			/varset howMany3 0
+			/varset someItems3 /
+		}
+		| End of editing armor type lists
+		| STOP EDITING
+	}
+| --------------------------------------------- END OF Configurable Variables section ----------------------------------------------------
+
+	
+	/hidecorpse looted
+	/if (${useCorpseFix}) /say #corpsefix
+	/docommand /${feedback} [turboLoot] ${Time} Started Looting
+
+    
+    :mainlootloop
+    
+	/if (${Me.FreeInventory}) {
+		/if (${SpawnCount[npccorpse noalert 1]} > 0) {
+			/target npccorpse${If[${AlertIndex}, noalert ${AlertIndex},]}
+
+			/if ((${Target.ID}) && (${Target.Type.Equal[Corpse]})) {
+						/if (${Target.Distance} > ${corpseDistance}) {
+							/docommand /${feedback} Done looting; no more corpses within range!
+							/endmac
+						}	
+					/face fast
+					:moveToCorpse
+						/if (${Target.Distance} > 10 && ${Target.Distance} < ${corpseDistance}) {
+							/if (${useMQ2Nav}) {
+								/if (!${Navigation.Active}) /nav id ${Target.ID} distance=5
+							} else {
+								/moveto id ${Target.ID}
+							}
+							/delay 3
+							/goto :moveToCorpse
+						}
+
+				/if (${Cursor.ID}) /autoi
+				/loot
+				/doevents
+
+				/varset loottotal ${Corpse.Items}
+				/varset sometotal ${Corpse.Items}
+				/varset sometotal1 ${Corpse.Items}
+				/varset sometotal2 ${Corpse.Items}				
+				/varset sometotal3 ${Corpse.Items}				
+				/varset singletotal ${Corpse.Items}
+				/if (${loottotal}<=0 && ${sometotal}<=0 && ${sometotal1}<=0 && ${sometotal2}<=0 && ${sometotal3}<=0 && ${singletotal} <=0) { 
+					/notify LootWnd DoneButton leftmouseup
+					/delay 3
+					/goto :mainlootloop 
+				} 
+				
+				/varset itemCount 0
+				/for lootslot 1 to ${loottotal}
+					/if (${Corpse.Item[${lootslot}].ID}) {
+						/varset lootName ${Corpse.Item[${lootslot}].Name}						
+						/docommand /${announceItems} ${Corpse.Item[${lootslot}].ItemLink[CLICKABLE]} found on ${Target.ID}
+					/if ((${lootAll.Find[/${lootName}/]}) || ((${Corpse.Item[${lootslot}].Value} > ${Math.Calc[${minLootValue} * 1000]}) && (!${Corpse.Item[${lootslot}].NoDrop}))) {
+							/varcalc itemCount ${itemCount}+1
+						}
+					}
+				/next lootslot
+				/doevents
+
+				/for lootslot 1 to ${loottotal}
+					/if ((${Corpse.Item[${lootslot}].CanUse}) && (${Corpse.Item[${lootslot}].WornSlots}>0)) {
+						/if ((${Math.Calc[${FindItemCount[${Corpse.Item[=${lootslot}]}]}+${FindItemBankCount[=${lootslot}]}]}<1) && ${lootUsable}==1) {
+							/docommand /${lootingItems} [Usable] Looting ${Corpse.Item[${lootslot}].ItemLink[CLICKABLE]}
+							/itemnotify loot${lootslot} rightmouseup
+							/delay 3 !${Corpse.Item[${lootslot}].ID}
+						}
+					}
+				/next lootslot
+
+
+				/varset someCount 0
+				/for someslot 1 to ${sometotal}
+					/if (${Corpse.Item[${someslot}].ID}) {
+						/varset lootSome ${Corpse.Item[${someslot}].Name}						
+						/if (${someItems.Find[/${lootSome}/]}) {
+							/varcalc someCount ${someCount}+1
+						}
+					}
+				/next someslot
+				/doevents
+
+				/varset someCount1 0
+				/for someslot1 1 to ${sometotal1}
+					/if (${Corpse.Item[${someslot1}].ID}) {
+						/varset lootSome1 ${Corpse.Item[${someslot1}].Name}						
+						/if (${someItems1.Find[/${lootSome1}/]}) {
+							/varcalc someCount1 ${someCount1}+1
+						}
+					}
+				/next someslot1
+				/doevents
+
+				/varset someCount2 0
+				/for someslot2 1 to ${sometotal2}
+					/if (${Corpse.Item[${someslot2}].ID}) {
+						/varset lootSome2 ${Corpse.Item[${someslot2}].Name}						
+						/if (${someItems2.Find[/${lootSome2}/]}) {
+							/varcalc someCount2 ${someCount2}+1
+						}
+					}
+				/next someslot2
+				/doevents
+
+				/varset someCount3 0
+				/for someslot3 1 to ${sometotal3}
+					/if (${Corpse.Item[${someslot3}].ID}) {
+						/varset lootSome3 ${Corpse.Item[${someslot3}].Name}						
+						/if (${someItems3.Find[/${lootSome3}/]}) {
+							/varcalc someCount3 ${someCount3}+1
+						}
+					}
+				/next someslot3
+				/doevents
+
+				/varset singleCount 0
+				/for singleslot 1 to ${singletotal}
+					/if (${Corpse.Item[${singleslot}].ID}) {
+						/varset lootSingle ${Corpse.Item[${singleslot}].Name}						
+						/if (${singleItems.Find[/${lootSingle}/]}) {
+							/varcalc singleCount ${singleCount}+1
+						}
+					}
+				/next singleslot
+				/doevents
+
+				/if (${itemCount} > 0) {
+					/for lootslot 1 to ${loottotal}
+						:LootItem
+						/if (${Corpse.Item[${lootslot}].ID}) {
+							/varset lootName ${Corpse.Item[${lootslot}].Name}
+																																
+							/if ((${lootAll.Find[/${lootName}/]}) || ((${Corpse.Item[${lootslot}].Value} > ${Math.Calc[${minLootValue} * 1000]}) && (!${Corpse.Item[${lootslot}].NoDrop}))) /call lootItem ${lootslot}						
+						}
+					/next lootslot
+					/doevents
+				}
+					/doevents
+				/if (${someCount} > 0) {
+					/for someslot 1 to ${sometotal}
+						:LootSomeItems
+						/if (${Corpse.Item[${someslot}].ID}) {
+							/varset lootSome ${Corpse.Item[${someslot}].Name}
+																																
+							/if (${someItems.Find[/${lootSome}/]}) /call someItem ${someslot}						
+						}
+					/next someslot
+					/doevents
+				}
+
+				/if (${someCount1} > 0) {
+					/for someslot1 1 to ${sometotal1}
+						:LootSomeItems1
+						/if (${Corpse.Item[${someslot1}].ID}) {
+							/varset lootSome1 ${Corpse.Item[${someslot1}].Name}
+																																
+							/if (${someItems1.Find[/${lootSome1}/]}) /call someItem1 ${someslot1}						
+						}
+					/next someslot1
+					/doevents
+				}
+
+				/if (${someCount2} > 0) {
+					/for someslot2 1 to ${sometotal2}
+						:LootSomeItems2
+						/if (${Corpse.Item[${someslot2}].ID}) {
+							/varset lootSome2 ${Corpse.Item[${someslot2}].Name}
+																																
+							/if (${someItems2.Find[/${lootSome2}/]}) /call someItem2 ${someslot2}						
+						}
+					/next someslot2
+					/doevents
+				}
+				/if (${someCount3} > 0) {
+					/for someslot3 1 to ${sometotal3}
+						:LootSomeItems3
+						/if (${Corpse.Item[${someslot3}].ID}) {
+							/varset lootSome3 ${Corpse.Item[${someslot3}].Name}
+																																
+							/if (${someItems3.Find[/${lootSome3}/]}) /call someItem3 ${someslot3}						
+						}
+					/next someslot3
+					/doevents
+				}
+
+				/if (${singleCount} > 0) {
+					/for singleslot 1 to ${singletotal}
+						:LootSingleItem
+						/if (${Corpse.Item[${singleslot}].ID}) {
+							/varset lootSingle ${Corpse.Item[${singleslot}].Name}
+																																
+							/if (${singleItems.Find[/${lootSingle}/]}) /call singleItem ${singleslot}						
+						}
+					/next singleslot
+					/doevents
+				}
+				
+				/for lootslot 1 to ${loottotal}
+					/if (${Bool[(${lootSpells}==1)]} && ${Bool[${Corpse.Item[${lootslot}].Scroll}]} && ${Corpse.Item[${lootslot}].CanUse} && !${Bool[${Me.Book[${Corpse.Item[${lootslot}].Scroll}]}]}) {
+                        /if (${Int[${Math.Calc[${FindItemCount[=${Corpse.Item[${lootslot}].Name}]}+${FindItemBankCount[=${Corpse.Item[${lootslot}].Name}]}]}]}<1) {
+							/docommand /${lootingItems} [SPELL] Looting ${Corpse.Item[${lootslot}].ItemLink[CLICKABLE]}
+							/itemnotify loot${lootslot} rightmouseup
+							/delay 3 !${Corpse.Item[${lootslot}].ID}
+						}
+					/next lootslot
+                    }
+				
+				:DoneLooting
+				/notify LootWnd DoneButton leftmouseup
+				/if (${loottry} > 0) /varset loottry 0
+
+				/doevents
+				/if (${Window[LootWnd].Open}) /goto :DoneLooting
+			}	
+		} else {
+			/if (${Me.Grouped}) /docommand /${feedback} ${Me.Name} - Done Looting
+				/moveto yloc ${Math.Calc[${Int[${Me.Loc}]}+${Math.Rand[20,30]}]}
+			/if (${AlertIndex}) /squelch /alert clear ${AlertIndex}
+			/if (${loottry} > 0) /varset loottry 0 
+				/return
+		}
+	} else {
+		/docommand /${feedback} [quickLoot] My Inventory is full!!
+		/moveto yloc ${Math.Calc[${Int[${Me.Loc}]}+${Math.Rand[20,30]}]}
+		
+ /endmac
+	}
+	/goto :mainlootloop
+/return
+
+| ----------------------------------------------------------------------------------------------------------
+
+sub lootItem(intLootSlot)
+
+	| If item is LORE but already have one, don't loot it
+	/if (${Corpse.Item[${lootslot}].Lore}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootName}]}+${FindItemBankCount[=${lootName}]}]}]}>=1) 
+		/docommand /${announceItems} [LORE] Skipping LORE ${Corpse.Item[${lootName}].ItemLink[CLICKABLE]} - Already have
+		
+	}
+	/docommand /${lootingItems} [ALL] Looting ${Corpse.Item[${lootName}].ItemLink[CLICKABLE]}
+	:WaitLootItem
+		/ctrl /itemnotify loot${intLootSlot} rightmouseup
+		
+		/if (${Corpse.Item[${intLootSlot}].ID}) {
+			/goto :WaitLootItem
+		}
+	
+/return
+
+| ----------------------------------------------------------------------------------------------------------
+
+sub someItem(intSomeSlot)
+
+	| Loot until X amount in inventory or bank
+	/if (${Corpse.Item[${someslot}].ID}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootSome}]}+${FindItemBankCount[=${lootSome}]}]}]}>=${howMany}) {
+		/docommand /${announceItems} [SOME] Already have enough ${Corpse.Item[=${lootSome}].ItemLink[CLICKABLE]} - IGNORED			
+/return
+		}
+	
+	/docommand /${lootingItems} [SOME] Looting ${Corpse.Item[${lootSome}].ItemLink[CLICKABLE]}} - Total: ${Int[${Math.Calc[${FindItemCount[=${lootSome}]}+1+${FindItemBankCount[=${lootSome}]}]}]}
+	:WaitLootSomeItems
+		/ctrl /itemnotify loot${intSomeSlot} rightmouseup 		
+		/if (${Corpse.Item[${intSomeSlot}].ID}) {
+			/goto :WaitLootSomeItems
+		}
+	}
+/return
+
+-------------------------------------
+
+sub someItem1(intSomeSlot1)
+
+	| Loot until X amount in inventory or bank
+	/if (${Corpse.Item[${someslot1}].ID}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootSome1}]}+${FindItemBankCount[=${lootSome1}]}]}]}>=${howMany1}) {
+		/docommand /${announceItems} [lootSOME1] Already have enough ${Corpse.Item[=${lootSome1}].ItemLink[CLICKABLE]} - IGNORED			
+/return
+		}
+	
+	/docommand /${lootingItems} [lootSOME1] Looting ${Corpse.Item[${lootSome1}].ItemLink[CLICKABLE]}} - Total: ${Int[${Math.Calc[${FindItemCount[=${lootSome1}]}+1+${FindItemBankCount[=${lootSome1}]}]}]}
+	:WaitLootSomeItems1
+		/ctrl /itemnotify loot${intSomeSlot1} rightmouseup 		
+		/if (${Corpse.Item[${intSomeSlot1}].ID}) {
+			/goto :WaitLootSomeItems1
+		}
+	}
+/return
+
+------------------------------------
+
+sub someItem2(intSomeSlot2)
+
+	| Loot until X amount in inventory or bank
+	/if (${Corpse.Item[${someslot2}].ID}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootSome2}]}+${FindItemBankCount[=${lootSome2}]}]}]}>=${howMany2}) {
+		/docommand /${announceItems} [lootSOME2] Already have enough ${Corpse.Item[=${lootSome2}].ItemLink[CLICKABLE]} - IGNORED			
+/return
+		}
+	
+	/docommand /${lootingItems} [lootSOME2] Looting ${Corpse.Item[${lootSome2}].ItemLink[CLICKABLE]}} - Total: ${Int[${Math.Calc[${FindItemCount[=${lootSome2}]}+1+${FindItemBankCount[=${lootSome2}]}]}]}
+	:WaitLootSomeItems2
+		/ctrl /itemnotify loot${intSomeSlot2} rightmouseup 		
+		/if (${Corpse.Item[${intSomeSlot2}].ID}) {
+			/goto :WaitLootSomeItems2
+		}
+	}
+/return
+
+--------------------------------
+
+sub someItem3(intSomeSlot3)
+
+	| Loot until X amount in inventory or bank
+	/if (${Corpse.Item[${someslot3}].ID}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootSome3}]}+${FindItemBankCount[=${lootSome3}]}]}]}>=${howMany3}) {
+		/docommand /${announceItems} [lootSOME3] ${Corpse.Item[=${lootSome3}].ItemLink[CLICKABLE]} - FOUND			
+/return
+		}
+	
+	/docommand /${lootingItems} [lootSOME3] Looting ${Corpse.Item[${lootSome3}].ItemLink[CLICKABLE]}} - Total: ${Int[${Math.Calc[${FindItemCount[=${lootSome3}]}+1+${FindItemBankCount[=${lootSome3}]}]}]}
+	:WaitLootSomeItems3
+		/ctrl /itemnotify loot${intSomeSlot3} rightmouseup 		
+		/if (${Corpse.Item[${intSomeSlot3}].ID}) {
+			/goto :WaitLootSomeItems3
+		}
+	}
+/return
+
+| ----------------------------------------------------------------------------------------------------------
+
+sub singleItem(intSingleSlot)
+
+	| Loot until I have 1 in inventory or bank
+	/if (${Corpse.Item[${singleslot}].ID}) {
+		/if (${Int[${Math.Calc[${FindItemCount[=${lootSingle}]}+${FindItemBankCount[=${lootSingle}]}]}]}>=1) {			
+			/docommand /${announceItems} [SINGLE] Skipping ${Corpse.Item[${lootSingle}].ItemLink[CLICKABLE]} - IGNORED			
+			/return
+		}
+	}
+	/docommand /${lootingItems} [SINGLE] Looting ${Corpse.Item[=${lootSingle}].ItemLink[CLICKABLE]}
+	:WaitLootSingleItem
+		/ctrl /itemnotify loot${intSingleSlot} rightmouseup
+		/if (${Corpse.Item[${intSingleSlot}].ID}) {
+			/goto :WaitLootSingleItem
+		}
+	
+/return
+
+| ----------------------------------------------------------------------------------------------------------

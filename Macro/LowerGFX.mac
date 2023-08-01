@@ -1,0 +1,198 @@
+| --------------------------------------------------------------------------------------------
+| SUB: LowerEQResources
+| --------------------------------------------------------------------------------------------
+| Sub LowerEQResources
+Sub Main
+	| Options -> Display, combo boxes at the top right
+	/if (2 != ${Window[OptionsWindow].Child[OGP_NoDropItemCombobox].GetCurSel}) {
+	/echo Setting Load Screen to None
+	/invoke ${Window[OptionsWindow].Child[OGP_NoDropItemCombobox].Select[2]}
+	}
+	
+	| Options -> Display, first bunch of checkboxes
+	/if (${Window[OptionsWindow].Child[ODP_NPCNamesCheckBox].Checked}) {
+	/echo Hiding NPC names
+	/notify OptionsWindow ODP_NPCNamesCheckBox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_PetNamesCheckBox].Checked}) {
+	/echo Hiding Pet names
+	/notify OptionsWindow ODP_PetNamesCheckBox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_MercNamesCheckBox].Checked}) {
+	/echo Hiding Merc names
+	/notify OptionsWindow ODP_MercNamesCheckBox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_ShowPetOwnerNames].Checked}) {
+	/echo Hiding Pet Owner names
+	/notify OptionsWindow ODP_ShowPetOwnerNames leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_ShowMercOwnerNames].Checked}) {
+	/echo Hiding Merc Owner names
+	/notify OptionsWindow ODP_ShowMercOwnerNames leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_ShowTargetRingCheckbox].Checked}) {
+	/echo Hiding Target Ring
+	/notify OptionsWindow ODP_ShowTargetRingCheckbox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_ShowTargetHealthCheckbox].Checked}) {
+	/echo Hiding Target Health
+	/notify OptionsWindow ODP_ShowTargetHealthCheckbox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_LevelOfDetailCheckbox].Checked}) {
+	/echo Disabling Level of Detail
+	/notify OptionsWindow ODP_LevelOfDetailCheckbox leftmouseup
+	}
+	/if (${Window[OptionsWindow].Child[ODP_ShowHelmCheckbox].Checked}) {
+	/echo Showing My Helm
+	/notify OptionsWindow ODP_ShowHelmCheckbox leftmouseup
+	}
+	/if (!${Window[OptionsWindow].Child[ODP_ShowPreLuclinMounts].Checked}) {
+	/echo Showing Pre-Luclin Mounts
+	/notify OptionsWindow ODP_ShowPreLuclinMounts leftmouseup
+	}
+
+	| Options -> Display, combo boxes at the top right
+	/if (1 != ${Window[OptionsWindow].Child[ODP_LoadScreenCombobox].GetCurSel}) {
+	/echo Setting Load Screen to None
+	/invoke ${Window[OptionsWindow].Child[ODP_LoadScreenCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_SkyCombobox].GetCurSel}) {
+	/echo Setting Sky Type to Off
+	/invoke ${Window[OptionsWindow].Child[ODP_SkyCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_NewArmorFilterCombobox].GetCurSel}) {
+	/echo Setting New Armor to None
+	/invoke ${Window[OptionsWindow].Child[ODP_NewArmorFilterCombobox].Select[1]}
+	}
+
+	| Far Clip Plane = 20%. Valid values are 0 - 20, corresponding to a clip plane of 0 - 100%
+	/echo Setting Far Clip Plane to 20%
+	/notify OptionsWindow ODP_ClipPlaneSlider newvalue 4
+
+	| Options -> Display, particle effects
+	/if (1 != ${Window[OptionsWindow].Child[ODP_SpellParticlesNearClipCombobox].GetCurSel}) {
+	/echo Setting Spell -> Near Clip to Near
+	/invoke ${Window[OptionsWindow].Child[ODP_SpellParticlesNearClipCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_SpellParticlesDensityCombobox].GetCurSel}) {
+	/echo Setting Spell -> Density to Off
+	/invoke ${Window[OptionsWindow].Child[ODP_SpellParticlesDensityCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_SpellParticlesFilterCombobox].GetCurSel}) {
+	/echo Setting Spell -> On For to My Spells
+	/invoke ${Window[OptionsWindow].Child[ODP_SpellParticlesFilterCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_EnvironmentParticlesNearClipCombobox].GetCurSel}) {
+	/echo Setting Env -> Near Clip to Near
+	/invoke ${Window[OptionsWindow].Child[ODP_EnvironmentParticlesNearClipCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_EnvironmentParticlesDensityCombobox].GetCurSel}) {
+	/echo Setting Env -> Density to Off
+	/invoke ${Window[OptionsWindow].Child[ODP_EnvironmentParticlesDensityCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_ActorParticlesNearClipCombobox].GetCurSel}) {
+	/echo Setting Player -> Near Clip to Near
+	/invoke ${Window[OptionsWindow].Child[ODP_ActorParticlesNearClipCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_ActorParticlesDensityCombobox].GetCurSel}) {
+	/echo Setting Player -> Density to Off
+	/invoke ${Window[OptionsWindow].Child[ODP_ActorParticlesDensityCombobox].Select[1]}
+	}
+	/if (1 != ${Window[OptionsWindow].Child[ODP_ActorParticlesFilterCombobox].GetCurSel}) {
+	/echo Setting Player -> On For to Me
+	/invoke ${Window[OptionsWindow].Child[ODP_ActorParticlesFilterCombobox].Select[1]}
+	}
+
+	| LOD Bias = Very Low
+	/echo Setting LOD Bias to Very Low
+	/notify OptionsWindow ODP_LODBiasSlider newvalue 0
+
+	| Advanced Options, combo boxes
+	/if (1 != ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_SkyReflectionSizeCombobox].GetCurSel}) {
+	/echo Setting Dynamic Sky Reflection Size to Tiny (32)
+	/invoke ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_SkyReflectionSizeCombobox].Select[1]}
+	}
+	/if (1 != ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_SkyUpdateIntervalCombobox].GetCurSel}) {
+	/echo Setting Sky Reflection Update Interval to Once per minute
+	/invoke ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_SkyUpdateIntervalCombobox].Select[1]}
+	}
+	/if (1 != ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_TerrainTextureQualityCombobox].GetCurSel}) {
+	/echo Setting Terrain Texture Quality to Minimum
+	/invoke ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_TerrainTextureQualityCombobox].Select[1]}
+	}
+	/if (1 != ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_MemoryModeCombobox].GetCurSel}) {
+	/echo Setting Memory Mode to Least Memory Usage
+	/invoke ${Window[AdvancedDisplayOptionsWindow].Child[ADOW_MemoryModeCombobox].Select[1]}
+	}
+
+	| Advanced Options, checkboxes
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_WaterSwapCheckbox].Checked}) {
+	/echo Disabling new water in old zones
+	/notify AdvancedDisplayOptionsWindow ADOW_WaterSwapCheckbox leftmouseup
+	}
+	/if (!${Window[AdvancedDisplayOptionsWindow].Child[ADOW_VertexShadersCheckbox].Checked}) {
+	/echo Enabling hw Vertex Shaders
+	/notify AdvancedDisplayOptionsWindow ADOW_VertexShadersCheckbox leftmouseup
+	}
+	/if (!${Window[AdvancedDisplayOptionsWindow].Child[ADOW_11PixelShadersCheckbox].Checked}) {
+	/echo Enabling 1.1 Pixel Shaders
+	/notify AdvancedDisplayOptionsWindow ADOW_11PixelShadersCheckbox leftmouseup
+	}
+	/if (!${Window[AdvancedDisplayOptionsWindow].Child[ADOW_14PixelShadersCheckbox].Checked}) {
+	/echo Enabling 1.4 Pixel Shaders
+	/notify AdvancedDisplayOptionsWindow ADOW_14PixelShadersCheckbox leftmouseup
+	}
+	/if (!${Window[AdvancedDisplayOptionsWindow].Child[ADOW_20PixelShadersCheckbox].Checked}) {
+	/echo Enabling 2.0 Pixel Shaders
+	/notify AdvancedDisplayOptionsWindow ADOW_20PixelShadersCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_AdvancedLightingCheckbox].Checked}) {
+	/echo Disabling Advanced Lighting
+	/notify AdvancedDisplayOptionsWindow ADOW_AdvancedLightingCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_ShadowsCheckbox].Checked}) {
+	/echo Disabling Shadows
+	/notify AdvancedDisplayOptionsWindow ADOW_ShadowsCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_FloraCheckbox].Checked}) {
+	/echo Disabling Radial Flora
+	/notify AdvancedDisplayOptionsWindow ADOW_FloraCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_StreamItemTexturesCheckbox].Checked}) {
+	/echo Disabling Stream Item Textures
+	/notify AdvancedDisplayOptionsWindow ADOW_StreamItemTexturesCheckbox leftmouseup
+	}
+	/if (!${Window[AdvancedDisplayOptionsWindow].Child[ADOW_DisableTattoosCheckbox].Checked}) {
+	/echo Disabling Tattoos
+	/notify AdvancedDisplayOptionsWindow ADOW_DisableTattoosCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_EnablePostEffectsCheckbox].Checked}) {
+	/echo Disabling Post Bloom Effects
+	/notify AdvancedDisplayOptionsWindow ADOW_EnablePostEffectsCheckbox leftmouseup
+	}
+	/if (${Window[AdvancedDisplayOptionsWindow].Child[ADOW_EnableBloomCheckbox].Checked}) {
+	/echo Disabling Bloom Lighting
+	/notify AdvancedDisplayOptionsWindow ADOW_EnableBloomCheckbox leftmouseup
+	}
+
+	| Shadow Clip Plane = 0%. Valid values are 0 - 100
+	/echo Setting Shadow Clip Plane to 20%
+	/notify AdvancedDisplayOptionsWindow ADOW_ShadowClipPlaneSlider newvalue 0
+
+	| Actor Clip Plane = 20%. Valid values are 0 - 100
+	/echo Setting Actor Clip Plane to 20%
+	/notify AdvancedDisplayOptionsWindow ADOW_ActorClipPlaneSlider newvalue 20
+
+	| Max Foreground FPS = 30. Valid values are 0 - 100, corresponding to an fps of 0 - 150
+	/echo Setting Foreground FPS to 100
+	/notify AdvancedDisplayOptionsWindow ADOW_MaxFPSSlider newvalue 90
+
+	| Max Background FPS = 30. Valid values are 0 - 100, corresponding to an fps of 0 - 150. Slightly different to foreground FPS for some reason
+	/echo Setting Background FPS to 100
+	/notify AdvancedDisplayOptionsWindow ADOW_MaxBGFPSSlider newvalue 91
+
+	/invoke ${Window[OptionsWindow].DoClose}
+	/invoke ${Window[AdvancedDisplayOptionsWindow].DoClose}
+
+	/echo \agSettings changed!
+	/return

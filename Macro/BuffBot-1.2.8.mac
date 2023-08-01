@@ -1,0 +1,1063 @@
+|------------------------------------------------------------| 
+|          BuffBot.mac 
+| 
+|      Last Modified by: TheDroidUrLookingFor 
+|
+|		Version:	1.2.8
+|
+|------------------------------------------------------------| 
+#turbo
+|------------------------------------------------------------| 
+|          Includes 
+|------------------------------------------------------------| 
+|#include spell_routines.inc
+|#define CASTMODE       "cast"
+#include MQ2Cast_Spell_Routines.inc
+#define CASTMODE       "MQ2Cast"
+|------------------------------------------------------------| 
+|          Defines 
+|------------------------------------------------------------|
+#define CHATMETHOD          "/if (${ShowDebug}) /bc"
+#define CHATMETHOD1       "/echo"
+#define CHATMETHOD2       "/t"
+#define ACCOUNTCHAT       "/say"
+#define PORTCHAT       "/say"
+|------------------------------------------------------------|
+|          Events 
+|------------------------------------------------------------|
+#Event Hail "#1# says, 'Hail, |${Me.Name}|'"
+#Event Hail "#1# says, in #2#, 'Hail, |${Me.Name}|'"
+|------------------------------------------------------------|
+|          Mage Events
+|------------------------------------------------------------|
+#Event Toys "#1# says, in #*#, 'toys'"
+#Event Toys "#1# says, 'toys'"
+#Event ToysCustom "#1# says, in #*#, 'toys #2#'"
+#Event ToysCustom "#1# says, 'toys #2#'"
+#Event Other "#1# says, in #*#, 'other'"
+#Event Other "#1# says, 'other'"
+#Event Invis "#1# says, in #*#, 'invis'"
+#Event Invis "#1# says, 'invis'"
+#Event ModRod "#1# says, in #*#, 'rod'"
+#Event ModRod "#1# says, 'rod'"
+#Event DmgRod "#1# says, in #*#, 'drod'"
+#Event DmgRod "#1# says, 'drod'"
+#Event Arrows "#1# says, in #*#, 'arrows'"
+#Event Arrows "#1# says, 'arrows'"
+|------------------------------------------------------------|
+|          Cleric Events
+|------------------------------------------------------------|
+#Event RezMe "#1# says, in #*#, 'rez'"
+#Event RezMe "#1# says, 'rez'"
+|------------------------------------------------------------|
+|          Port Events
+|------------------------------------------------------------|
+#Event Ports "#1# says, 'ports'"
+#Event Ports "#1# says, in #*#, 'ports'"
+#Event BlightfireMoors "#1# says, in #*#, 'moors'"
+#Event BlightfireMoors "#1# says, 'moors'"
+#Event Nexus "#1# says, in #*#, 'nexus'"
+#Event Nexus "#1# says, 'nexus'"
+#Event Toxxulia "#1# says, in #*#, 'tox'"
+#Event Toxxulia "#1# says, 'tox'"
+#Event ButcherBlock "#1# says, in #*#, 'butcher'"
+#Event ButcherBlock "#1# says, 'butcher'"
+#Event Iceclad "#1# says, in #*#, 'iceclad'"
+#Event Iceclad "#1# says, 'iceclad'"
+#Event Karana "#1# says, in #*#, 'karana'"
+#Event Karana "#1# says, 'karana'"
+#Event Commonlands "#1# says, in #*#, 'cl'"
+#Event Commonlands "#1# says, 'cl'"
+#Event SurefallGlade "#1# says, in #*#, 'sfg'"
+#Event SurefallGlade "#1# says, 'sfg'"
+#Event StoneBrunt "#1# says, in #*#, 'stoneBrunt'"
+#Event StoneBrunt "#1# says, 'stoneBrunt'"
+#Event Grimling "#1# says, in #*#, 'grimling'"
+#Event Grimling "#1# says, 'grimling'"
+#Event Feerrott "#1# says, in #*#, 'feerrott'"
+#Event Feerrott "#1# says, 'feerrott'"
+#Event Steamfont "#1# says, in #*#, 'steamfont'"
+#Event Steamfont "#1# says, 'steamfont'"
+#Event Combines "#1# says, in #*#, 'combines'"
+#Event Combines "#1# says, 'combines'"
+#Event Ro "#1# says, in #*#, 'ro'"
+#Event Ro "#1# says, 'ro'"
+#Event Twilight "#1# says, in #*#, 'twilight'"
+#Event Twilight "#1# says, 'twilight'"
+#Event GreatDivide "#1# says, in #*#, 'gd'"
+#Event GreatDivide "#1# says, 'gd'"
+#Event WakeningLands "#1# says, in #*#, 'wl'"
+#Event WakeningLands "#1# says, 'wl'"
+#Event CobaltScar "#1# says, in #*#, 'cs'"
+#Event CobaltScar "#1# says, 'cs'"
+#Event Misty "#1# says, in #*#, 'misty'"
+#Event Misty "#1# says, 'misty'"
+#Event PoKnowledge "#1# says, in #*#, 'pok'"
+#Event PoKnowledge "#1# says, 'pok'"
+#Event LavaStorm "#1# says, in #*#, 'lavastorm'"
+#Event LavaStorm "#1# says, 'lavastorm'"
+#Event UnderShore "#1# says, in #*#, 'undershore'"
+#Event UnderShore "#1# says, 'undershore'"
+#Event Arcstone "#1# says, in #*#, 'arcstone'"
+#Event Arcstone "#1# says, 'arcstone'"
+#Event Natimbi "#1# says, in #*#, 'natimbi'"
+#Event Natimbi "#1# says, 'natimbi'"
+#Event Dawnshroud "#1# says, in #*#, 'dawnshroud'"
+#Event Dawnshroud "#1# says, 'dawnshroud'"
+#Event Barindu "#1# says, in #*#, 'barindu'"
+#Event Barindu "#1# says, 'barindu'"
+#Event Bloodfields "#1# says, in #*#, 'bloodfields'"
+#Event Bloodfields "#1# says, 'bloodfields'"
+#Event TheSteppes "#1# says, in #*#, 'steppes'"
+#Event TheSteppes "#1# says, 'steppes'"
+#Event BuriedSea "#1# says, in #*#, 'buriedsea'"
+#Event BuriedSea "#1# says, 'buriedsea'"
+#Event Slaughter "#1# says, in #*#, 'slaughter'"
+#Event Slaughter "#1# says, 'slaughter'"
+#Event Direwind "#1# says, in #*#, 'direwind'"
+#Event Direwind "#1# says, 'direwind'"
+#Event LopingPlains "#1# says, in #*#, 'loping'"
+#Event LopingPlains "#1# says, 'loping'"
+#Event PoTime "#1# says, in #*#, 'time'"
+#Event PoTime "#1# says, 'time'"
+#Event BrellsRest "#1# says, in #*#, 'brells'"
+#Event BrellsRest "#1# says, 'brells'"
+#Event Grounds "#1# says, in #*#, 'grounds'"
+#Event Grounds "#1# says, 'grounds'"
+#Event BeastsDomain "#1# says, in #*#, 'beasts'"
+#Event BeastsDomain "#1# says, 'beasts'"
+#Event PillarsOfAlra "#1# says, in #*#, 'pillars'"
+#Event PillarsOfAlra "#1# says, 'pillars'"
+#Event ShardsLanding "#1# says, in #*#, 'shards'"
+#Event ShardsLanding "#1# says, 'shards'"
+#Event WestKarana "#1# says, in #*#, 'wkarana'"
+#Event WestKarana "#1# says, 'wkarana'"
+#Event Lceanium "#1# says, in #*#, 'lceanium'"
+#Event Lceanium "#1# says, 'lceanium'"
+#Event TempestTemple "#1# says, in #*#, 'tempest'"
+#Event TempestTemple "#1# says, 'tempest'"
+#Event GFay "#1# says, in #*#, 'fay'"
+#Event GFay "#1# says, 'fay'"
+#Event Nek "#1# says, in #*#, 'nek'"
+#Event Nek "#1# says, 'nek'"
+#Event Cazic "#1# says, in #*#, 'cazic'"
+#Event Cazic "#1# says, 'cazic'"
+#Event Bind "#1# says, in #*#, 'bind'"
+#Event Bind "#1# says, 'bind'"
+#Event Sunderock "#1# says, in #*#, 'sunderock'"
+#Event Sunderock "#1# says, 'sunderock'"
+#Event PrimaryAnchor "#1# says, in #*#, 'primary'"
+#Event PrimaryAnchor "#1# says, 'primary'"
+#Event SecondaryAnchor "#1# says, in #*#, 'secondary'"
+#Event SecondaryAnchor "#1# says, 'secondary'"
+#Event Icefall "#1# says, in #*#, 'icefall'"
+#Event Icefall "#1# says, 'icefall'"
+#Event Katta "#1# says, in #*#, 'katta'"
+#Event Katta "#1# says, 'katta'"
+#Event Dragonscale "#1# says, in #*#, 'dragonscale'"
+#Event Dragonscale "#1# says, 'dragonscale'"
+#Event Sarith "#1# says, in #*#, 'sarith'"
+#Event Sarith "#1# says, 'sarith'"
+|------------------------------------------------------------| 
+|          End of Events 
+|------------------------------------------------------------| 
+
+|------------------------------------------------------------| 
+|          Main Rountine 
+|------------------------------------------------------------| 
+Sub Main
+|-----------Guild--------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,General,Buff Guild Only].Length}) /call SetIni "BuffBot.Settings.ini" "General" "Buff Guild Only" "TRUE"
+/Declare BuffGuildOnly		bool outer ${Ini[BuffBot.Settings.ini,General,Buff Guild Only]}
+|-----------Debug--------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,General,ShowDebug].Length}) /call SetIni "BuffBot.Settings.ini" "General" "ShowDebug" "FALSE"
+/Declare ShowDebug			bool outer ${Ini[BuffBot.Settings.ini,General,ShowDebug]}
+|-----------Toy Request Cap----------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,General,Max Summon Requests].Length}) /call SetIni "BuffBot.Settings.ini" "General" "Max Summon Requests" "20"
+/Declare MaxRequests			int outer ${Ini[BuffBot.Settings.ini,General,Max Summon Requests]}
+|-----------Accounts-----------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Account,Use Account Mode].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Use Account Mode" "FALSE"
+/Declare AccountMode		bool outer ${Ini[BuffBot.Settings.ini,Account,Use Account Mode]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Use Friend Mode].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Use Friend Mode" "FALSE"
+/Declare FriendMode		bool outer ${Ini[BuffBot.Settings.ini,Account,Use Friend Mode]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Friends Buff Free].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Friends Buff Free" "FALSE"
+/Declare FriendFree		bool outer ${Ini[BuffBot.Settings.ini,Account,Friends Buff Free]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Use Guild Mode].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Use Guild Mode" "FALSE"
+/Declare GuildMode		bool outer ${Ini[BuffBot.Settings.ini,Account,Use Guild Mode]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Guild Buffs Free].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Guild Buffs Free" "TRUE"
+/Declare GuildFree		bool outer ${Ini[BuffBot.Settings.ini,Account,Guild Buffs Free]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Starting Balance].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Starting Balance" "5000"
+/Declare StartBalance		int outer ${Ini[BuffBot.Settings.ini,Account,Starting Balance]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Buff Cost].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Buff Cost" "100"
+/Declare BuffCost		int outer ${Ini[BuffBot.Settings.ini,Account,Buff Cost]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Summon Cost].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Summon Cost" "100"
+/Declare SummonCost		int outer ${Ini[BuffBot.Settings.ini,Account,Summon Cost]}
+/if (!${Ini[BuffBot.Settings.ini,Account,Port Cost].Length}) /call SetIni "BuffBot.Settings.ini" "Account" "Port Cost" "100"
+/Declare PortCost		int outer ${Ini[BuffBot.Settings.ini,Account,Port Cost]}
+|-----------EQBC---------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,EQBC,Use EQBC].Length}) /call SetIni "BuffBot.Settings.ini" "EQBC" "Use EQBC" "TRUE"
+/Declare UseEQBC			bool outer ${Ini[BuffBot.Settings.ini,EQBC,Use EQBC]}
+/if (!${Ini[BuffBot.Settings.ini,EQBC,Server].Length}) /call SetIni "BuffBot.Settings.ini" "EQBC" "Server" "192.168.1.251"
+/Declare EQBCServerAddr		string outer ${Ini[BuffBot.Settings.ini,EQBC,Server]}
+/if (!${Ini[BuffBot.Settings.ini,EQBC,Port].Length}) /call SetIni "BuffBot.Settings.ini" "EQBC" "Port" "2112"
+/Declare EQBCPort			string outer ${Ini[BuffBot.Settings.ini,EQBC,Port]}
+/if (!${Ini[BuffBot.Settings.ini,EQBC,Password].Length}) /call SetIni "BuffBot.Settings.ini" "EQBC" "Password" ""
+/Declare EQBCPassword			string outer ${Ini[BuffBot.Settings.ini,EQBC,Password]}
+|-----------Guild--------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Mana,Start Med].Length}) /call SetIni "BuffBot.Settings.ini" "Mana" "Start Med" "35"
+/Declare MedAtPct			int outer ${Ini[BuffBot.Settings.ini,Mana,Start Med]}
+/if (!${Ini[BuffBot.Settings.ini,Mana,Finish Med].Length}) /call SetIni "BuffBot.Settings.ini" "Mana" "Finish Med" "60"
+/Declare DoneMeddingPct		int outer ${Ini[BuffBot.Settings.ini,Mana,Finish Med]}
+|-----------Items--------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Items,Use Horse].Length}) /call SetIni "BuffBot.Settings.ini" "Items" "Use Horse" "TRUE"
+/Declare UseHorse			bool outer ${Ini[BuffBot.Settings.ini,Items,Use Horse]}
+/if (!${Ini[BuffBot.Settings.ini,Items,Horse].Length}) /call SetIni "BuffBot.Settings.ini" "Items" "Horse" "Jungle Raptor Saddle"
+/Declare HorseItem			string outer ${Ini[BuffBot.Settings.ini,Items,Horse]}
+|-----------High Level Spells--------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Enchanter,Haste].Length}) /call SetIni "BuffBot.Settings.ini" "Enchanter" "Haste" "Speed of Prokev"
+/Declare EncHighLvlBuff1	string outer ${Ini[BuffBot.Settings.ini,Enchanter,Haste]}
+/if (!${Ini[BuffBot.Settings.ini,Enchanter,Clarity].Length}) /call SetIni "BuffBot.Settings.ini" "Enchanter" "Clarity" "Foresight"
+/Declare EncHighLvlBuff2	string outer ${Ini[BuffBot.Settings.ini,Enchanter,Clarity]}
+|------------------------------------------------------------| 
+/if (!${Ini[BuffBot.Settings.ini,Mage,DS].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "DS" "Flameweave Coat"
+/Declare MageHighLvlBuff	string outer ${Ini[BuffBot.Settings.ini,Mage,DS]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Visor].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Visor" "Grant Visor of Gobeker"
+/Declare MageSummon1		string outer ${Ini[BuffBot.Settings.ini,Mage,Visor]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Weapons].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Weapons" "Grant Thassis' Armaments"
+/Declare MageSummon2		string outer ${Ini[BuffBot.Settings.ini,Mage,Weapons]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Armor].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Armor" "Grant Thassis' Plate"
+/Declare MageSummon3		string outer ${Ini[BuffBot.Settings.ini,Mage,Armor]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Heirlooms].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Heirlooms" "Grant Calix's Heirlooms"
+/Declare MageSummon4		string outer ${Ini[BuffBot.Settings.ini,Mage,Heirlooms]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Arrows].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Arrows" "Grant Quiver of Kalkek"
+/Declare MageSummonArrows	string outer ${Ini[BuffBot.Settings.ini,Mage,Arrows]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Invis].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Invis" "Grant Sphere of Air"
+/Declare MageSummonInvis	string outer ${Ini[BuffBot.Settings.ini,Mage,Invis]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Lev].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Lev" "Grant Ring of Levitation"
+/Declare MageSummonLev	string outer ${Ini[BuffBot.Settings.ini,Mage,Lev]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Mod Rod1].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Mod Rod1" "Wand of Arcane Transvergence"
+/Declare MageSummonModRod1	string outer ${Ini[BuffBot.Settings.ini,Mage,Mod Rod1]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Mod Rod2].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Mod Rod2" "Wand of Spectral Transvergence"
+/Declare MageSummonModRod2	string outer ${Ini[BuffBot.Settings.ini,Mage,Mod Rod2]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Mod Rod3].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Mod Rod3" "Mass Dark Transvergence"
+/Declare MageSummonModRod3	string outer ${Ini[BuffBot.Settings.ini,Mage,Mod Rod3]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Mod Rod4].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Mod Rod4" "Wand of Ethereal Transvergence"
+/Declare MageSummonModRod4	string outer ${Ini[BuffBot.Settings.ini,Mage,Mod Rod4]}
+/if (!${Ini[BuffBot.Settings.ini,Mage,Dmg Rod].Length}) /call SetIni "BuffBot.Settings.ini" "Mage" "Dmg Rod" "Grant Frostrift Paradox"
+/Declare MageSummonDmgRod	string outer ${Ini[BuffBot.Settings.ini,Mage,Dmg Rod]}
+|------------------------------------------------------------| 
+/if (!${Ini[BuffBot.Settings.ini,Ranger,HP].Length}) /call SetIni "BuffBot.Settings.ini" "Ranger" "HP" "Strength of the Bosquestalker"
+/Declare RangerHighLvlBuff1	string outer ${Ini[BuffBot.Settings.ini,Ranger,HP]}
+/if (!${Ini[BuffBot.Settings.ini,Ranger,DS].Length}) /call SetIni "BuffBot.Settings.ini" "Ranger" "DS" "Cloak of Spurs"
+/Declare RangerHighLvlBuff2	string outer ${Ini[BuffBot.Settings.ini,Ranger,DS]}
+/if (!${Ini[BuffBot.Settings.ini,Ranger,Attack].Length}) /call SetIni "BuffBot.Settings.ini" "Ranger" "Attack" "Cry of the Predator"
+/Declare RangerHighLvlBuff3	string outer ${Ini[BuffBot.Settings.ini,Ranger,Attack]}
+|------------------------------------------------------------| 
+/if (!${Ini[BuffBot.Settings.ini,Shaman,HP].Length}) /call SetIni "BuffBot.Settings.ini" "Shaman" "HP" "Unity of the Doomscale"
+/Declare ShamanHighLvlBuff1	string outer ${Ini[BuffBot.Settings.ini,Shaman,HP]}
+/if (!${Ini[BuffBot.Settings.ini,Shaman,Regen].Length}) /call SetIni "BuffBot.Settings.ini" "Shaman" "Regen" "Spirit of the Faithful"
+/Declare ShamanHighLvlBuff2	string outer ${Ini[BuffBot.Settings.ini,Shaman,Regen]}
+|------------------------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Beastlord,HP].Length}) /call SetIni "BuffBot.Settings.ini" "Beastlord" "HP" "Stormblood's Unity"
+/Declare BeastHighLvlBuff1	string outer ${Ini[BuffBot.Settings.ini,Beastlord,HP]}
+/if (!${Ini[BuffBot.Settings.ini,Beastlord,Attack].Length}) /call SetIni "BuffBot.Settings.ini" "Beastlord" "Attack" "Spiritual Vivification"
+/Declare BeastHighLvlBuff2	string outer ${Ini[BuffBot.Settings.ini,Beastlord,Attack]}
+/if (!${Ini[BuffBot.Settings.ini,Beastlord,Fero].Length}) /call SetIni "BuffBot.Settings.ini" "Beastlord" "Fero" "Shared Merciless Ferocity"
+/Declare BeastHighLvlBuff3	string outer ${Ini[BuffBot.Settings.ini,Beastlord,Fero]}
+|------------------------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Cleric,HP].Length}) /call SetIni "BuffBot.Settings.ini" "Cleric" "HP" "Unified Surety"
+/Declare ClericHighLvlBuff	string outer ${Ini[BuffBot.Settings.ini,Cleric,HP]}
+|------------------------------------------------------------|
+/if (!${Ini[BuffBot.Settings.ini,Druid,DS].Length}) /call SetIni "BuffBot.Settings.ini" "Druid" "DS" "Bonebriar Bulwark"
+/Declare DruidHighLvlBuff1	string outer ${Ini[BuffBot.Settings.ini,Druid,DS]}
+/if (!${Ini[BuffBot.Settings.ini,Druid,HP].Length}) /call SetIni "BuffBot.Settings.ini" "Druid" "HP" "Timbercore Skin"
+/Declare DruidHighLvlBuff2	string outer ${Ini[BuffBot.Settings.ini,Druid,HP]}
+|------------------------------------------------------------|
+/declare TargetName			string outer
+|------------------------------------------------------------|
+
+/if (!${Defined[AFKMessage]}) /declare AFKMessage string outer 
+/if (!${Defined[MedMessage]}) /declare MedMessage string outer ...Meditating... Low on mana.
+/afk ${AFKMessage}
+/tgb on
+
+/popup ALL VARIABLES LOADED: Check Mq2 Window for Errors. 
+/if (${UseEQBC}) /bccmd connect ${EQBCServerAddr} ${EQBCPort} ${EQBCPassword}
+
+CHATMETHOD1 [NBB]+ Initialized ++[NBB]
+CHATMETHOD [NBB]+ Initialized ++[NBB]
+CHATMETHOD1 [NBB]++ NEWBIE BUFF BOT STARTED ++[NBB]
+CHATMETHOD [NBB]++ NEWBIE BUFF BOT STARTED ++[NBB]
+
+:MainLoop
+/if (${MacroQuest.GameState.Equal[CHARSELECT]}) /end
+/if (!${Me.AFK}) /afk ${AFKMessage}
+/if (${Me.PctMana} < ${MedAtPct}) /call Med
+/if (${Window[TradeWnd].Open}) /call Money
+/if (!${Me.Mount.ID} && ${UseHorse} && ${Zone.Type}==1 && ${FindItem[${HorseItem}].Name.NotEqual["NULL"]}) /call CASTMODE "${FindItem[${HorseItem}]}" item
+/if (${Me.Standing} && !${Me.Mount.ID}) /sit
+/doevents
+/if (${MacroQuest.GameState.Equal[CHARSELECT]}) /end
+/delay 7
+/goto :MainLoop
+/return
+
+Sub GetBalance(string Account)
+	/if (!${Ini[BuffBot.Accounts.ini,Balances,${Account}].Length}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Account}" "${StartBalance}"
+	/echo Account:(${Account}) Balance:(${Ini[BuffBot.Accounts.ini,Balances,${Account}]})
+/return ${Ini[BuffBot.Accounts.ini,Balances,${Account}]}
+
+Sub GetFriend(string Account)
+	/if (!${Ini[BuffBot.Friends.ini,Friends,${Account}].Length}) /call SetIni "BuffBot.Friends.ini" "Friends" "${Account}" "FALSE"
+	CHATMETHOD1 Account:(${Account}) Friend Status:(${Ini[BuffBot.Friends.ini,Friends,${Account}]})
+/return ${Ini[BuffBot.Friends.ini,Friends,${Account}]}
+
+Sub GetGuild(string Account)
+	/if (!${Ini[BuffBot.Guilds.ini,Friends,${Account}].Length}) /call SetIni "BuffBot.Guilds.ini" "Friends" "${Account}" "FALSE"
+	CHATMETHOD1 Guild:(${Account}) Friend Status:(${Ini[BuffBot.Guilds.ini,Friends,${Account}]})
+/return ${Ini[BuffBot.Guilds.ini,Friends,${Account}]}
+
+Sub SetIni(string filename, string section, string option, string value)
+	/ini "${filename}" "${section}" "${option}" "${value}"
+/return
+
+|------------------------------------------------------------| 
+|          End Main Rountine 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Target Buff Rountine 
+|------------------------------------------------------------| 
+Sub BuffTarget(string WhoToBuff)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${WhoToBuff}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${WhoToBuff}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${WhoToBuff}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${WhoToBuff}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/varset TargetName ${WhoToBuff}
+/if (${TargAccBal}<=${BuffCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${WhoToBuff})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Sitting}) /stand up
+/if (${Window[TradeWnd].Open}) /call Money
+/delay 2
+/target id ${Spawn[PC ${TargetName}].ID}
+/delay 1s ${Target.ID}
+CHATMETHOD1 Buffing started on ${Target.CleanName}!
+CHATMETHOD Buffing started on ${Target.CleanName}!
+/mqlog Buffing started on ${Target.CleanName}!
+
+/if (${Window[TradeWnd].Open}) /call Money
+/if (${Spawn[pc ${TargetName}].Pet.ID}) {
+/target ${Spawn[PC ${TargetName}].Pet}
+/delay 1s ${Target.ID}
+/face
+/call Buff
+CHATMETHOD1 Serviced: ${Target.CleanName}
+CHATMETHOD Serviced: ${Target.CleanName}
+/if (${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) /call SetIni "BuffBot.Accounts.ini" "Balances" "${WhoToBuff}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${WhoToBuff}]}-${BuffCost}]}"
+}
+/if (${Spawn[PC ${TargetName}].MercID}) {
+/target id ${Spawn[PC ${TargetName}].MercID}
+/delay 1s ${Target.ID}
+/face
+/call Buff
+CHATMETHOD1 Serviced: ${Target.CleanName}
+CHATMETHOD Serviced: ${Target.CleanName}
+/if (${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) /call SetIni "BuffBot.Accounts.ini" "Balances" "${WhoToBuff}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${WhoToBuff}]}-${BuffCost}]}"
+}
+/target id ${Spawn[PC ${TargetName}].ID}
+/delay 1s ${Target.ID}
+/face
+/call Buff
+CHATMETHOD1 Serviced: ${Target.CleanName}
+CHATMETHOD Serviced: ${Target.CleanName}
+/if (${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) /call SetIni "BuffBot.Accounts.ini" "Balances" "${WhoToBuff}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${WhoToBuff}]}-${BuffCost}]}"
+/mqlog Buffed: ${Target.CleanName}!
+/return
+|------------------------------------------------------------| 
+|          End Target Buff Rountine 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Other Rountines
+|------------------------------------------------------------|
+Sub Med
+/afk ${MedMessage}
+/if (!${Me.Sitting} && !${Me.Mount.ID}) /sit on
+/delay 5m ${Me.PctMana} > ${DoneMeddingPct}
+/afk ${AFKMessage}
+/return
+
+Sub Money
+/delay 3s ${Window[TradeWnd].Open}
+/delay 3s ${Window[TradeWnd].HisTradeReady}
+/if (${Window[TradeWnd].HisTradeReady}) {
+CHATMETHOD1 Received a donation from ${Target.CleanName}.
+CHATMETHOD Received a donation from ${Target.CleanName}.
+/call GetBalance "${Target.CleanName}"
+/if (${Window[TradeWnd].Child[TRDW_HisMoney0].Text}>=1 ) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Target.CleanName}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Target.CleanName}]}+${Window[TradeWnd].Child[TRDW_HisMoney0].Text}]}"
+/mqlog Received a donation from ${Target.CleanName}.
+/notify TradeWnd TRDW_Trade_Button leftmouseup
+}
+/delay 2s !${Window[TradeWnd].Open}
+/return
+
+Sub Port(string PortTarget, string PortToCast)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${PortTarget}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${PortTarget}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${PortTarget}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${PortTarget}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${PortCost} && ${AccountMode}  && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${PortToCast})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Druid]} || ${Me.Class.Name.Equal[Wizard]}) {
+/varset TargetName ${PortTarget}
+/if (${Me.Sitting}) /stand up
+/if (${Window[TradeWnd].Open}) /call Money
+/delay 2
+/target id ${Spawn[PC ${TargetName}].ID}
+/delay 1s ${Target.ID}
+CHATMETHOD1 Porting: ${Target.CleanName} -- ${PortToCast} --
+CHATMETHOD Porting: ${Target.CleanName} -- ${PortToCast} --
+/mqlog Porting: ${Target.CleanName} -- ${PortToCast} --
+/call CASTMODE "${PortToCast}" gem9
+/delay 1s !${Me.Casting.ID}
+/if (${AccountMode}  && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) /call SetIni "BuffBot.Accounts.ini" "Balances" "${PortTarget}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${PortToCast}]}-${PortCost}]}"
+}
+/return
+
+Sub Buff
+|------------------------------------------------------------| 
+|          Enchanter 
+|------------------------------------------------------------| 
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Swift Like the Wind" gem1 15s
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Speed of Vallon" gem2 15s
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${EncHighLvlBuff1}].RankName}" gem3 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} <= 41) /call CASTMODE "Boon of the Clear Mind" gem4 15s
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} >= 42 && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Gift of Pure Thought" gem5 15s
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Clairvoyance" gem6 15s
+/if (${Me.Class.Name.Equal[Enchanter]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${EncHighLvlBuff2}].RankName}" gem7 15s
+|------------------------------------------------------------| 
+|          Enchanter 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Mage 
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Magician]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Shield of Lava" gem1 15s
+/if (${Me.Class.Name.Equal[Magician]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Flameshield of Ro" gem2 15s
+/if (${Me.Class.Name.Equal[Magician]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${MageHighLvlBuff}].RankName}" gem3 15s
+|------------------------------------------------------------| 
+|          Mage 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Ranger 
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Strength of Nature" gem1 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Strength of Tunare" gem2 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${RangerHighLvlBuff1}].RankName}" gem3 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Call of Earth" gem4 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Call of the Rathe" gem5 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${RangerHighLvlBuff2}].RankName}" gem6 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Mark of the Predator" gem7 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Call of the Predator" gem8 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${RangerHighLvlBuff3}].RankName}" gem9 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Spirit of Wolf" gem10 15s
+/if (${Me.Class.Name.Equal[Ranger]} && ${Spawn[ID ${Target.ID}].Level} >= 47) /call CASTMODE "Spirit of Eagle" gem11 15s
+|------------------------------------------------------------| 
+|          Ranger 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Shaman 
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Harnessing of Spirit" gem1 15s
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Focus of Soul" gem2 15s
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${ShamanHighLvlBuff1}].RankName}" gem3 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Shaman]} && ${Me.AltAbilityReady["Talisman of Celerity"]}) /call CASTMODE "Talisman of Celerity" alt
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Chloroplast" gem6 15s
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Replenishment" gem7 15s
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${ShamanHighLvlBuff2}].RankName}" gem8 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Spirit of Bih`Li" gem9 15s
+/if (${Me.Class.Name.Equal[Shaman]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "Spirit of Tala'Tak" gem10 15s
+|------------------------------------------------------------| 
+|          Shaman 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Beastlord 
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Spiritual Light" gem4 15s
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Spiritual Dominion" gem5 15s
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${BeastHighLvlBuff1}].RankName}" gem6 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Spiritual Brawn" gem4 15s
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Spiritual Vigor" gem5 15s
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${BeastHighLvlBuff2}].RankName}" gem5 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Spirit of Wolf" gem9 15s
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "Spirit of Tala'Tak" gem10 15s
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Beastlord]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${BeastHighLvlBuff3}].RankName}" gem11 15s
+|------------------------------------------------------------| 
+|          Beastlord 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Cleric 
+|------------------------------------------------------------|
+/if (${Me.Class.Name.Equal[Cleric]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Temperance" gem4 15s
+/if (${Me.Class.Name.Equal[Cleric]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Virtue" gem5 15s
+/if (${Me.Class.Name.Equal[Cleric]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${ClericHighLvlBuff}].RankName}" gem5 15s
+|------------------------------------------------------------| 
+|          Cleric 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Druid 
+|------------------------------------------------------------| 
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Shield of Thorns" gem7 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Shield of Bracken" gem8 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${DruidHighLvlBuff1}].RankName}" gem11 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Skin like Nature" gem1 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} >= 47 && ${Spawn[ID ${Target.ID}].Level} <= 60) /call CASTMODE "Protection of the Nine" gem2 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} >= 61) /call CASTMODE "${Spell[${DruidHighLvlBuff2}].RankName}" gem6 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} <= 46) /call CASTMODE "Spirit of Wolf" gem7 15s
+/if (${Me.Class.Name.Equal[Druid]} && ${Spawn[ID ${Target.ID}].Level} >= 47) /call CASTMODE "Spirit of Eagle" gem8 15s
+|------------------------------------------------------------| 
+|          Druid 
+|------------------------------------------------------------|
+/return
+|------------------------------------------------------------| 
+|          End Other Rountines
+|------------------------------------------------------------| 
+|------------------------------------------------------------| 
+|          Events 
+|------------------------------------------------------------| 
+Sub Event_Hail(Line,Sender)
+/call BuffTarget "${Sender}"
+/return
+
+|------------------------------------------------------------| 
+|          Mage Events 
+|------------------------------------------------------------|
+Sub SummonToys(string ToyTarget, int RequestedAmount)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${ToyTarget}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${ToyTarget}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${ToyTarget}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${ToyTarget}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${ToyTarget})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${ToyTarget}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	
+	/declare ToyAmount int local 0
+	/if (${RequestedAmount} >= ${MaxRequests}) {
+	/varset ToyAmount ${MaxRequests}
+	} else {
+	/varset ToyAmount ${RequestedAmount}
+	}
+	
+	CHATMETHOD1 Giving Weapons ${ToyAmount} : ${Target.CleanName}
+	CHATMETHOD Giving Weapons ${ToyAmount} : ${Target.CleanName}
+	/mqlog Giving Weapons ${ToyAmount} : ${Target.CleanName}
+	
+	/declare i int local 1 
+	/for i 1 to ${ToyAmount} 
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummon1}].RankName}" gem4 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummon2}].RankName}" gem5 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummon3}].RankName}" gem6 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummon4}].RankName}" gem7 15s
+	/if (${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) /call SetIni "BuffBot.Accounts.ini" "Balances" "${ToyTarget}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${ToyTarget}]}-${SummonCost}]}"
+	/next i
+}
+/return
+
+Sub Event_Toys(Line,Sender)
+/if (${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) /return
+/call SummonToys "${Sender}" "1"
+/return
+
+Sub Event_ToysCustom(Line,Sender,Amount)
+/if (${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) /return
+/call SummonToys "${Sender}" "${Amount}"
+/return
+
+Sub Event_Arrows(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Giving Arrows: ${Target.CleanName}
+	CHATMETHOD Giving Arrows: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Giving Arrows: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonArrows}].RankName}" gem12 15s
+}
+/return
+
+Sub Event_Invis(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Giving Invis Stone: ${Target.CleanName}
+	CHATMETHOD Giving Invis Stone: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Giving Invis Stone: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonInvis}].RankName}" gem6 15s
+}
+/return
+
+Sub Event_ModRod(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Giving ModRod: ${Target.CleanName}
+	CHATMETHOD Giving ModRod: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Giving ModRod: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod1}].RankName}" gem9 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod2}].RankName}" gem10 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod3}].RankName}" gem11 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod4}].RankName}" gem12 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "596" alt
+}
+/return
+
+Sub Event_DmgRod(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Giving ModRod: ${Target.CleanName}
+	CHATMETHOD Giving ModRod: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Giving ModRod: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonDmgRod}].RankName}" gem8 15s
+}
+/return
+
+Sub Event_Other(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Magician]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target id ${Spawn[PC ${TargetName}].ID}
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Giving Gifts: ${Target.CleanName}
+	CHATMETHOD Giving Gifts: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Giving Gifts: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonInvis}].RankName}" gem6 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonLev}].RankName}" gem7 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonDmgRod}].RankName}" gem8 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod1}].RankName}" gem9 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod2}].RankName}" gem10 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod3}].RankName}" gem11 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "${Spell[${MageSummonModRod4}].RankName}" gem12 15s
+	/if (${Me.Class.Name.Equal[Magician]}) /call CASTMODE "596" alt
+}
+/return
+|------------------------------------------------------------| 
+|          End Mage Events 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Cleric Events 
+|------------------------------------------------------------|
+Sub Event_RezMe(Line,Sender)
+/declare TargAccBal int local
+/declare TargIsFriend bool local FALSE
+/declare TargGuildIsFriend bool local FALSE
+/if (${AccountMode}) /call GetBalance "${Sender}"
+/if (${AccountMode}) /varset TargAccBal ${Macro.Return}
+/if (${FriendMode}) /call GetFriend "${Sender}"
+/if (${FriendMode}) /varset TargIsFriend ${Macro.Return}
+/if (${GuildMode}) /call GetGuild "${Spawn[PC ${Sender}].Guild}"
+/if (${GuildMode}) /varset TargGuildIsFriend ${Macro.Return}
+
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${TargAccBal}<=${SummonCost} && ${AccountMode} && (!${TargIsFriend} && !${FriendFree}) && (!${TargGuildIsFriend} && !${GuildFree})) {
+ACCOUNTCHAT (${Sender})Balance:(${TargAccBal}) Buff Cost:(${BuffCost}) Summon Cost:(${SummonCost})
+/return
+}
+/if (${Me.Class.Name.Equal[Cleric]}) {
+	/varset TargetName ${Sender}
+	/if (${Me.Sitting}) /stand up
+	/delay 2
+	/target ${Sender} corpse
+	/delay 1s ${Target.ID}
+	CHATMETHOD1 Rezzing: ${Target.CleanName}
+	CHATMETHOD Rezzing: ${Target.CleanName}
+	/if (${AccountMode}) /call SetIni "BuffBot.Accounts.ini" "Balances" "${Sender}" "${Math.Calc[${Ini[BuffBot.Accounts.ini,Balances,${Sender}]}-${SummonCost}]}"
+	/mqlog Rezzing: ${Target.CleanName}
+	/if (${Me.Class.Name.Equal[Cleric]}) /call CASTMODE "Reviviscence" gem12 15s
+}
+/return
+|------------------------------------------------------------| 
+|          End Cleric Events 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Port Events 
+|------------------------------------------------------------|
+Sub Event_Ports(Line,Sender)
+/if ((${BuffGuildOnly} && !${Spawn[PC ${Sender}].Guild.Equal[${Me.Guild}]}) && (!${TargGuildIsFriend} || !${TargIsFriend})) /return
+/if (${Me.Class.Name.Equal[Druid]}) PORTCHAT Available Zephyrs: moors, nexus, tox, butcher, iceclad, karana, cl, sfg, stoneBrunt, grimling, feerrott, steamfont, combines, ro, twilight, gd, wl, cs, misty, pok, lavastorm, undershore, arcstone, natimbi, dawnshroud, barindu, bloodfields, steppes, buriedsea, slaughter, direwind, loping, time, brells, grounds, beasts, pillars, shards, wkarana, lceanium, and tempest
+/if (${Me.Class.Name.Equal[Wizard]}) PORTCHAT Available Translocates: moors, nexus, tox, iceclad, karana, cl, stoneBrunt, grimling, combines, ro, twilight, gd, wl, cs, pok, undershore, arcstone, natimbi, dawnshroud, barindu, bloodfields, slaughter, time, brells, grounds, pillars, wkarana, lceanium, tempest, fay, nek, cazic, bind, sunderock, primary, secondary, icefall, katta, dragonscale, and sarith
+/return
+
+Sub Event_BlightfireMoors(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Blightfire Moors"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Blightfire Moors"
+/return
+
+Sub Event_Nexus(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Nexus"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Nexus"
+/return
+
+Sub Event_Toxxulia(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Toxxulia"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Tox"
+/return
+
+Sub Event_ButcherBlock(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Butcherblock"
+/return
+
+Sub Event_Iceclad(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Iceclad"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Iceclad"
+/return
+
+Sub Event_Karana(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Karana"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate North"
+/return
+
+Sub Event_Commonlands(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Commonlands"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Common"
+/return
+
+Sub Event_SurefallGlade(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Surefall Glade"
+/return
+
+Sub Event_StoneBrunt(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Stonebrunt"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Stonebrunt"
+/return
+
+Sub Event_Grimling(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Grimling"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Grimling"
+/return
+
+Sub Event_Feerrott(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Feerrott"
+/return
+
+Sub Event_Steamfont(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Steamfont"
+/return
+
+Sub Event_Combines(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Combines"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Combine"
+/return
+
+Sub Event_Ro(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Ro"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Ro"
+/return
+
+Sub Event_Twilight(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Twilight"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Twilight"
+/return
+
+Sub Event_GreatDivide(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Great Divide"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Great Divide"
+/return
+
+Sub Event_WakeningLands(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Wakening Lands"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Wakening Lands"
+/return
+
+Sub Event_CobaltScar(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Cobalt Scar"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Cobalt Scar"
+/return
+
+Sub Event_Misty(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Misty"
+/return
+
+Sub Event_PoKnowledge(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Knowledge"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Knowledge"
+/return
+
+Sub Event_LavaStorm(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Lavastorm"
+/return
+
+Sub Event_UnderShore(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Undershore"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Undershore"
+/return
+
+Sub Event_Arcstone(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Arcstone"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Arcstone"
+/return
+
+Sub Event_Natimbi(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Natimbi"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Natimbi"
+/return
+
+Sub Event_Dawnshroud(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Dawnshroud"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Dawnshroud"
+/return
+
+Sub Event_Barindu(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Barindu"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Barindu"
+/return
+
+Sub Event_Bloodfields(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Bloodfields"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Bloodfields"
+/return
+
+Sub Event_TheSteppes(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: The Steppes"
+/return
+
+Sub Event_BuriedSea(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Buried Sea"
+/return
+
+Sub Event_Slaughter(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Slaughter"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Slaughter"
+/return
+
+Sub Event_Direwind(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Direwind"
+/return
+
+Sub Event_LopingPlains(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Loping Plains"
+/return
+
+Sub Event_PoTime(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Plane of Time"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Plane of Time"
+/return
+
+Sub Event_BrellsRest(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Brell's Rest"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Brell's Rest"
+/return
+
+Sub Event_Grounds(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: the Grounds"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate the Grounds"
+/return
+
+Sub Event_BeastsDomain(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Beasts' Domain"
+/return
+
+Sub Event_PillarsOfAlra(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Pillars of Alra"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Pillars of Alra"
+/return
+
+Sub Event_ShardsLanding(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Shard's Landing"
+/return
+
+Sub Event_WestKarana(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: West Karana"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate West"
+/return
+
+Sub Event_Lceanium(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Lceanium"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Lceanium"
+/return
+
+Sub Event_TempestTemple(Line,Sender)
+/if (${Me.Class.Name.Equal[Druid]}) /call Port "${Sender}" "Zephyr: Tempest Temple"
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Tempest Temple"
+/return
+
+Sub Event_GFay(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Fay"
+/return
+
+Sub Event_Nek(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Nek"
+/return
+
+Sub Event_Cazic(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Cazic"
+/return
+
+Sub Event_Bind(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate"
+/return
+
+Sub Event_Sunderock(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Sunderock Springs"
+/return
+
+Sub Event_PrimaryAnchor(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Teleport Primary Anchor"
+/return
+
+Sub Event_SecondaryAnchor(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Teleport Secondary Anchor"
+/return
+
+Sub Event_Icefall(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Icefall Glacier"
+/return
+
+Sub Event_Katta(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Katta Castrum"
+/return
+
+Sub Event_Dragonscale(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Dragonscale Hills"
+/return
+
+Sub Event_Sarith(Line,Sender)
+/if (${Me.Class.Name.Equal[Wizard]}) /call Port "${Sender}" "Translocate Sarith"
+/return
+|------------------------------------------------------------| 
+|          End Port Events 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          End Events 
+|------------------------------------------------------------|
