@@ -25,7 +25,8 @@ local EZ = {
     TurboLoot_Macro = '/ma EZ/TurboLoot/' .. mq.TLO.Zone.ShortName(),
     TurboLoot_ReverseOrder = true,
     Command_ShortName = 'ez',
-    directMessage = '/dex'
+    directMessage = '/dex',
+    Raid_Mode = true,
 }
 local Raid_Groups = {
     Group1 = {
@@ -56,13 +57,25 @@ local Raid_Groups = {
 
 local function GroupCreateInstance(instanceType, ...)
     local args = { ... }
-    for i = 1, mq.TLO.Me.GroupSize() - 1 do
-        if args[1] == nil then
-            mq.cmdf('%s %s /say create %s instance confirm', EZ.directMessage, mq.TLO.Group.Member(i).Name(),
-                instanceType)
-        else
-            mq.cmdf('%s %s /say create %s instance %s confirm', EZ.directMessage, mq.TLO.Group.Member(i).Name(),
-                instanceType, args[1])
+    if EZ.Raid_Mode then
+        for i = 1, mq.TLO.Raid.Members() - 1 do
+            if args[1] == nil then
+                mq.cmdf('%s %s /say create %s instance confirm', EZ.directMessage, mq.TLO.Raid.Member(i).Name(),
+                    instanceType)
+            else
+                mq.cmdf('%s %s /say create %s instance %s confirm', EZ.directMessage, mq.TLO.Raid.Member(i).Name(),
+                    instanceType, args[1])
+            end
+        end
+    else
+        for i = 1, mq.TLO.Me.GroupSize() - 1 do
+            if args[1] == nil then
+                mq.cmdf('%s %s /say create %s instance confirm', EZ.directMessage, mq.TLO.Group.Member(i).Name(),
+                    instanceType)
+            else
+                mq.cmdf('%s %s /say create %s instance %s confirm', EZ.directMessage, mq.TLO.Group.Member(i).Name(),
+                    instanceType, args[1])
+            end
         end
     end
     if args[1] == nil then
@@ -73,18 +86,35 @@ local function GroupCreateInstance(instanceType, ...)
 end
 
 local function GroupEnterInstance(instanceType, instanceName)
-    for i = 1, mq.TLO.Me.GroupSize() - 1 do
-        mq.cmdf('%s %s /say enter %s %s %s', EZ.directMessage, mq.TLO.Group.Member(i).Name(), instanceType,
-            mq.TLO.Group.Member(i).Name(), instanceName)
+    if EZ.Raid_Mode then
+        for i = 1, mq.TLO.Raid.Members() - 1 do
+            mq.cmdf('%s %s /say enter %s %s %s', EZ.directMessage, mq.TLO.Raid.Member(i).Name(), instanceType,
+                mq.TLO.Raid.Member(i).Name(), instanceName)
+        end
+    else
+        for i = 1, mq.TLO.Me.GroupSize() - 1 do
+            mq.cmdf('%s %s /say enter %s %s %s', EZ.directMessage, mq.TLO.Group.Member(i).Name(), instanceType,
+                mq.TLO.Group.Member(i).Name(), instanceName)
+        end
     end
     mq.cmdf('/say enter %s %s %s', instanceType, mq.TLO.Me.Name(), instanceName)
 end
 
 local function GroupInviteInstance(instanceType, instanceName, inviteString)
-    for i = 1, mq.TLO.Me.GroupSize() - 1 do
-        mq.cmdf('%s %s /say %s invite %s %s', EZ.directMessage, mq.TLO.Group.Member(i).Name(), instanceType, instanceName,
-            inviteString)
+    if EZ.Raid_Mode then
+        for i = 1, mq.TLO.Raid.Members() - 1 do
+            mq.cmdf('%s %s /say %s invite %s %s', EZ.directMessage, mq.TLO.Raid.Member(i).Name(), instanceType,
+                instanceName,
+                inviteString)
+        end
+    else
+        for i = 1, mq.TLO.Me.GroupSize() - 1 do
+            mq.cmdf('%s %s /say %s invite %s %s', EZ.directMessage, mq.TLO.Group.Member(i).Name(), instanceType,
+                instanceName,
+                inviteString)
+        end
     end
+    mq.cmdf('/say %s invite %s %s', instanceType, instanceName, inviteString)
 end
 
 local function LockRaid()
@@ -165,7 +195,7 @@ local function RaidTurboLoot()
     mq.cmdf('/dgre /nav id %s', mq.TLO.Me.ID())
     mq.delay(5000)
     if EZ.TurboLoot_ReverseOrder then
-        local reversed_groups = {}                 -- Table to store groups in reverse order
+        local reversed_groups = {}                  -- Table to store groups in reverse order
         for group, members in pairs(Raid_Groups) do
             table.insert(reversed_groups, 1, group) -- Insert the name at the beginning of the table
         end
@@ -188,7 +218,7 @@ local function RaidTurboLoot()
         for group, members in pairs(Raid_Groups) do
             -- Loop through each member in the current group
             for position, name in pairs(members) do
-                if name ~= '' then     -- Check if the name is not an empty string
+                if name ~= '' then -- Check if the name is not an empty string
                     mq.cmdf('%s %s %s', EZ.directMessage, name, EZ.TurboLoot_Macro)
                     mq.delay(EZ.TurboLoot_Delay)
                 end
@@ -255,6 +285,25 @@ local function ez_command(...)
                         EZ.Command_ShortName)
                 end
                 return
+            elseif args[2] == 'inviteall' then
+                if args[3] ~= nil and args[4] ~= nil then
+                    local inviteString = ''
+                    for i = 1, mq.TLO.Raid.Members() do
+                        if i ~= mq.TLO.Raid.Members() then
+                            inviteString = inviteString .. mq.TLO.Raid.Member(i).Name() .. ', '
+                        else
+                            inviteString = inviteString .. mq.TLO.Raid.Member(i).Name()
+                        end
+                    end
+                    Messages.CONSOLEMETHOD(false, 'Inviting to %s instance %s.', args[3], args[4])
+                    GroupInviteInstance(args[3], args[4], inviteString)
+                else
+                    Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+                    Messages.CONSOLEMETHOD(false,
+                        '/%s \atinstance\aw \apinvite\aw \agType\aw \ayName\aw \arInvitee\aw - Tells group members to invite to an instance',
+                        EZ.Command_ShortName)
+                end
+                return
             elseif args[2] == 'create' then
                 if args[3] ~= nil and args[4] == nil then
                     GroupCreateInstance(args[3])
@@ -296,6 +345,17 @@ local function ez_command(...)
             elseif args[2] == 'loot' then
                 Messages.CONSOLEMETHOD(false, 'Raid looting corpses.')
                 RaidTurboLoot()
+            elseif args[2] == 'start' then
+                Messages.CONSOLEMETHOD(false, 'Raid starting RGMercs.')
+                mq.cmdf('/dgre /target %s pc', mq.TLO.Me.Name())
+                mq.delay(750)
+                mq.cmd('/dgre /rgstart')
+                mq.delay(750)
+                mq.cmd('/dgre /rg AssistOutside 1')
+                mq.delay(750)
+                mq.cmdf('/dgre /rg OutsideAssistList %s', mq.TLO.Me.Name())
+                mq.delay(750)
+                mq.cmd('/dgre /rgstart')
             else
                 Messages.CONSOLEMETHOD(false, 'Valid Commands:')
                 Messages.CONSOLEMETHOD(false, '/%s \atraid\aw \apform\aw - Forms a raid from the Raid_Groups array',

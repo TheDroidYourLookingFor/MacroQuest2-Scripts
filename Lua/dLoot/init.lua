@@ -14,6 +14,9 @@ local TheDroidLoot = {
     doSell = false,
     doLoot = true
 }
+local my_Class = mq.TLO.Me.Class() or ''
+local my_Name = mq.TLO.Me.Name() or ''
+lootutils.LootFile = mq.configDir .. '/' .. my_Class ..'/Loot.ini'
 
 local test = {
     logger = Write,

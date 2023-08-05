@@ -9,11 +9,11 @@
 local mq = require('mq')
 local dHunt = {
     terminate = false,
-    aggro_Radius = 1000,
-    aggro_zRadius = 50,
+    aggro_Radius = 2000,
+    aggro_zRadius = 250,
     mob_Wait = 50000,
-    strict_targ = false,
-    targetName = { 'snake', 'spider' },
+    strict_targ = true,
+    targetName = { 'tarant', 'spider' },
     spawnSearch = '%s radius %d zradius %d',
     doLoot = false,
     corpse_Radius = 100,

@@ -9,12 +9,20 @@ function movement.GetDistance(X, Y, Z)
     return distance
 end
 
-function movement.NavToTarget(navTargetID)
-    mq.cmdf('/nav id %d log=off', navTargetID)
-    mq.delay(50)
+function movement.NavToTarget(navTargetID,...)
+    local args = { ... }
+    local stopDist = args[1] or 10
+    if args[1] ~= nil then
+        stopDist = args[1]
+        mq.cmdf('/nav id %d log=off distance=%s', navTargetID,stopDist)
+        mq.delay(50)
+    else
+        mq.cmdf('/nav id %d log=off', navTargetID)
+        mq.delay(50)
+    end
     if mq.TLO.Navigation.Active() then
         while mq.TLO.Navigation.Active() do
-            if (mq.TLO.Spawn(navTargetID).Distance3D() < 20) then
+            if (mq.TLO.Spawn(navTargetID).Distance3D() < stopDist) then
                 mq.cmd('/nav stop')
             end
             mq.delay(50)
@@ -26,17 +34,33 @@ end
 
 function movement.NavToXYZ(navX, navY, navZ, ...)
     local args = { ... }
+    local stopDist = args[1] or 10
     if args[1] ~= nil then
-        mq.cmdf('/nav locxyz %d %d %d distance=%s', navX, navY, navZ,args[1])
+        stopDist = args[1]
+        mq.cmdf('/nav locxyz %d %d %d distance=%s', navX, navY, navZ,stopDist)
     else
         mq.cmdf('/nav locxyz %d %d %d', navX, navY, navZ)
     end
     mq.delay(50)
     if mq.TLO.Navigation.Active() then
-        local startTime = os.time()
         while mq.TLO.Navigation.Active() do
             mq.delay(100)
-            if mq.TLO.Math.Distance(navX..','..navY) <= 10 then
+            if mq.TLO.Math.Distance(navX..','..navY)() <= stopDist then
+                break
+            end
+        end
+        return true
+    end
+    return false
+end
+
+function movement.NavToStringXYZ(navString)
+    mq.cmdf('/nav locxyz %s', navString)
+    mq.delay(50)
+    if mq.TLO.Navigation.Active() then
+        while mq.TLO.Navigation.Active() do
+            mq.delay(100)
+            if mq.TLO.Math.Distance(navString)() <= 10 then
                 break
             end
         end
