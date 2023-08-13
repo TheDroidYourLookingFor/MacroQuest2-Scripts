@@ -38,31 +38,37 @@ local Bosses = {
         [7] = 'The Eternal',
         [8] = 'Lockjaw\'s Big Brother',
         [9] = 'Silver Knight',
+        stepWait = 250,
         returnHome = true
     },
     mmcd = {
         [1] = 'Bloodguard Harvester',
         [2] = 'Malicious Scion Shadow',
+        stepWait = 250,
         returnHome = false
     },
     takd = {
         [1] = 'Mature Sand Frog',
         [2] = 'Petrified Great Tree',
+        stepWait = 250,
         returnHome = false
     },
     ruji = {
         [1] = 'Metal Melter',
         [2] = 'Rebellious Arcanist',
+        stepWait = 250,
         returnHome = false
     },
     guka = {
         [1] = 'Evil Eye',
         [2] = 'Froglok Ghost',
+        stepWait = 250,
         returnHome = false
     },
     mirh = {
         [1] = 'Balrog',
         [2] = 'Chaos',
+        stepWait = 250,
         returnHome = false
     },
     qvic = {
@@ -94,6 +100,7 @@ local Bosses = {
         [12] = '-1061.18, -372.75, -410.57',
         [13] = '-72.40, -1514.38, -445.10',
         [14] = '-841.13, -1485.08, -469.60',
+        stepWait = 250,
         returnHome = false
     },
     frozenshadow = {
@@ -105,6 +112,7 @@ local Bosses = {
         [6] = '28.93 314.24 -2.57',
         [7] = '31.10 128.83 -2.50',
         [8] = '355.06 432.25 -1.68',
+        stepWait = 250,
         returnHome = true
     },
     frozenshadow2 = {
@@ -135,7 +143,52 @@ local Bosses = {
         [25] = '684.00 502.95 28.40',
         [26] = '682.74 349.80 28.40',
         [27] = '658.23 255.36 28.40',
+        stepWait = 250,
         returnHome = true
+    },
+    arthicrex = {
+        [1] = '152.25 -511.37 3.75',
+        [2] = '520.51 -390.46 6.64',
+        [3] = '631.90 -429.40 5.15',
+        [4] = '704.52 -91.77 5.33',
+        [5] = '510.08 10.94 5.04',
+        [6] = '989.42 480.22 9.40',
+        [7] = '1335.42 689.75 9.60',
+        [8] = '793.45 844.01 3.77',
+        [9] = '684.33 672.54 7.40',
+        [10] = '547.88 590.65 5.42',
+        [11] = '557.30 1020.51 3.95',
+        [12] = '445.61 1198.72 5.50',
+        [13] = '297.77 1131.26 4.68',
+        [14] = '323.78 796.36 6.35',
+        [15] = '215.34 9.67 3.38',
+        [16] = '-136.02 271.94 5.92',
+        [17] = '-449.82 119.38 7.42',
+        [18] = '-328.55 935.65 3.41',
+        [19] = '-520.52 884.22 3.40',
+        [20] = '-577.56 694.66 8.28',
+        [21] = '-1117.14 798.06 4.30',
+        [22] = '-1359.34 782.28 4.48',
+        [23] = '-1369.41 452.81 5.85',
+        [24] = '-916.52 72.49 4.30',
+        [25] = '-1094.75 -347.50 12.34',
+        [26] = '-1287.37 -320.94 8.05',
+        [27] = '-1373.97 -493.53 8.75',
+        [28] = '-1346.34 -613.79 11.32',
+        [29] = '-962.36 -750.89 5.42',
+        [30] = '-822.54 -826.18 3.68',
+        [31] = '-706.65 -748.27 4.41',
+        [32] = '-1031.71 -448.48 3.42',
+        [33] = '-594.52 -597.10 3.39',
+        [34] = '-570.45 -774.04 15.50',
+        [35] = '-408.00 -739.97 23.93',
+        [36] = '-350.62 -394.32 4.56',
+        [37] = '-378.74 -129.73 6.33',
+        [38] = '-82.84 -27.08 16.47',
+        [39] = '-162.11 -337.15 3.53',
+        [40] = '100.36 -585.93 3.88',
+        stepWait = 100,
+        returnHome = false
     },
 }
 
@@ -145,6 +198,7 @@ local function PullBosses(bossTable, useXYZ,...)
     mq.cmd('/unequip mainhand')
     mq.delay(250)
     local returnHome = bossTable.returnHome
+    local stepWait = bossTable.stepWait
     local start_X = mq.TLO.Me.X()
     local start_Y = mq.TLO.Me.Y()
     local start_Z = mq.TLO.Me.Z()
@@ -152,7 +206,7 @@ local function PullBosses(bossTable, useXYZ,...)
     for i = 1, #bossTable do
         if useXYZ then
             Navigation.NavToStringXYZ(bossTable[i],stopDist)
-            mq.delay(EZ.Boss_Wait)
+            mq.delay(stepWait)
         else
             local currentTarget = bossTable[i]
             local currentTargetID
@@ -160,7 +214,7 @@ local function PullBosses(bossTable, useXYZ,...)
             mq.delay(4000, function () return mq.TLO.Target.ID ~= nil end)
             currentTargetID = mq.TLO.Target.ID()
             Navigation.NavToTarget(currentTargetID,stopDist)
-            mq.delay(EZ.Boss_Wait)
+            mq.delay(stepWait)
         end
     end
 
@@ -190,6 +244,8 @@ local function ez_command(...)
             PullBosses(Bosses.frozenshadow, true,1)
         elseif args[1] == 'frozenshadow2' then
             PullBosses(Bosses.frozenshadow2, true,1)
+        elseif args[1] == 'arthicrex' then
+            PullBosses(Bosses.arthicrex, true,1)
         else
             Messages.CONSOLEMETHOD(false, 'Valid Commands:')
             Messages.CONSOLEMETHOD(false, '/%s \atgui\aw - Toggles the EZ GUI', EZ.Command_ShortName)

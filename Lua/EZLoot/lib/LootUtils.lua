@@ -271,7 +271,6 @@ local function getRule(item)
     local noDrop = item.NoDrop()
     local wornSlot = item.WornSlot(1)
     local canUse = item.CanUse()
-    --printf('Name: %s / Ts: %s / Sell: %s / NoDrop: %s / canUse: %s / Current: %s',itemName,tradeskill,sellPrice,noDrop,canUse,mq.TLO.Me.Inventory(wornSlot)())
 
     if canUse and LootUtils.EquipUsable then
         if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
@@ -382,7 +381,7 @@ local function lootItem(index, doWhat, button)
         ruleAction = lootRule[1]       -- what to do with the item
         local ruleAmount = lootRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
-        -- printf('Quest Item: %s / Action: %s / Amount: %s / DoWhat: %s',itemName,ruleAction,ruleAmount,doWhat)
+        printf('Quest Item: %s / Action: %s / Amount: %s / DoWhat: %s', itemName, ruleAction, ruleAmount, doWhat)
 
         --if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then return end

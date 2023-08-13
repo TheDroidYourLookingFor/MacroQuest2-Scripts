@@ -92,7 +92,7 @@ while not EZLoot.terminate do
     if not EZLoot.doPause then
         local deadCount = mq.TLO.SpawnCount(EZLoot.spawnSearch:format('npccorpse', lootutils.CorpseRadius))()
         if EZLoot.doLoot and deadCount ~= 0 then
-            if mq.TLO.Macro.Paused() ~= 'TRUE' and mq.TLO.Macro.Paused() ~= 'NULL' then mq.cmd('/mqpause on') end
+            if mq.TLO.Macro.Paused() ~= 'TRUE' and mq.TLO.Macro.Paused() ~= nil then mq.cmd('/mqpause on') end
             mq.delay(500)
             lootutils.lootMobs()
             Messages.CONSOLEMETHOD(false, 'Distance: %s',
@@ -101,7 +101,7 @@ while not EZLoot.terminate do
                 NavToXYZ(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z)
             end
             mq.delay(500)
-            if mq.TLO.Macro.Paused() ~= 'FALSE' and mq.TLO.Macro.Paused() ~= 'NULL' then mq.cmd('/mqpause off') end
+            if mq.TLO.Macro.Paused() ~= 'FALSE' and mq.TLO.Macro.Paused() ~= nil then mq.cmd('/mqpause off') end
         end
         if EZLoot.doSell then
             lootutils.sellStuff()
