@@ -28,30 +28,31 @@ local EZ = {
     directMessage = '/dex',
     Raid_Mode = true,
 }
+local Raid_Members = 19
 local Raid_Groups = {
-    Group1 = {
-        Member1 = 'Winli',
-        Member2 = 'Cinli',
-        Member3 = 'Pinli',
-        Member4 = 'Jinli',
-        Member5 = 'Tinli',
-        Member6 = 'Binli',
+    {
+        name = "Group1",
+        members = {
+            "Winli", "Gronwick", "Sorta", "Binli", "Tinli", "Zinli"
+        }
     },
-    Group2 = {
-        Member1 = 'Zinli',
-        Member2 = 'Xinli',
-        Member3 = 'Sorta',
-        Member4 = 'Einli',
-        Member5 = 'Kinli',
-        Member6 = 'Rinli',
+    {
+        name = "Group2",
+        members = {
+            "Pinli", "Cinli", "Einli", "Rinli", "Jinli", "Finli"
+        }
     },
-    Group3 = {
-        Member1 = 'Hinli',
-        Member2 = 'Linli',
-        Member3 = 'Ninli',
-        Member4 = 'Vinli',
-        Member5 = 'Finli',
-        Member6 = 'Ginli',
+    {
+        name = "Group3",
+        members = {
+            "Hinli", "Kinli", "Ginli", "Ninli", "Linli", "Vinli"
+        }
+    },
+    {
+        name = "Group4",
+        members = {
+            "Xinli"
+        }
     },
 }
 
@@ -119,29 +120,28 @@ end
 
 local function LockRaid()
     mq.TLO.Window('RaidWindow').Child('RAID_LockButton').LeftMouseUp()
-    mq.delay(4000, function() return mq.TLO.Raid.Locked() == true end)
+    mq.delay(750, function() return mq.TLO.Raid.Locked() == true end)
     if mq.TLO.Raid.Locked() then LockRaid() end
 end
 local function UnLockRaid()
     mq.TLO.Window('RaidWindow').Child('RAID_UnLockButton').LeftMouseUp()
-    mq.delay(4000, function() return mq.TLO.Raid.Locked() == false end)
+    mq.delay(750, function() return mq.TLO.Raid.Locked() == false end)
     if mq.TLO.Raid.Locked() then UnLockRaid() end
 end
 local function InvitePlayers()
-    -- Loop through each group
-    for group, members in pairs(Raid_Groups) do
-        -- Loop through each member in the current group
-        for position, name in pairs(members) do
-            if name ~= '' then -- Check if the name is not an empty string
+    for _, group in ipairs(Raid_Groups) do
+        for _, name in ipairs(group.members) do
+            if name ~= '' then
                 mq.cmdf('/raidinvite %s', name)
                 mq.delay(100)
             end
         end
         print() -- Empty line to separate groups in the output
     end
-    mq.cmd('/dga /notify ConfirmationDialogBox Yes_Button LeftMouseUp')
-    mq.delay(50)
+    mq.cmd('/dga /yes')
+    mq.delay(500)
 end
+
 local function MovePlayer(index, player, groupnum)
     mq.cmdf('/notify RaidWindow RAID_NotInGroupPlayerList ListSelect %s', index)
     mq.delay(50)
@@ -152,30 +152,32 @@ local function MovePlayer(index, player, groupnum)
             player, groupnum)
     end
 end
+
 local function MoveToGroup(player, groupnum)
     local toRemove = 'Group'
     local escapedGroup = toRemove:gsub('[%^$%(%)%%%.%[%]%*%+%-%?]', '%%%1')
     local group = groupnum:gsub(escapedGroup, '')
     for i = 1, mq.TLO.Window('RaidWindow').Child('RAID_NotInGroupPlayerList').Items() do
         if mq.TLO.Window('RaidWindow').Child('RAID_NotInGroupPlayerList').List(i, 2)() == player then
-            printf('%s: %s', group, player)
+            --printf('%s: %s', group, player)
             MovePlayer(i, player, group)
+            return true
         end
     end
 end
+
 local function GroupPlayers()
-    -- Loop through each group
-    for group, members in pairs(Raid_Groups) do
-        -- Loop through each member in the current group
-        for position, name in pairs(members) do
-            if name ~= '' then -- Check if the name is not an empty string
-                MoveToGroup(name, group)
-                mq.delay(50)
-            end
+    for _, group in ipairs(Raid_Groups) do
+        for _, name in ipairs(group.members) do
+            printf('%s: %s', group.name, name)
+            MoveToGroup(name, group.name)
+            mq.delay(100)
         end
     end
     mq.delay(250)
 end
+
+
 local function SetupRaid()
     if not mq.TLO.Window('RaidWindow').Open() then
         print('Raid Window Not Open!')
@@ -185,7 +187,7 @@ local function SetupRaid()
     UnLockRaid()
     mq.delay(50)
     InvitePlayers()
-    mq.delay(50)
+    mq.delay(2500, function () return mq.TLO.Raid.Members() == Raid_Members end)
     LockRaid()
     mq.delay(50)
     GroupPlayers()

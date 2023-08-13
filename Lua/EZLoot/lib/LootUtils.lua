@@ -296,10 +296,10 @@ local function getRule(item)
     lootData[firstLetter][itemName] = lootData[firstLetter][itemName] or lookupIniLootRule(firstLetter, itemName)
     if lootData[firstLetter][itemName] == 'NULL' then
         if noDrop and not canUse then lootDecision = 'Ignore' end
-        if tradeskill then lootDecision = 'Bank' end
-        if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice then lootDecision = 'Keep' end
+        if LootUtils.LootTradeSkill and tradeskill then lootDecision = 'Bank' end
+        if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice then lootDecision = 'Sell' end
         if not stackable and LootUtils.StackableOnly then lootDecision = 'Ignore' end
-        if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Keep' end
+        if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
         addRule(itemName, firstLetter, lootDecision)
     end
     return lootData[firstLetter][itemName]
@@ -384,7 +384,8 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
         -- printf('Quest Item: %s / Action: %s / Amount: %s / DoWhat: %s',itemName,ruleAction,ruleAmount,doWhat)
 
-        if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
+        --if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
+        if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then return end
     else
         if not shouldLootActions[ruleAction] then return end
     end
@@ -561,7 +562,14 @@ local NEVER_SELL = {
     ['Celestial Crest'] = true,
     ['Gold Coin'] = true,
     ['Taelosian Symbols'] = true,
-    ['Planar Symbols'] = true
+    ['Planar Symbols'] = true,
+    ['Gemstone of the Ages'] = true,
+    ['Lesser Rainbow Crystal'] = true,
+    ['Flawless Rainbow Crystal'] = true,
+    ['Greater Rainbow Crystal'] = true,
+    ['Minor Rainbow Crystal'] = true,
+    ['Major Rainbow Crystal'] = true,
+    ['Supreme Rainbow Crystal'] = true
 }
 local function sellToVendor(itemToSell)
     if NEVER_SELL[itemToSell] then return end
