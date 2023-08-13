@@ -75,12 +75,14 @@ end
 -- 	| Stone of Heroic Resistance
 --	| 130501 - 130520
 local function CombineResistAugs()
-    local magicBox = FindMagicBox()
+    local magicBox = FindMagicBox() or ''
     CONSOLEMETHOD(false, 'Opening Inventory')
     mq.TLO.Window('InventoryWindow').DoOpen()
     mq.delay(1500, InventoryOpen)
-    mq.cmd('/keypress Shift+B')
-    mq.delay(50)
+    if not BagOpen(magicBox) then
+        mq.cmdf('/itemnotify %s rightmouseup', magicBox)
+    end
+    mq.delay(1500, function () return BagOpen(magicBox) == true end)
 
     for i = 130501, 130509 do
         CONSOLEMETHOD(false, 'Aug Type ID: ' .. i)
@@ -129,10 +131,53 @@ local function CombineEpic1_5()
     CONSOLEMETHOD(false, 'Opening Inventory')
     mq.TLO.Window('InventoryWindow').DoOpen()
     mq.delay(1500, InventoryOpen)
-    mq.cmd('/keypress Shift+B')
-    mq.delay(50)
+    if not BagOpen(epicBook) then
+        mq.cmdf('/itemnotify %s rightmouseup', epicBook)
+    end
+    mq.delay(1500, function () return BagOpen(epicBook) == true end)
 
     for i = 99701, 99710 do
+        for j = 1, 10 do
+            if mq.TLO.InvSlot('pack' .. j).Item.Container() > 0 then
+                for k = 1, 10 do
+                    if mq.TLO.InvSlot('pack' .. j).Item.Item(k).ID() == i and epicBook ~= 'pack'..j then
+                        mq.cmd('/itemnotify in pack' .. j .. ' ' .. k .. ' leftmouseup')
+                        mq.delay(WaitTime, CheckCursor)
+                        for l = 1, 10 do
+                            if mq.TLO.InvSlot(epicBook).Item.Item(l).ID() == nil then
+                                CONSOLEMETHOD(false, 'Found epic page moving to slot %s', l)
+                                mq.cmdf('/itemnotify in %s %s leftmouseup', epicBook, l)
+                                break
+                            end
+                            mq.delay(10)
+                        end
+                    end
+                    mq.delay(10)
+                end
+                mq.delay(10)
+            end
+            mq.delay(10)
+        end
+    end
+    if not mq.TLO.Window(epicBook).Open() then mq.cmdf('/nomodkey /itemnotify %s rightmouseup',epicBook) end
+    mq.delay(WaitTime, function () return mq.TLO.Window(epicBook).Open() == true end)
+    mq.cmdf('/combine %s', epicBook)
+    mq.delay(WaitTime)
+    mq.cmd('/autoinventory')
+    mq.delay(WaitTime, CursorEmpty)
+end
+
+local function CombineEpic2_0()
+    local epicBook = FindIncompleteEpicBook('2.0') or 'pack1'
+    CONSOLEMETHOD(false, 'Opening Inventory')
+    mq.TLO.Window('InventoryWindow').DoOpen()
+    mq.delay(1500, InventoryOpen)
+    if not BagOpen(epicBook) then
+        mq.cmdf('/itemnotify %s rightmouseup', epicBook)
+    end
+    mq.delay(1500, function () return BagOpen(epicBook) == true end)
+
+    for i = 99721, 99730 do
         for j = 1, 10 do
             if mq.TLO.InvSlot('pack' .. j).Item.Container() > 0 then
                 for k = 1, 10 do
@@ -172,6 +217,9 @@ local function Main()
                 if args[2] == '1.5' then
                     CONSOLEMETHOD(true, 'Attempting Epic 1.5 Combine')
                     CombineEpic1_5()
+                elseif args[2] == '2.0' then
+                    CONSOLEMETHOD(true, 'Attempting Epic 2.0 Combine')
+                    CombineEpic2_0()
                 end
             else
                 CONSOLEMETHOD(true, 'Please provide the epic level to combine.')
