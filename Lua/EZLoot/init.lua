@@ -95,8 +95,8 @@ while not EZLoot.terminate do
             if mq.TLO.Macro.Paused() ~= 'TRUE' and mq.TLO.Macro.Paused() ~= nil then mq.cmd('/mqpause on') end
             mq.delay(500)
             lootutils.lootMobs()
-            Messages.CONSOLEMETHOD(false, 'Distance: %s',
-                GetDistance(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z))
+            if EZLoot.debug then Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s',
+                GetDistance(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z)) end
             if EZLoot.returnToHome and GetDistance(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z) > EZLoot.home_Dist then
                 NavToXYZ(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z)
             end

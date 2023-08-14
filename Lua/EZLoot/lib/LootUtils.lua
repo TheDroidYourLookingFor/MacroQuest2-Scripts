@@ -373,6 +373,7 @@ end
 local function lootItem(index, doWhat, button)
     LootUtils.logger.Debug('Enter lootItem')
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
+    local corpseItem = mq.TLO.Corpse.Item(index)
     local itemName = mq.TLO.Corpse.Item(index).Name()
     local ruleAction = doWhat
 
@@ -381,7 +382,6 @@ local function lootItem(index, doWhat, button)
         ruleAction = lootRule[1]       -- what to do with the item
         local ruleAmount = lootRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
-        printf('Quest Item: %s / Action: %s / Amount: %s / DoWhat: %s', itemName, ruleAction, ruleAmount, doWhat)
 
         --if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then return end
@@ -404,6 +404,7 @@ local function lootItem(index, doWhat, button)
     report('%sing \ay%s\ax', ruleAction, itemName)
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
+    if LootUtils.ReportLoot then mq.cmdf('/%s Looted: %s', LootUtils.LootChannel, corpseItem.ItemLink('CLICKABLE')()) end
 end
 
 local function lootCorpse(corpseID)
