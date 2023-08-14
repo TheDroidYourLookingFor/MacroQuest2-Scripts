@@ -24,7 +24,7 @@ local EZ = {
     Boss_Wait = 250,
     Command_ShortName = 'ezp',
     directMessage = '/dex',
-    mainHand = 'Ultimate Great Axe II'
+    mainHand = mq.TLO.Me.Inventory(13).Name()
 }
 
 local Bosses = {
@@ -146,6 +146,41 @@ local Bosses = {
         stepWait = 250,
         returnHome = true
     },
+    frozenshadow3 = {
+        [1] = '743.00 749.00 75.71',
+        [2] = '762.62 789.62 75.72',
+        [3] = '796.00 747.00 75.72',
+        [4] = '820.00 803.00 75.71',
+        [5] = '848.00 753.75 75.72',
+        [6] = '873.50 774.37 75.72',
+        [7] = '876.00 887.75 75.72',
+        [8] = '823.00 873.00 75.71',
+        [9] = '738.37 832.00 75.72',
+        [10] = '768.00 805.00 75.72',
+        [11] = '791.12 809.62 75.72',
+        [12] = '858.12 861.00 75.72',
+        [13] = '723.00 862.00 75.72',
+        [14] = '629.12 854.50 76.34',
+        [15] = '619.12 817.87 76.34',
+        [16] = '628.50 776.62 76.34',
+        [17] = '705.00 820.00 75.72',
+        [18] = '671.62 1028.37 75.87',
+        [19] = '842.87 921.87 75.72',
+        [20] = '866.62 1049.50 76.00',
+        [21] = '793.25 1169.87 75.75',
+        [22] = '787.00 1077.00 75.62',
+        [23] = '566.25 1029.37 75.87',
+        [24] = '664.87 1164.12 83.75',
+        [25] = '494.00 1169.00 68.62',
+        [26] = '427.25 1130.00 68.75',
+        [27] = '455.62 877.87 79.34',
+        [28] = '423.00 752.00 76.34',
+        [29] = '490.87 760.00 76.34',
+        [30] = '595.75 800.00 77.43',
+        [31] = '672.86 755.21 76.22',
+        stepWait = 100,
+        returnHome = false
+    },
     arthicrex = {
         [1] = '152.25 -511.37 3.75',
         [2] = '520.51 -390.46 6.64',
@@ -192,9 +227,10 @@ local Bosses = {
     },
 }
 
-local function PullBosses(bossTable, useXYZ,...)
+local function PullBosses(bossTable, useXYZ, ...)
     local args = { ... }
     local stopDist = args[1] or 10
+    print('Beginning Boss Pull.')
     mq.cmd('/unequip mainhand')
     mq.delay(250)
     local returnHome = bossTable.returnHome
@@ -205,15 +241,15 @@ local function PullBosses(bossTable, useXYZ,...)
 
     for i = 1, #bossTable do
         if useXYZ then
-            Navigation.NavToStringXYZ(bossTable[i],stopDist)
+            Navigation.NavToStringXYZ(bossTable[i], stopDist)
             mq.delay(stepWait)
         else
             local currentTarget = bossTable[i]
             local currentTargetID
             mq.cmdf('/target npc %s', currentTarget)
-            mq.delay(4000, function () return mq.TLO.Target.ID ~= nil end)
+            mq.delay(4000, function() return mq.TLO.Target.ID ~= nil end)
             currentTargetID = mq.TLO.Target.ID()
-            Navigation.NavToTarget(currentTargetID,stopDist)
+            Navigation.NavToTarget(currentTargetID, stopDist)
             mq.delay(stepWait)
         end
     end
@@ -221,6 +257,7 @@ local function PullBosses(bossTable, useXYZ,...)
     if returnHome then Navigation.NavToXYZ(start_X, start_Y, start_Z) end
     mq.delay(250)
     mq.cmdf('/exchange "%s" mainhand', EZ.mainHand)
+    print('Finished Boss Pull.')
 end
 
 local function ez_command(...)
@@ -241,11 +278,13 @@ local function ez_command(...)
         elseif args[1] == 'mirh' then
             PullBosses(Bosses.mirh, false)
         elseif args[1] == 'frozenshadow' then
-            PullBosses(Bosses.frozenshadow, true,1)
+            PullBosses(Bosses.frozenshadow, true, 1)
         elseif args[1] == 'frozenshadow2' then
-            PullBosses(Bosses.frozenshadow2, true,1)
+            PullBosses(Bosses.frozenshadow2, true, 1)
+        elseif args[1] == 'frozenshadow3' then
+            PullBosses(Bosses.frozenshadow3, true, 1)
         elseif args[1] == 'arthicrex' then
-            PullBosses(Bosses.arthicrex, true,1)
+            PullBosses(Bosses.arthicrex, true, 1)
         else
             Messages.CONSOLEMETHOD(false, 'Valid Commands:')
             Messages.CONSOLEMETHOD(false, '/%s \atgui\aw - Toggles the EZ GUI', EZ.Command_ShortName)

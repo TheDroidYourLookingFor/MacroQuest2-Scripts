@@ -12,12 +12,12 @@ end
 function movement.NavToTarget(navTargetID, ...)
     local args = { ... }
     local stopDist = args[1] or 10
-    mq.cmdf('/nav id %d log=off distance=%s', navTargetID, stopDist)
+    mq.cmdf('/squelch /nav id %d log=off distance=%s', navTargetID, stopDist)
     mq.delay(1000, function () return mq.TLO.Navigation.Active() == true end)
     if mq.TLO.Navigation.Active() then
         while mq.TLO.Navigation.Active() do
             if (mq.TLO.Spawn(navTargetID).Distance3D() < stopDist) then
-                mq.cmd('/nav stop')
+                mq.cmd('/squelch /nav stop log=off')
             end
             mq.delay(1000, function () return mq.TLO.Navigation.Active() == false end)
         end
@@ -29,7 +29,7 @@ end
 function movement.NavToXYZ(navX, navY, navZ, ...)
     local args = { ... }
     local stopDist = args[1] or 10
-    mq.cmdf('/nav locxyz %d %d %d distance=%s', navX, navY, navZ, stopDist)
+    mq.cmdf('/squelch /nav locxyz %d %d %d log=off distance=%s', navX, navY, navZ, stopDist)
     mq.delay(1000, function () return mq.TLO.Navigation.Active() == true end)
     if mq.TLO.Navigation.Active() then
         while mq.TLO.Navigation.Active() do
@@ -46,7 +46,7 @@ end
 function movement.NavToStringXYZ(navString, ...)
     local args = { ... }
     local stopDist = args[1] or 10
-    mq.cmdf('/nav locxyz %s', navString)
+    mq.cmdf('/squelch /nav locxyz %s log=off ', navString)
     mq.delay(1000, function () return mq.TLO.Navigation.Active() == true end)
     if mq.TLO.Navigation.Active() then
         while mq.TLO.Navigation.Active() do
