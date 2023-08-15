@@ -16,6 +16,7 @@ local Messages = require('EZ.lib.Messages')
 -- local SpellRoutines = require('EZ.lib.spell_routines')
 -- local Storage = require('EZ.lib.Storage')
 -- local lootutils = require('EZ.lib.LootUtils')
+local GTM = require('EZ.lib.GivetoMain')
 
 local EZ = {
     Debug = false,
@@ -347,6 +348,9 @@ local function ez_command(...)
             elseif args[2] == 'loot' then
                 Messages.CONSOLEMETHOD(false, 'Raid looting corpses.')
                 RaidTurboLoot()
+            elseif args[2] == 'give' then
+                Messages.CONSOLEMETHOD(false, 'Giving tradable items to %s',mq.TLO.Me.Name())
+                GTM.GiveEZItems(mq.TLO.Me.Name())
             elseif args[2] == 'start' then
                 Messages.CONSOLEMETHOD(false, 'Raid starting RGMercs.')
                 mq.cmdf('/dgre /target %s pc', mq.TLO.Me.Name())

@@ -7,6 +7,8 @@ if not Storage.dir_exists(mq.configDir .. '\\EZLoot') then Storage.make_dir(mq.c
 
 EZLoot = {
     debug = false,
+    announce = true,
+    say = 'rsay',
     returnToHome = false,
     home_Dist = 10,
     home_X = mq.TLO.Me.X(),
@@ -92,7 +94,9 @@ while not EZLoot.terminate do
     if not EZLoot.doPause then
         local deadCount = mq.TLO.SpawnCount(EZLoot.spawnSearch:format('npccorpse', lootutils.CorpseRadius))()
         if EZLoot.doLoot and deadCount ~= 0 then
-            if mq.TLO.Macro.Paused() ~= 'TRUE' and mq.TLO.Macro.Paused() ~= nil then mq.cmd('/mqpause on') end
+            if EZLoot.announce then mq.cmdf('/%s [%s]Started Looting!',EZLoot.Say,mq.TLO.Time()) end
+            if EZLoot.doCorpseFix then mq.cmd('/say #corpsefix') end
+            if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'TRUE' then mq.cmd('/mqpause on') end
             mq.delay(500)
             lootutils.lootMobs()
             if EZLoot.debug then Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s',
@@ -101,7 +105,8 @@ while not EZLoot.terminate do
                 NavToXYZ(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z)
             end
             mq.delay(500)
-            if mq.TLO.Macro.Paused() ~= 'FALSE' and mq.TLO.Macro.Paused() ~= nil then mq.cmd('/mqpause off') end
+            if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end
+            if EZLoot.announce then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!',EZLoot.Say,mq.TLO.Time()) end
         end
         if EZLoot.doSell then
             lootutils.sellStuff()

@@ -1,17 +1,18 @@
 ---@type Mq
 local mq = require('mq')
+
+local storage = {}
+
 local PackageMan = require('mq/PackageMan')
 local Utils = require('mq/Utils')
 local lfs_check = Utils.Library.Include("lfs")
 if not lfs_check then
-    if PackageMan.Install("luafilesystem") == 2 then
-        print("User canceled the install, cannot proceed")
-        mq.exit()
-    end
+	if PackageMan.Install("luafilesystem") == 2 then
+		print("User canceled the install, cannot proceed")
+		mq.exit()
+	end
 end
 local lfs = PackageMan.Require("luafilesystem", "lfs")
-
-local storage = {}
 
 function storage.ReadINI(filename, section, option)
     return mq.TLO.Ini.File(filename).Section(section).Key(option).Value()
