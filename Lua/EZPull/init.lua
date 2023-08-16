@@ -16,6 +16,7 @@ local Navigation = require('EZPull.lib.Movement')
 -- local SpellRoutines = require('EZPull.lib.spell_routines')
 -- local Storage = require('EZPull.lib.Storage')
 -- local lootutils = require('EZPull.lib.LootUtils')
+local Timer = require('EZPull.lib.Timer')
 
 local EZ = {
     Debug = false,
@@ -225,8 +226,69 @@ local Bosses = {
         stepWait = 100,
         returnHome = false
     },
+    postorms = {
+        [1] = '-1670.87 585.00 -455.75',
+        [2] = '-1075.00 388.00 -446.50',
+        [3] = '-1114.12 885.75 -457.00',
+        [4] = '-1794.00 1582.75 -455.00',
+        [5] = '-1682.75 2044.25 -448.12',
+        [6] = '-384.25 1967.62 -437.37',
+        [7] = '962.37 2217.75 -432.62',
+        [8] = '1437.75 1975.75 -455.12',
+        [9] = '698.00 1433.87 -460.50',
+        [10] = '717.12 1794.37 -451.75',
+        [11] = '-351.50 1742.00 -455.37',
+        [12] = '-1283.00 1444.00 -448.12',
+        [13] = '315.00 1807.00 -449.75',
+        stepWait = 250,
+        returnHome = false
+    },
+    postorms2 = {
+        [1] = '-1387.50 -219.12 -448.12',
+        [2] = '-1371.00 -609.75 -455.25',
+        [3] = '-1796.75 -211.37 -448.12',
+        [4] = '-1976.12 -523.62 -448.25',
+        [5] = '-1758.75 -942.37 -446.87',
+        [6] = '-1483.50 -1063.12 -454.00',
+        [7] = '-1672.50 -1331.87 -448.25',
+        [8] = '-1430.25 -1449.62 -451.62',
+        [9] = '-1735.12 -1647.37 -448.25',
+        [10] = '-1793.37 -2001.25 -459.87',
+        [11] = '-1533.75 -1816.75 -455.75',
+        [12] = '-1079.62 -2158.62 -462.25',
+        [13] = '-621.87 -2225.75 -455.87',
+        [14] = '-1255.87 -1676.12 -448.25',
+        [15] = '-684.12 -1799.37 -448.25',
+        [16] = '-546.62 -1482.00 -449.12',
+        [17] = '-1018.37 -1511.50 -448.25',
+        [18] = '-1192.12 -1138.37 -448.12',
+        [19] = '-210.37 -1146.37 -450.12',
+        [20] = '-848.12 -776.12 -448.37',
+        [21] = '-847.62 -478.75 -448.12',
+        [22] = '-72.00 -918.37 -447.25',
+        [23] = '640.75 -1260.12 -448.12',
+        [24] = '-359.37 -1829.75 -448.12',
+        [25] = '-201.00 -2206.00 -452.50',
+        [26] = '131.62 -1955.00 -449.87',
+        [27] = '420.12 -1988.87 -448.12',
+        [28] = '341.50 -2703.62 -425.75',
+        [29] = '669.75 -2172.87 -455.25',
+        [30] = '1466.87 -2062.62 -447.62',
+        [31] = '968.00 -1842.62 -448.12',
+        [32] = '1259.00 -1741.12 -447.00',
+        [33] = '974.00 -1512.50 -446.37',
+        [34] = '-1936.00 9.00 -444.75',
+        stepWait = 250,
+        returnHome = false
+    }
 }
-
+local Mobs = {
+    postorms = {
+        [1] = 'Dragon',
+        stepWait = 250,
+        returnHome = false
+    },
+}
 local function PullBosses(bossTable, useXYZ, ...)
     local args = { ... }
     local stopDist = args[1] or 10
@@ -260,11 +322,140 @@ local function PullBosses(bossTable, useXYZ, ...)
     print('Finished Boss Pull.')
 end
 
+local function PullArea(mobTable, ...)
+    local args = { ... }
+    local MaxPullCount = args[1] or 40
+    local PullRadius = args[2] or 1650
+    local stopDist = args[3] or 10
+
+    local MobsToPull = 'Dragon'
+    local StartX, StartY, StartZ = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
+    local PullRadiusString = tostring(PullRadius)
+    local InTow = 0
+    local returnHome = mobTable.returnHome
+
+    local TargetID
+    local TotalMobs = 0
+    local MobArray = {}
+
+    -- Generate pull list
+    for a = 1, MaxPullCount do
+        if mq.TLO.Target.ID() then
+            TargetID = mq.TLO.Spawn(mq.TLO.Target.ID()).NearestSpawn(a, "npc radius " .. PullRadiusString .. " noalert 10 " .. MobsToPull).ID()
+        else
+            TargetID = mq.TLO.Spawn(mq.TLO.Me.ID()).NearestSpawn(a, "npc radius " .. PullRadiusString .. " noalert 10 " .. MobsToPull).ID()
+        end
+
+        if TargetID then
+            TotalMobs = a
+            MobArray[a] = TargetID
+            printf("MobID %s is %s", a, mq.TLO.Spawn(MobArray[a]).CleanName())
+        else
+            break
+        end
+        mq.delay(25)
+    end
+
+    print("-- Pulling " .. TotalMobs .. " mobs")
+
+    for b = 1, TotalMobs do
+        local curMobID = mq.TLO.Spawn(MobArray[b]).ID()
+        local curMobName = mq.TLO.Spawn(MobArray[b]).CleanName()
+        if curMobID then
+            print("-- Pulling " .. mq.TLO.Spawn(curMobID).CleanName() .. " (" .. b .. " of " .. TotalMobs .. ")")
+            TargetID = mq.TLO.Spawn(curMobID).ID()
+            mq.cmdf('/target id %s', TargetID)
+            mq.delay(5)
+            mq.delay(1000, function() return mq.TLO.Target.CleanName() == curMobName end)
+            if mq.TLO.Target.ID() == curMobID then
+                print("-- Targeted " .. mq.TLO.Spawn(curMobID).CleanName() .. " (" .. b .. " of " .. TotalMobs .. ")")
+                if mq.TLO.Me.TargetOfTarget.ID() == curMobID then
+                    print('Mob targetting me! Moving on.')
+                    InTow = InTow + 1
+                    mq.cmd('/squelch /target clear')
+                    goto continue
+                end
+                mq.cmd('/squelch /nav target log=off')
+                mq.delay(5000, function() return mq.TLO.Navigation.Active() == true end)
+
+                if not mq.TLO.Navigation.Active() then
+                    goto continue
+                end
+
+                local WaitTimer = Timer.new(60)
+                while not WaitTimer:expired() do
+                    ::navigating::
+                    if not mq.TLO.Navigation.Active() then
+                        mq.cmd('/squelch /nav target log=off')
+                    end
+
+                    if WaitTimer:expired() then
+                        print("-- Timeout pulling mob " .. b .. ". Skipping.")
+                        mq.cmd('/squelch /nav stop log=off')
+                        break
+                    end
+
+                    if mq.TLO.Me.TargetOfTarget.ID() == curMobID then
+                        InTow = InTow + 1
+                        mq.cmd('/squelch /target clear')
+                        break
+                    end
+
+                    if mq.TLO.Target.ID() ~= 0 and mq.TLO.Target.Distance() < 200 and mq.TLO.Target.LineOfSight() then
+                        if mq.TLO.Me.TargetOfTarget.ID() == 0 then
+                            mq.cmd('/keypress 2')
+                            mq.delay(50, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                        end
+                        if mq.TLO.Me.TargetOfTarget.ID() == 0 then
+                            mq.cmd('/keypress 3')
+                            mq.delay(50, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                        end
+                    end
+                    if mq.TLO.Target.ID() == 0 then goto continue end
+                    if mq.TLO.Target.Distance() > 5 then
+                        goto navigating
+                    end
+
+                    -- Aggro spells/abilities here
+
+                    mq.cmd('/doability Taunt')
+                    mq.delay(500, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                    if mq.TLO.Me.TargetOfTarget.ID() == 0 then
+                        mq.cmd('/keypress 2')
+                        mq.delay(50, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                    end
+                    if mq.TLO.Me.TargetOfTarget.ID() == 0 then
+                        mq.cmd('/keypress 3')
+                        mq.delay(50, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                    end
+                    mq.delay(500, function() return mq.TLO.Me.TargetOfTarget.ID() ~= 0 end)
+                    if mq.TLO.Me.TargetOfTarget.ID() then
+                        InTow = InTow + 1
+                    end
+                    mq.cmd('/target clear')
+                    mq.delay(500, function() return mq.TLO.Target.ID() == 0 end)
+                end
+
+                ::continue::
+            end
+        end
+    end
+
+    if returnHome then
+        print("-- Returning to camp with " .. InTow .. " mobs")
+        Navigation.Location(StartY, StartX, StartZ)
+    end
+end
+
 local function ez_command(...)
     local args = { ... }
     if args ~= nil then
         if args[1] == 'potimea' then
             PullBosses(Bosses.potimea, false)
+        elseif args[1] == 'radius' then
+            mq.cmd('/unequip mainhand')
+            PullArea(Mobs.postorms)
+            mq.cmdf('/exchange "%s" mainhand', EZ.mainHand)
         elseif args[1] == 'qvic' then
             PullBosses(Bosses.qvic, true)
         elseif args[1] == 'mmcd' then
@@ -285,6 +476,10 @@ local function ez_command(...)
             PullBosses(Bosses.frozenshadow3, true, 1)
         elseif args[1] == 'arthicrex' then
             PullBosses(Bosses.arthicrex, true, 1)
+        elseif args[1] == 'postorms' then
+            PullBosses(Bosses.postorms, true, 1)
+        elseif args[1] == 'postorms2' then
+            PullBosses(Bosses.postorms2, true, 1)
         else
             Messages.CONSOLEMETHOD(false, 'Valid Commands:')
             Messages.CONSOLEMETHOD(false, '/%s \atgui\aw - Toggles the EZ GUI', EZ.Command_ShortName)

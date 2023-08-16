@@ -20,6 +20,7 @@ EZLoot = {
     spawnSearch = '%s radius %d zradius 50',
     doSell = false,
     doLoot = true,
+    doLootMessages = false,
     doPause = false,
     doCorpseFix = false,
 }
@@ -94,7 +95,7 @@ while not EZLoot.terminate do
     if not EZLoot.doPause then
         local deadCount = mq.TLO.SpawnCount(EZLoot.spawnSearch:format('npccorpse', lootutils.CorpseRadius))()
         if EZLoot.doLoot and deadCount ~= 0 then
-            if EZLoot.announce then mq.cmdf('/%s [%s]Started Looting!',EZLoot.Say,mq.TLO.Time()) end
+            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!',lootutils.AnnounceChannel,mq.TLO.Time()) end
             if EZLoot.doCorpseFix then mq.cmd('/say #corpsefix') end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'TRUE' then mq.cmd('/mqpause on') end
             mq.delay(500)
@@ -106,7 +107,7 @@ while not EZLoot.terminate do
             end
             mq.delay(500)
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end
-            if EZLoot.announce then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!',EZLoot.Say,mq.TLO.Time()) end
+            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!',lootutils.AnnounceChannel,mq.TLO.Time()) end
         end
         if EZLoot.doSell then
             lootutils.sellStuff()

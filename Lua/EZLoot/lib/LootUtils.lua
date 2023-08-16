@@ -452,6 +452,7 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         --if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
+        if EZLoot.debug then printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount) end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then return end
     else
         if not shouldLootActions[ruleAction] then return end

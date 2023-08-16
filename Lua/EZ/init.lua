@@ -17,6 +17,7 @@ local Messages = require('EZ.lib.Messages')
 -- local Storage = require('EZ.lib.Storage')
 -- local lootutils = require('EZ.lib.LootUtils')
 local GTM = require('EZ.lib.GivetoMain')
+local EZProgression = require('EZ.lib.EzProgression')
 
 local EZ = {
     Debug = false,
@@ -188,7 +189,7 @@ local function SetupRaid()
     UnLockRaid()
     mq.delay(50)
     InvitePlayers()
-    mq.delay(2500, function () return mq.TLO.Raid.Members() == Raid_Members end)
+    mq.delay(2500, function() return mq.TLO.Raid.Members() == Raid_Members end)
     LockRaid()
     mq.delay(50)
     GroupPlayers()
@@ -243,6 +244,12 @@ local function ez_command(...)
                 Open = true
             end
             return
+        elseif args[1] == 'ezprogression' then
+            if args[2] ~= nil and args[3] ~= nil then
+                EZProgression.Main(args[2],args[3])
+            elseif args[2] ~= nil and args[3] == nil then
+                EZProgression.Main(args[2])
+            end
         elseif args[1] == 'instance' then
             if args[2] == 'solo' then
                 if args[3] ~= nil then
@@ -349,7 +356,7 @@ local function ez_command(...)
                 Messages.CONSOLEMETHOD(false, 'Raid looting corpses.')
                 RaidTurboLoot()
             elseif args[2] == 'give' then
-                Messages.CONSOLEMETHOD(false, 'Giving tradable items to %s',mq.TLO.Me.Name())
+                Messages.CONSOLEMETHOD(false, 'Giving tradable items to %s', mq.TLO.Me.Name())
                 GTM.GiveEZItems(mq.TLO.Me.Name())
             elseif args[2] == 'start' then
                 Messages.CONSOLEMETHOD(false, 'Raid starting RGMercs.')
