@@ -6,6 +6,7 @@ local beastloard = {}
 beastloard.version = '1.0.0'
 
 beastloard.hp_Buffs = {
+    'Focus of Skull Crusher',
     'Focus of Jaegir',
     'Focus of Tobart',
     'Focus of Artikla',
@@ -23,6 +24,7 @@ beastloard.hp_Buffs = {
     'Inner Fire'
 }
 beastloard.mana_Buffs = {
+    'Spiritual Enduement',
     'Spiritual Erudition',
     'Spiritual Insight',
     'Spiritual Empowerment',
@@ -40,6 +42,8 @@ beastloard.mana_Buffs = {
     'Spiritual Light'
 }
 beastloard.attack_Buffs = {
+    'Wildfang\'s Unity',
+    'Spiritual Valiancy',
     'Spiritual Vigor',
     'Spiritual Vehemence',
     'Spiritual Vibrancy',

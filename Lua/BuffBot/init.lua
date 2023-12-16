@@ -5,7 +5,7 @@ local version = '1.0.10'
 ---|              Created by: TheDroidUrLookingFor
 ---|              Modified by: TheDroidUrLookingFor
 ---|
----|		     Version: 1.0.9
+---|		     Version: 1.0.10
 ---|
 ---|------------------------------------------------------------|
 
@@ -92,7 +92,8 @@ Settings = {
     guildFree = true
 }
 
-local versionOrder = { "1.0.10", "1.0.9", "1.0.8", "1.0.7", "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2", "1.0.1", "1.0.0" }
+local versionOrder = { "1.0.11", "1.0.10", "1.0.9", "1.0.8", "1.0.7", "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2",
+    "1.0.1", "1.0.0" }
 local change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added Cleric Class support',
@@ -157,7 +158,17 @@ local change_Log = {
         '- Added ModRod1-4 to Mage',
         '- Fixed issue with Shaman SoW Spells',
         '- Added a wait after memming spells in the buff routine.',
-        '- Fixed issue with Bih`li and Tala`Tak for shaman' }
+        '- Fixed issue with Bih`li and Tala`Tak for shaman' },
+    ['1.0.11'] = { 'General Update',
+        '- Added 121-125 spells for Magician',
+        '- Added 121-125 spells for Enchanter',
+        '- Added 121-125 spells for Ranger',
+        '- Added 121-125 spells for Shaman',
+        '- Added 121-125 spells for Cleric',
+        '- Added 121-125 spells for Beastlord',
+        '- Added 121-125 spells for Druid',
+        '- Added 121-125 spells for Paladin',
+        '- Added 121-125 spells for Wizard' }
 }
 
 function ScriptInfo()

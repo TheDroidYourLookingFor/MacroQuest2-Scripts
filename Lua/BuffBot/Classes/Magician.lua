@@ -7,6 +7,8 @@ local magician = {}
 magician.version = '1.0.0'
 
 magician.ds_Buffs = {
+    'Circle of Forgefire Coat',
+    'Forgefire Coat',
     'Circle of Emberweave Coat',
     'Emberweave Coat',
     'Circle of Igneous Skin',
@@ -41,6 +43,7 @@ magician.ds_Buffs = {
     'Shield of Fire'
 }
 magician.big_ds_Buffs = {
+    'Boiling Skin',
     'Scorching Skin',
     'Burning Skin',
     'Blistering Skin',
@@ -70,6 +73,7 @@ magician.visor = {
     'Grant Visor of Vabtik'
 }
 magician.weapon = {
+    'Grant Goliath\'s Armaments',
     'Grant Shak Dathor\'s Armaments',
     'Grant Yalrek\'s Armaments',
     'Grant Wirn\'s Armaments',
@@ -79,6 +83,7 @@ magician.weapon = {
     'Grant Spectral Armaments'
 }
 magician.armor = {
+    'Grant the Alloy\'s Plate',
     'Grant the Centien\'s Plate',
     'Grant Ocoenydd\'s Plate',
     'Grant Wirn\'s Plate',
@@ -88,6 +93,7 @@ magician.armor = {
     'Grant Spectral Plate'
 }
 magician.heirloom = {
+    'Grant Ankexfen\'s Heirlooms',
     'Grant the Diabo\'s Heirlooms',
     'Grant Crystasia\'s Heirlooms',
     'Grant Ioulin\'s Heirlooms',
@@ -108,6 +114,8 @@ magician.lev = {
     'Grant Ring of Levitation'
 }
 magician.modrod = {
+    'Modulating Shard VIII',
+    'Rod of Courageous Modulation',
     'Wand of Frozen Modulation',
     'Wand of Burning Modulation',
     'Mass Dark Transvergence',

@@ -14,6 +14,8 @@ shaman.haste_Buffs = {
     'Quickness'
 }
 shaman.hp_Buffs = {
+    'Talisman of the Heroic',
+    'Heroic Focusing',
     'Talisman of the Usurper',
     'Unity of the Vampyre',
     'Vampyre Focusing',
@@ -54,6 +56,8 @@ shaman.hp_Buffs = {
     'Inner Fire'
 }
 shaman.regen_Buffs = {
+    'Talisman of the Unforgettable',
+    'Spirit of the Unforgettable',
     'Talisman of the Tenacious',
     'Spirit of the Tenacious',
     'Talisman of the Enduring',
@@ -84,6 +88,7 @@ shaman.regen_Buffs = {
     'Regeneration'
 }
 shaman.proc_Buffs = {
+    'Talisman of the Manul',
     'Melancholy',
     'Talisman of the Kerran',
     'Ennui',

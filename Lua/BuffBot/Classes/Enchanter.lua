@@ -7,6 +7,8 @@ local enchanter = {}
 enchanter.version = '1.0.0'
 
 enchanter.haste_Buffs = {
+    'Hastening of Margator',
+    'Speed of Margator',
     'Hastening of Jharin',
     'Speed of Itzal',
     'Hastening of Cekenar',
@@ -41,6 +43,8 @@ enchanter.haste_Buffs = {
     'Quickness'
 }
 enchanter.clarity_Buffs = {
+    'Voice of Preordination',
+    'Preordination',
     'Voice of Perception',
     'Scrying Visions',
     'Voice of Sagacity',

@@ -11,6 +11,7 @@ local class = mq.TLO.Me.Class() or ''
 local iniPath = mq.configDir .. '\\BuffBot\\Settings\\' .. 'BuffBot_' .. toon .. '_' .. class .. '.ini'
 
 wizard.allPorts = {
+    'Translocate Laurion',
     'Translocate Shadow Valley',
     'Translocate Shadeweaver\'s Tangle',
     'Translocate Cobalt Scar',
