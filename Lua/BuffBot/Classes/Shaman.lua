@@ -116,8 +116,8 @@ shaman.proc_Buffs = {
 }
 shaman.sow_Buffs = {
     'Spirit of Wolf',
-    'Spirit of Tala`Tak',
-    'Spirit of Bih`Li',
+    'Spirit of Tala\'Tak',
+    'Spirit of Bih\'Li',
     'Spirit of the Shrew',
     'Pact Shrew'
 }
