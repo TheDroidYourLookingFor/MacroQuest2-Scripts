@@ -12,7 +12,6 @@ ranger.enrichment_Buffs = {
     "Copsestalker's Enrichment"
 }
 ranger.hp_Buffs = {
-    'Glitterine Coat',
     'Dusksage Coat',
     'Obsidian Coat',
     'Blackscale',
@@ -33,9 +32,6 @@ ranger.hp_Buffs = {
 }
 
 ranger.ac_Buffs = {
-    'Shout of the Fernstalker',
-    'Cloak of Needlespikes',
-    'Needlespike Coat',
     'Cloak of Bloodbarbs',
     'Shared Cloak of Rimespurs',
     'Cloak of Rimespurs',
@@ -57,7 +53,6 @@ ranger.ac_Buffs = {
 }
 
 ranger.ds_Buffs = {
-    'Shield of Needlespikes',
     'Shield of Shadowthorns',
     'Shield of Rimespurs',
     'Shield of Needlebarbs',
@@ -76,8 +71,6 @@ ranger.ds_Buffs = {
     'Thistlecoat'
 }
 ranger.attack_Buffs = {
-    'Strength of the Fernstalker',
-    'Shriek of the Predator',
     'Bay of the Predator',
     'Strength of the Dusksage Stalker',
     'Frostroar of the Predator',

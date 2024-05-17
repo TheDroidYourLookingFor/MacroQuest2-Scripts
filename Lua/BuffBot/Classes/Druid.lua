@@ -7,7 +7,6 @@ local druid = {}
 druid.version = '1.0.0'
 
 druid.allPorts = {
-    'Zephyr Laurion',
     'Zephyr Shadow Valley',
     'Zephyr Shadeweaver\'s Tangle',
     'Zephyr Cobalt Scar',
@@ -61,8 +60,6 @@ druid.allPorts = {
 }
 
 druid.hp_Buffs = {
-    'Emberquartz Blessing',
-    'Emberquartz Skin',
     'Luclinite Blessing',
     'Luclinite Skin',
     'Opaline Blessing',
@@ -102,8 +99,6 @@ druid.hp_Buffs = {
     'Skin like Wood'
 }
 druid.regen_Buffs = {
-    'Talisman of the Unforgettable',
-    'Spirit of the Unforgettable',
     'Talisman of the Tenacious',
     'Spirit of the Tenacious',
     'Talisman of the Enduring',
@@ -135,7 +130,6 @@ druid.regen_Buffs = {
     'Regeneration'
 }
 druid.big_ds_Buffs = {
-    'Frondbarb',
     'Barkspur',
     'Fernspur',
     'Fernspike',
@@ -148,8 +142,6 @@ druid.big_ds_Buffs = {
     'Duskthorn'
 }
 druid.ds_Buffs = {
-    'Legacy of Bramblespikes',
-    'Bramblespike Bulwark',
     'Legacy of Bloodspikes',
     'Nightspire Bulwark',
     'Legacy of Icebriars',

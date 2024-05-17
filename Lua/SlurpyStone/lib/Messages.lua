@@ -1,6 +1,6 @@
 local mq = require('mq')
 local messages = {}
-messages.script_ShortName = 'DroidLoot'
+messages.script_ShortName = 'SlurpyStone'
 
 function messages.ScriptInfo()
     local level = 1
@@ -18,9 +18,9 @@ end
 
 function messages.CONSOLEMETHOD(isDebugMessage, consoleMessage, ...)
     if isDebugMessage then
-        printf("\ag[%s]\ar " .. consoleMessage..'\ax', ScriptInfo(), ...)
+        printf("\ar[%s] \aw" .. consoleMessage..'\ax', ScriptInfo(), ...)
     else
-        printf("\ag[%s]\aw " .. consoleMessage..'\ax', messages.script_ShortName, ...)
+        printf("\ag[%s] \aw" .. consoleMessage..'\ax', messages.script_ShortName, ...)
     end
 end
 

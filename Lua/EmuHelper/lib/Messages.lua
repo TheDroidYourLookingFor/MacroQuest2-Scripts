@@ -1,6 +1,6 @@
 local mq = require('mq')
 local messages = {}
-messages.script_ShortName = 'MoveBot'
+messages.script_ShortName = 'EmuHelper'
 
 function messages.ScriptInfo()
     local level = 1
@@ -18,7 +18,7 @@ end
 
 function messages.CONSOLEMETHOD(isDebugMessage, consoleMessage, ...)
     if isDebugMessage then
-        printf("\ar[%s] \aw" .. consoleMessage..'\ax', ScriptInfo(), ...)
+        printf("\ar[%s] \aw" .. consoleMessage .. '\ax', messages.ScriptInfo(), ...)
     else
         printf("\ag[%s] \aw" .. consoleMessage..'\ax', messages.script_ShortName, ...)
     end

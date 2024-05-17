@@ -1,11 +1,11 @@
-local version = '1.0.11'
+local version = '1.0.10'
 ---|------------------------------------------------------------|
 ---|                   BuffBot
 ---|
 ---|              Created by: TheDroidUrLookingFor
 ---|              Modified by: TheDroidUrLookingFor
 ---|
----|		     Version: 1.0.10
+---|		     Version: 1.0.9
 ---|
 ---|------------------------------------------------------------|
 
@@ -13,16 +13,6 @@ local version = '1.0.11'
 local mq = require('mq')
 ---@type ImGui
 local imgui = require 'ImGui'
-
-local PackageMan = require('mq/PackageMan')
-local Utils = require('mq/Utils')
-local lfs_check = Utils.Library.Include("lfs")
-if not lfs_check then
-    if PackageMan.Install("luafilesystem") == 2 then
-        print("User canceled the install, cannot proceed")
-        mq.exit()
-    end
-end
 
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -92,8 +82,7 @@ Settings = {
     guildFree = true
 }
 
-local versionOrder = { "1.0.11", "1.0.10", "1.0.9", "1.0.8", "1.0.7", "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2",
-    "1.0.1", "1.0.0" }
+local versionOrder = { "1.0.10", "1.0.9", "1.0.8", "1.0.7", "1.0.6", "1.0.5", "1.0.4", "1.0.3", "1.0.2", "1.0.1", "1.0.0" }
 local change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added Cleric Class support',
@@ -160,15 +149,8 @@ local change_Log = {
         '- Added a wait after memming spells in the buff routine.',
         '- Fixed issue with Bih`li and Tala`Tak for shaman' },
     ['1.0.11'] = { 'General Update',
-        '- Added 121-125 spells for Magician',
-        '- Added 121-125 spells for Enchanter',
-        '- Added 121-125 spells for Ranger',
-        '- Added 121-125 spells for Shaman',
-        '- Added 121-125 spells for Cleric',
-        '- Added 121-125 spells for Beastlord',
-        '- Added 121-125 spells for Druid',
-        '- Added 121-125 spells for Paladin',
-        '- Added 121-125 spells for Wizard' }
+        '- Removed LFS as it was causing issues.',
+        '- Switch to IO for Directory creation.' },
 }
 
 function ScriptInfo()

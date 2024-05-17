@@ -20,9 +20,6 @@ paladin.rez_Spell = {
 }
 
 paladin.hp_Buffs = {
-    'Hand of the Fernshade Keeper',
-    'Fernshade Keeper',
-    'Symbol of Thormir',
     'Hand of the Dreaming Keeper',
     'Shadewell Keeper',
     'Hand of the Stormwall Keeper',
@@ -55,7 +52,6 @@ paladin.hp_Buffs = {
 }
 
 paladin.hp_v2_Buffs = {
-    'Brell\'s Unbreakable Palisade',
     'Brell\'s Tenacious Barrier',
     'Brell\'s Blessed Barrier',
     'Brell\'s Blessed Bastion',

@@ -20,8 +20,6 @@ cleric.rez_Spell = {
 }
 
 cleric.symbol_Buffs = {
-    'Unified Hand of Helmsbane',
-    'Symbol of Helmsbane',
     "Unified Hand of the Diabo",
     "Symbol of Sanguineous",
     "Unity of the Sanguine",
@@ -61,9 +59,6 @@ cleric.symbol_Buffs = {
 }
 
 cleric.hp_Buffs = {
-    'Unified Hand of Infallibility',
-    'Unified Commitment',
-    'Commitment',
     'Unified Hand of Persistence',
     'Unified Persistence',
     "Mercenary's Hand of Persistence",
@@ -116,7 +111,6 @@ cleric.hp_Buffs = {
     'Courage'
 }
 cleric.haste_Buffs = {
-    'Hand of Devotion',
     'Hand of Devoutness',
     'Benediction of Resplendence',
     'Hand of Reverence',
@@ -143,8 +137,6 @@ cleric.haste_Buffs = {
     'Blessing of Piety'
 }
 cleric.guard_Buffs = {
-    'Rallied Greater Aegis of Vie',
-    'Greater Aegis of Vie',
     'Rallied Greater Bulwark of Vie',
     'Greater Bulwark of Vie',
     'Rallied Greater Protection of Vie',

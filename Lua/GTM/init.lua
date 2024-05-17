@@ -5,8 +5,8 @@ local args = { ... }
 local Settings = {
     debug = true,
     tradeToPerson = '',
-    enableCustomCoin = false,
-    customCoin = 'Diamond Coin',
+    enableCustomCoin = true,
+    customCoin = 'A Jar of Xorbb Currency (5)',
     enableDiamonds = false,
     diamond = 'Diamond',
     enableRawDiamonds = false,
@@ -27,6 +27,26 @@ local Group_Settings = {
     redistribute_Amount = 100,
     directMessage = '/dex'
 }
+
+local Custom_Items = {
+    'Token of Pain Mk. I',
+    'Token of the Soul',
+    'Token of Growth Mk. I',
+    'Dragon Seal of Honor',
+    'Ultimate Willpower Rank I (Max Rank 600)',
+    'Ultimate Sturdiness Rank I (Max Rank 250)',
+    'Xorbb Currency',
+    'A Jar of Xorbb Currency (5)',
+    'A Box of Coldain Velium Shards (500)',
+    '1,000 AA Token',
+    '5,000 AA Token',
+    '10,000 AA Token',
+    '100,000 AA Token',
+    '1,000,000 AA Token',
+    '10,000,000 AA Token',
+    '100,000,000 AA Token'
+}
+
 local function PRINTMETHOD(printMessage, ...)
     printf("[GiveToMe] " .. printMessage, ...)
 end
@@ -129,13 +149,13 @@ local function GroupMode()
         while (mq.TLO.Spawn(mq.TLO.Group.Member(i).Name()).Distance3D() > Group_Settings.distance) do
             mq.delay(Group_Settings.delay)
         end
-        mq.delay(Group_Settings.delay *3,function () return mq.TLO.Window('TradeWnd').Open() == true end)
+        mq.delay(Group_Settings.delay * 3, function() return mq.TLO.Window('TradeWnd').Open() == true end)
         while mq.TLO.Window('TradeWnd').Open() do
             mq.delay(Group_Settings.delay)
         end
         mq.delay(Group_Settings.delay)
     end
-    if Group_Settings.redistribute then mq.cmdf('/split %s',Group_Settings.redistribute_Amount) end
+    if Group_Settings.redistribute then mq.cmdf('/split %s', Group_Settings.redistribute_Amount) end
 end
 
 local function Main()
@@ -161,12 +181,22 @@ local function Main()
     mq.delay(1500, InventoryOpen)
 
     PRINTMETHOD('Targetting %s', Settings.tradeToPerson)
-    mq.cmd('/target "' .. Settings.tradeToPerson .. '" pc')
+    mq.cmdf('/target %s',Settings.tradeToPerson)
     mq.delay(2000, HaveTarget)
     mq.cmd('/face')
 
     if mq.TLO.Spawn(Settings.tradeToPerson).Distance3D() > 20 then
         NavToTrade(Settings.tradeToPerson)
+    end
+
+    local tradeCount = 0
+    for index, item in ipairs(Custom_Items) do
+        if tradeCount < 10 and mq.TLO.FindItem(item).ID() ~= nil then
+            printf("Index: %s / item %s / TradeCount: %s", index, item, tradeCount)
+            Give(item)
+            mq.delay(250)
+            tradeCount = (tradeCount or 0) + 1
+        end
     end
 
     GiveCoins(Settings.enableCustomCoin, Settings.customCoin)
