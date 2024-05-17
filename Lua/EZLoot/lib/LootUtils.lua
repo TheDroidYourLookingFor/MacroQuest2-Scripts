@@ -124,7 +124,7 @@ LootUtils = {
     CorpseRadius = 100,
     MobsTooClose = 40,
     ReportLoot = true,
-    ReportSkipped = false,
+    ReportSkipped = true,
     LootChannel = "dgt",
     AnnounceChannel = 'rsay',
     SpamLootInfo = false,
@@ -658,7 +658,7 @@ local function sellToVendor(itemToSell)
     end
 end
 
-function LootUtils.sellStuff()
+function LootUtils.sellStuff(closeWindowWhenDone)
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then return end
         if not openVendor() then return end
@@ -700,7 +700,7 @@ function LootUtils.sellStuff()
         end
     end
     mq.flushevents('Sell')
-    if mq.TLO.Window('MerchantWnd').Open() then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
+    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
     LootUtils.Settings.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
 end
@@ -812,7 +812,7 @@ end
 local function processArgs(args)
     if #args == 1 then
         if args[1] == 'sell' then
-            LootUtils.sellStuff()
+            LootUtils.sellStuff(false)
         elseif args[1] == 'once' then
             LootUtils.lootMobs()
         elseif args[1] == 'standalone' then
@@ -839,7 +839,7 @@ init({ ... })
 while not LootUtils.Settings.Terminate do
     if LootUtils.DoLoot then LootUtils.lootMobs() end
     if doSell then
-        LootUtils.sellStuff()
+        LootUtils.sellStuff(false)
         doSell = false
     end
     mq.delay(1000)

@@ -1,5 +1,6 @@
 ---@type Mq
 local mq = require('mq')
+local Utils = require('mq/utils')
 local PackageMan = require('mq/PackageMan')
 local lfs_check = Utils.Library.Include("lfs")
 if not lfs_check then
@@ -17,7 +18,7 @@ function storage.ReadINI(filename, section, option)
 end
 
 function storage.SetINI(filename, section, option, value)
-	print('/ini "%s" "%s" "%s" "%s"', filename, section, option, value)
+	print(filename, section, option, value)
 	mq.cmdf('/ini "%s" "%s" "%s" "%s"', filename, section, option, value)
 end
 

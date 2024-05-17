@@ -27,59 +27,164 @@ end
 --   -- do the things
 -- end
 
-formations.halfmoon = function(dist, debug)
+formations.halfmoon = function(dist)
     -- set defaults
     dist = dist or 10
-    if debug == 'on' then debug = true else debug = false end
 
     -- check inputs / print formation usage
     if tonumber(dist) == nil then
-        Output('Usage: /formation halfmoon [dist = 20] [debug on|off]')
+        Output('Usage: /formation halfmoon [dist = 20]')
         return
     end
 
-    -- calc the things
-    for i = 1, mq.TLO.Group.Members() do
-        local y = mq.TLO.Me.Y() + (dist * math.sin(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
-        local x = mq.TLO.Me.X() + (dist * math.cos(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
-        local cmd = string.format('dex %s /moveto loc %.2f %.2f', mq.TLO.Group.Member(i).Name(), y, x)
-        mq.cmd[cmd]()
-        if debug then Debug('/' .. cmd) end
-        mq.delay(100)
+    local main_character_x = mq.TLO.Me.X()
+    local main_character_y = mq.TLO.Me.Y()
+
+    if mq.TLO.Raid.Members() > 0 then
+        -- calc the things
+        for i = 1, mq.TLO.Raid.Members() do
+            local y = main_character_y +
+                (dist * math.sin(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
+            local x = main_character_x +
+                (dist * math.cos(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Raid.Member(i).Name(), x, y)
+            mq.delay(100)
+        end
+    else
+        -- calc the things
+        for i = 1, mq.TLO.Group.Members() do
+            local y = main_character_y +
+                (dist * math.sin(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
+            local x = main_character_x +
+                (dist * math.cos(((i * 36) + (mq.TLO.Me.Heading.Degrees() - 198)) / (180 / math.pi)))
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Group.Member(i).Name(), x, y)
+            mq.delay(100)
+        end
     end
 end
 
-formations.line = function(dist, direction, debug)
+formations.line = function(dist, direction)
     -- set defaults
     direction = direction or 'north'
     dist = dist or 10
-    if debug == 'on' then debug = true else debug = false end
 
     -- check inputs / print formation usage
     if tonumber(dist) == nil then
-        print(dist)
-        Output('Usage: /formation line [dist = 5] [direction north|west] [debug on|off]')
+        Output('Usage: /formation line [dist = 5] [direction north|south|west|east]')
         return
     end
 
-    -- calc the things
-    for i = 1, mq.TLO.Group.Members() do
-        local y
-        local x
-        local z
-        if direction == 'north' then
-            y = mq.TLO.Me.Y() + (dist * i)
-            x = mq.TLO.Me.X() + (dist)
-            z = mq.TLO.Me.Z()
-        elseif direction == 'west' then
-            y = mq.TLO.Me.Y() + (dist)
-            x = mq.TLO.Me.X() + (dist * i)
-            z = mq.TLO.Me.Z()
+    local main_character_x = mq.TLO.Me.X()
+    local main_character_y = mq.TLO.Me.Y()
+
+    if mq.TLO.Raid.Members() > 0 then
+        -- calc the things
+        for i = 1, mq.TLO.Raid.Members() do
+            local y
+            local x
+            if direction == 'north' then
+                y = main_character_y + (dist * i)
+                x = main_character_x + (dist)
+            elseif direction == 'south' then
+                y = main_character_y - (dist * i)
+                x = main_character_x - (dist)
+            elseif direction == 'west' then
+                y = main_character_y + (dist)
+                x = main_character_x + (dist * i)
+            elseif direction == 'east' then
+                y = main_character_y - (dist)
+                x = main_character_x - (dist * i)
+            end
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Raid.Member(i).Name(), x, y)
+            mq.delay(100)
         end
-        local cmd = string.format('dex %s /nav locxyz %.2f %.2f %.2f distance=0.00', mq.TLO.Group.Member(i).Name(), x, y, z)
-        mq.cmd[cmd]()
-        if debug then Debug('/' .. cmd) end
-        mq.delay(100)
+    else
+        -- calc the things
+        for i = 1, mq.TLO.Group.Members() do
+            local y
+            local x
+            if direction == 'north' then
+                y = main_character_y + (dist * i)
+                x = main_character_x + (dist)
+            elseif direction == 'south' then
+                y = main_character_y - (dist * i)
+                x = main_character_x - (dist)
+            elseif direction == 'west' then
+                y = main_character_y + (dist)
+                x = main_character_x + (dist * i)
+            elseif direction == 'east' then
+                y = main_character_y - (dist)
+                x = main_character_x - (dist * i)
+            end
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Group.Member(i).Name(), x, y)
+            mq.delay(100)
+        end
+    end
+end
+
+formations.circle = function(radius)
+    -- set defaults
+    radius = radius or 30
+
+    -- check inputs / print formation usage
+    if tonumber(radius) == nil then
+        Output('Usage: /formation circle [radius = 10]')
+        return
+    end
+
+    local main_character_x = mq.TLO.Me.X()
+    local main_character_y = mq.TLO.Me.Y()
+
+    if mq.TLO.Raid.Members() > 0 then
+        local num_members = mq.TLO.Raid.Members()
+
+        -- Calculate angle increment based on the number of members
+        local angle_increment = (2 * math.pi) / (num_members - 1)
+
+        for i = 1, num_members do
+            -- Calculate angle for each member
+            local angle = angle_increment * (i - 1)
+
+            -- Calculate position around the main character
+            local x = main_character_x + radius * math.cos(angle)
+            local y = main_character_y + radius * math.sin(angle)
+
+            -- Move the character to the calculated position
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Raid.Member(i).Name(), x, y)
+
+            -- Add a slight delay before moving the next character
+            mq.delay(100)
+        end
+
+        mq.delay(1500)
+        mq.cmdf('/dgre /target id %s', mq.TLO.Me.ID())
+        mq.delay(500)
+        mq.cmd('/dgre /face fast')
+    else
+        local num_members = mq.TLO.Group.Members()
+
+        -- Calculate angle increment based on the number of members
+        local angle_increment = (2 * math.pi) / (num_members - 1)
+
+        for i = 1, num_members do
+            -- Calculate angle for each member
+            local angle = angle_increment * (i - 1)
+
+            -- Calculate position around the main character
+            local x = main_character_x + radius * math.cos(angle)
+            local y = main_character_y + radius * math.sin(angle)
+
+            -- Move the character to the calculated position
+            mq.cmdf('/dex %s /nav locxy %.2f %.2f distance=0.00', mq.TLO.Group.Member(i).Name(), x, y)
+
+            -- Add a slight delay before moving the next character
+            mq.delay(100)
+        end
+
+        mq.delay(1500)
+        mq.cmdf('/dgge /target id %s', mq.TLO.Me.ID())
+        mq.delay(500)
+        mq.cmd('/dgge /face fast')
     end
 end
 

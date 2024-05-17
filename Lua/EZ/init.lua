@@ -17,7 +17,7 @@ local Messages = require('EZ.lib.Messages')
 -- local Storage = require('EZ.lib.Storage')
 -- local lootutils = require('EZ.lib.LootUtils')
 local GTM = require('EZ.lib.GivetoMain')
-local EZProgression = require('EZ.lib.EzProgression')
+local Progression = require('EZ.lib.EzProgression')
 
 local EZ = {
     Debug = false,
@@ -31,6 +31,27 @@ local EZ = {
     Raid_Mode = true,
 }
 local Raid_Members = 19
+-- local Raid_Groups = {
+--     {
+--         name = "Group1",
+--         members = {
+--             "Winli", "Jinli", "Dinli", "Einli", "Minli", "Binli"
+--         }
+--     },
+--     {
+--         name = "Group2",
+--         members = {
+--             "Tinli", "Oinli", "Hinli", "Qinli", "Finli", "Kinli"
+--         }
+--     },
+--     {
+--         name = "Group3",
+--         members = {
+--             "Ginli", "Uinli", "Ninli", "Yinli", "Zinli", "Xinli"
+--         }
+--     }
+-- }
+
 local Raid_Groups = {
     {
         name = "Group1",
@@ -244,11 +265,11 @@ local function ez_command(...)
                 Open = true
             end
             return
-        elseif args[1] == 'ezprogression' then
+        elseif args[1] == 'progress' then
             if args[2] ~= nil and args[3] ~= nil then
-                EZProgression.Main(args[2],args[3])
+                Progression.Main(args[2], args[3])
             elseif args[2] ~= nil and args[3] == nil then
-                EZProgression.Main(args[2])
+                Progression.Main(args[2])
             end
         elseif args[1] == 'instance' then
             if args[2] == 'solo' then

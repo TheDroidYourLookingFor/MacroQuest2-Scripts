@@ -110,8 +110,8 @@ local function SetupCharacter()
 end
 
 -- Sub UpdateCompletedArmor
-function UpdateCompletedArmor(strArgSlot)
-    local t, tp1, s, SlotStart, SlotEnd, i
+local function UpdateCompletedArmor(strArgSlot)
+    local tp1, SlotStart, SlotEnd
     local intTier, strSlot, strArmor, intSlotFound, blnTierDone
     local slotsTable = split(EZProgression.Settings.Slots, "|")
     local tiersTable = split(EZProgression.Settings.Tiers, "|")
@@ -131,6 +131,10 @@ function UpdateCompletedArmor(strArgSlot)
         SlotStart = 1
         SlotEnd = #slotsTable
     end
+    
+    printf("strArgSlot: %s", tostring(strArgSlot))
+    printf("SlotStart: %s", tostring(SlotStart))
+    printf("SlotEnd: %s", tostring(SlotEnd))
 
     for s = SlotStart, SlotEnd do
         strSlot = slotsTable[s]
@@ -191,7 +195,9 @@ end
 
 -- End Sub UpdateCompletedArmor
 
-function ArmorNeeded(strArgSlot, strArgTier)
+local function ArmorNeeded(strArgSlot, strArgTier)
+    printf("slot: %s", tostring(strArgSlot))
+    printf("tier: %s", tostring(strArgTier))
     local slotsTable = split(EZProgression.Settings.Slots, "|")
     local slotsShortTable = split(EZProgression.Settings.SlotsShort, "|")
     local tiersTable = split(EZProgression.Settings.Tiers, "|")
@@ -427,23 +433,23 @@ function EZProgression.Main(tier, slot)
         local tierValue = tonumber(tier)
         local slotValue = tonumber(slot)
 
-        if tierValue and tiersTable[tierValue] and tiersTable[tierValue] > 0 then
+        if tierValue and tiersTable[tierValue] and #tiersTable[tierValue] > 0 then
             strArgTier = tierValue
-        elseif slotValue and slotsTable[slotValue] and slotsTable[slotValue] > 0 then
+        elseif slotValue and slotsTable[slotValue] and #slotsTable[slotValue] > 0 then
             strArgSlot = slotValue
         end
 
-        if slotValue and tiersTable[slotValue] and tiersTable[slotValue] > 0 then
+        if slotValue and tiersTable[slotValue] and #tiersTable[slotValue] > 0 then
             strArgTier = slotValue
-        elseif slotValue and slotsTable[slotValue] and slotsTable[slotValue] > 0 then
+        elseif slotValue and slotsTable[slotValue] and #slotsTable[slotValue] > 0 then
             strArgSlot = slotValue
         end
     else
         local tierValue = tonumber(tier)
 
-        if tierValue ~= nil and tiersTable[tierValue] and tiersTable[tierValue] > 0 then
+        if tierValue ~= nil and tiersTable[tierValue] and #tiersTable[tierValue] > 0 then
             strArgTier = tierValue
-        elseif tierValue ~= nil and slotsTable[tierValue] and slotsTable[tierValue] > 0 then
+        elseif tierValue ~= nil and slotsTable[tierValue] and #slotsTable[tierValue] > 0 then
             strArgSlot = tierValue
         end
     end
