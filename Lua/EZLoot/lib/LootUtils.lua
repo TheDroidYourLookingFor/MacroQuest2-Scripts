@@ -116,9 +116,10 @@ end
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 LootUtils = {
     Version = "1.0",
+    UseWarp = true,
     AddNewSales = true,
     LootForage = true,
-    LootTradeSkill = true,
+    LootTradeSkill = false,
     DoLoot = true,
     EquipUsable = false, -- Buggy at best
     CorpseRadius = 100,
@@ -126,14 +127,18 @@ LootUtils = {
     ReportLoot = true,
     ReportSkipped = true,
     LootChannel = "dgt",
-    AnnounceChannel = 'rsay',
+    AnnounceChannel = 'dgt',
     SpamLootInfo = false,
     LootForageSpam = false,
     CombatLooting = true,
+    LootPlatinumBags = true,
+    LootTokensOfAdvancement = true,
+    LootEmpoweredFabled = true,
+    EmpoweredFabledMinHP = 100,
     StackPlatValue = 0,
     NoDropDefaults = "Quest|Keep|Ignore|Announce",
     SaveBagSlots = 3,
-    MinSellPrice = -1,
+    MinSellPrice = 5000,
     StackableOnly = false,
     useZoneLootFile = false,
     useClassLootFile = true,
@@ -161,7 +166,7 @@ local function SetINIType()
             my_ArmorType = 'Plate'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
@@ -169,7 +174,7 @@ local function SetINIType()
             my_ArmorType = 'Chain'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
@@ -177,7 +182,7 @@ local function SetINIType()
             my_ArmorType = 'Cloth'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
@@ -185,7 +190,7 @@ local function SetINIType()
             my_ArmorType = 'Leather'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
@@ -194,10 +199,10 @@ local function SetINIType()
         if LootUtils.useZoneLootFile then
             if LootUtils.useClassLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir ..
-                '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
             end
         else
             if LootUtils.useClassLootFile then
@@ -220,8 +225,15 @@ local cantLootID = 0
 local spawnSearch = '%s radius %d zradius 50'
 -- If you want destroy to actually loot and destroy items, change Destroy=false to Destroy=true.
 -- Otherwise, destroy behaves the same as ignore.
-local shouldLootActions = { Keep = true, Bank = true, Sell = true, Destroy = false, Ignore = false, Quest = true,
-    Announce = true }
+local shouldLootActions = {
+    Keep = true,
+    Bank = true,
+    Sell = true,
+    Destroy = false,
+    Ignore = false,
+    Quest = false,
+    Announce = true
+}
 local validActions = {
     keep = 'Keep',
     bank = 'Bank',
@@ -298,14 +310,20 @@ local function checkCursor()
 end
 
 local function navToID(spawnID)
-    mq.cmdf('/nav id %d log=off', spawnID)
-    mq.delay(50)
-    if mq.TLO.Navigation.Active() then
-        local startTime = os.time()
-        while mq.TLO.Navigation.Active() do
-            mq.delay(100)
-            if os.difftime(os.time(), startTime) > 5 then
-                break
+    if LootUtils.UseWarp then
+        mq.cmdf('/target id %s', spawnID)
+        mq.delay(250)
+        mq.cmd('/squelch /warp t')
+    else
+        mq.cmdf('/nav id %d log=off', spawnID)
+        mq.delay(50)
+        if mq.TLO.Navigation.Active() then
+            local startTime = os.time()
+            while mq.TLO.Navigation.Active() do
+                mq.delay(100)
+                if os.difftime(os.time(), startTime) > 5 then
+                    break
+                end
             end
         end
     end
@@ -325,6 +343,7 @@ end
 
 local function getRule(item)
     local itemName = item.Name()
+    local itemHP = item.HP()
     local lootDecision = 'Ignore'
     local tradeskill = item.Tradeskills()
     local sellPrice = item.Value() and item.Value() / 1000 or 0
@@ -362,6 +381,9 @@ local function getRule(item)
         if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice then lootDecision = 'Sell' end
         if not stackable and LootUtils.StackableOnly then lootDecision = 'Ignore' end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
+        if LootUtils.LootEmpoweredFabled and string.find(itemName, 'Empowered Fabled') and itemHP >= LootUtils.EmpoweredFabledMinHP then lootDecision = 'Bank' end
+        if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then lootDecision = 'Sell' end
+        if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then lootDecision = 'Bank' end
         addRule(itemName, firstLetter, lootDecision)
     end
     return lootData[firstLetter][itemName]
@@ -452,7 +474,8 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         --if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
-        if EZLoot.debug then printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount) end
+        if EZLoot.debug then printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat,
+                ruleAction, ruleAmount, currentItemAmount) end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then return end
     else
         if not shouldLootActions[ruleAction] then return end
@@ -700,7 +723,8 @@ function LootUtils.sellStuff(closeWindowWhenDone)
         end
     end
     mq.flushevents('Sell')
-    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
+    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then mq.cmd(
+        '/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
     LootUtils.Settings.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
 end
