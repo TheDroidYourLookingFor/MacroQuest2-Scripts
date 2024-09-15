@@ -1,0 +1,251 @@
+#include MQ2Cast_Spell_Routines.inc
+#define CASTMODE       "MQ2Cast"
+
+|------------------------------------------------------------|
+|          Events
+|------------------------------------------------------------|
+	#Event TaskUpdate "Your task '#1#' has been updated."
+	#Event TaskFinished "#*#This mission set has been completed#*#"
+	#Event NewZone "You have entered #1#."
+	#Event TaskTimer "Player '#*#' currently has a lockout for #*#"
+
+Sub Main
+	/declare UseE3 bool outer FALSE
+
+	/declare LootCharacter string outer "Winli"
+	/declare NavStopDist int outer 125
+
+	/declare CastPetHaste bool outer FALSE
+	/declare HasteName string outer
+	/declare HealName string outer
+	/declare HealPetAt int outer 60
+	
+	/declare DoMed bool outer TRUE
+	/declare MedAt int outer 95
+	
+	/declare UseHorse bool outer FALSE
+	/declare HorseItem string other "Horsie"
+
+	/if (${Me.Class.Name.Equal[Magician]}) {
+		/varset HealName "Renewal of Pegeen"
+		/varset HasteName "Burnout V" 
+	}
+	/if (${Me.Class.Name.Equal[Necromancer]}) {
+		/varset HealName "Mending of Kesu"
+		/varset HasteName "Glyph of Death" 
+	}
+	/if (${Me.Class.Name.Equal[Beastlord]}) {
+		/varset HealName "Shower of Clawd"
+		/varset HasteName "Arag's Celerity" 
+	}
+	
+	/echo Starting Heal Bot
+	/echo Current Class: ${Me.Class.Name}
+	/echo Current Heal: ${HealName}
+	
+	:MainLoop
+		/if (${MacroQuest.GameState.Equal[CHARSELECT]}) /end
+		/if (${Zone.ID}==422) /macro PetPrep
+		/doevents
+		/if (${Cursor.ID}) /autoinventory
+		
+		/if (${Pet.ID} && ${Pet.PctHPs} <= ${HealPetAt} && ${Me.CurrentMana} >= ${Spell[${HealName}].Mana}) {
+			/if (!${Pet.LineOfSight} || ${Pet.Distance} > 98) {
+				/nav id ${Pet.ID} distance=40 lineofsight=on
+				/delay 60s !${Navigation.Active}
+			}
+			/call CASTMODE ${HealName}
+		}
+		/if (${CastPetHaste} && ${Pet.BuffsPopulated} && !${Pet.Buff[${HasteName}]}) {
+			/if (!${Pet.LineOfSight} || ${Pet.Distance} > 98) {
+				/nav id ${Pet.ID} distance=40 lineofsight=on
+				/delay 60s !${Navigation.Active}
+			}
+			/call CASTMODE ${HasteName}
+		}
+
+		/if (${Target.ID}==${Me.Pet.ID} || !${Target.ID}) {
+			/target npc
+		}
+		/if (!${Me.Pet.Combat} || ${Target.Distance} > 175) {
+			/call MoveToBoss
+		}
+		/if (${DoMed} && ${Me.PctMana} <= ${MedAt} & ${Me.Standing} && !${Me.Casting.ID} && !${Me.Mount.ID}) /sit
+		/delay 50
+	/goto :MainLoop
+/return
+
+Sub MoveToCorpse()
+	/if (${SpawnCount[npccorpse radius 2000]}>=1) {
+		/target corpse
+		/delay 5s ${Target.ID}
+		/if (${Target.ID}==${Me.Pet.ID}) {
+			/target corpse
+			/delay 5s ${Target.ID}
+		}
+		/nav target
+		:Move_To_BossCorpse_Loop
+		/delay 1s !${Navigation.Active}
+		/if (${Navigation.Active}) /goto :Move_To_BossCorpse_Loop
+	}
+/return
+
+Sub MoveToNextLevel()
+	/delay 1s
+	/target npc
+	/delay 3s ${Target.ID}
+	/if (${Target.ID}==${Me.Pet.ID}) {
+		/target npc
+		/delay 5s ${Target.ID}
+	}
+	/delay 1s
+	/if (${Target.CleanName.Equal[Event Ender Steve]}) {
+		/hail
+		/delay 1s
+		/doevent TaskFinished
+		/delay 2s
+		/say progression
+		/delay 2s
+		/say defeat
+		/delay 2s
+		/doevent TaskTimer
+		/delay 2s
+		/doevents flush
+		/delay 1s
+		/notify LargeDialogWindow LDW_YesButton leftmouseup
+	}
+/return
+
+
+Sub LootBossCorpse()
+	/if (${SpawnCount[npccorpse radius 2000]}>=1) {
+		/lua run ezloot
+		/delay 60s ${SpawnCount[npccorpse radius 2000]}==0
+		/delay 1
+		/lua stop ezloot
+		/delay 60s ${SpawnCount[npccorpse radius 2000]}==0
+		/delay 1
+	}
+/return
+
+Sub MoveToBoss()
+	/if (${Zone.ID}==422) {
+		/dgt We died or something as we are in Barren!!
+		/endmacro
+	}
+
+	/if (${SpawnCount[npccorpse radius 2000]}>=1) {
+		 /call MoveToCorpse
+		 /call LootBossCorpse
+		 /return
+	}
+	
+	/target npc
+	/delay 5s ${Target.ID}
+	/if (${Target.ID}==${Me.Pet.ID}) {
+		/target clear
+		/delay 1s
+		/target npc
+		/delay 5s ${Target.ID}
+	}
+	/if (!${Target.ID}) {
+		/echo Couldnt find a boss on this level!
+		/dgt We could not find a Boss to target on this level!
+		/end
+	}
+
+	/delay 1s
+	/if (${Target.CleanName.Equal[Event Ender Steve]}) {
+		/if (${SpawnCount[npccorpse radius 2000]}==0) {
+			/call MoveToNextLevel
+		} else {
+			/call MoveToCorpse
+			/call LootBossCorpse
+		}
+		/return
+	}
+
+	/if (${Target.Distance} >= ${NavStopDist}) {
+		/if (${Target.CleanName.Equal[Lord Vyemm]}) {
+			/nav locxyz -92.47 -118.09 56.19 lineofsight=off
+			/echo Moving closer to the ${Target.CleanName} we are too far away.
+			:Move_To_Boss_Loop
+			/pet attack
+			/delay 1s !${Navigation.Active}
+			/if (${Navigation.Active}) /goto :Move_To_Boss_Loop
+			/delay 30s ${Pet.Distance}<=20
+		} else /if (${Target.CleanName.Equal[Lord Koi`Doken]}) {
+
+			
+			/nav locxyz -49.54, 727.41, 98.09 lineofsight=off
+			/echo Moving closer to the ${Target.CleanName} we are too far away.
+			:Move_To_Boss_Loop
+			/pet attack
+			/delay 1s !${Navigation.Active}
+			/if (${Navigation.Active}) /goto :Move_To_Boss_Loop
+			/delay 30s ${Pet.Distance}<=20
+		} else {
+			/nav target distance=${NavStopDist} lineofsight=off
+			/echo Moving closer to the ${Target.CleanName} we are too far away.
+			:Move_To_Boss_Loop
+			/pet attack
+			/delay 1s !${Navigation.Active}
+			/if (${Navigation.Active}) /goto :Move_To_Boss_Loop
+			/delay 30s ${Pet.Distance}<=20
+		}
+		
+	}
+	
+	/if (${Target.CleanName.NotEqual[Event Ender Steve]}) {
+		/echo Sending pet to attack ${Target.CleanName}
+		/pet attack
+		/if (${UseE3}) /assistme
+	}
+/return
+
+sub RangedDPS()
+	/if (${Me.Pet.Combat}) {
+
+	}
+/return
+
+| --------------------------------------------------------------------------------------------
+| SUB: Event_TaskUpdate
+| --------------------------------------------------------------------------------------------
+Sub Event_TaskUpdate(Line,Sender)
+	/dgt Task ${Sender} Completed
+	/delay 1s
+	/call MoveToCorpse
+	/delay 1s
+	/call LootBossCorpse
+	/delay 1s
+	/call MoveToNextLevel
+/return
+
+Sub Event_TaskFinished(Line,Sender)
+	/say #peqzone barren
+	/delay 60s ${Zone.ID}==422
+	/target pc ${LootCharacter}
+	/nav target
+	/delay 60s !${Navigation.Active}
+	/lua run gtm ${LootCharacter}
+	/delay 10s
+	/end
+/return
+
+Sub Event_NewZone(Line,Sender)
+	/delay 2s
+	/call MoveToBoss
+/return
+
+Sub Event_TaskTimer()
+	/echo Character has timer
+	/delay 30s
+	/target npc
+	/delay 3s ${Target.ID}
+	/delay 1s
+	/say defeat
+	/doevents
+	/delay 1s
+	/notify LargeDialogWindow LDW_YesButton leftmouseup
+/return
