@@ -3,12 +3,14 @@ local mq = require('mq')
 local RB = {
     debug = false,
     Terminate = false,
-    instanceFlipper = false,
-    deleteCorpses = true,
     castSpells = false,
     spells = { 'Chords of Dissonance' },
-    ignoreTarget = 'an imprisoned gnoll',
-    reset_At_Mob_Count = 6,
+    ignoreTarget = 'Essence of Fire',
+    -- ignoreTarget = 'an imprisoned gnoll',
+    hideCorpses = true,
+    --corpse_Phrase = '/say #deletecorpse',
+    corpse_Phrase = '/hidecorpse all',
+    reset_At_Mob_Count = 10,
     reset_Instance_At = 5,
     aggro_Radius = 75,
     aggro_zRadius = 25,
@@ -30,28 +32,36 @@ local RB = {
     hubZoneID = 451,
     staticHuntMode = true,
     huntZoneName = 'pofire',
-    huntZoneID = 217,
-    huntStaticX = 612.22,
-    huntStaticY = 657.17,
-    huntStaticY_Pull = 627.17,
-    huntStaticZ = -166.87,
-    -- huntZoneName = 'paw',
-    -- huntZoneID = 18,
-    -- huntStaticX = 42.53,
-    -- huntStaticY = 718.35,
-    -- huntStaticY_Pull = 700,
-    -- huntStaticZ = 4.12,
-    -- huntZoneName = 'maiden',
-    -- huntZoneID = 173,
-    -- huntStaticX = 1426,
-    -- huntStaticY = 955,
-    -- huntStaticY_Pull = 925,
-    -- huntStaticZ = -152,
+    moveOnPull = true,
     rebirthStopAt = 20,
     doLoot = false,
     corpse_Radius = 200,
     corpse_zRadius = 25,
     CurrentRebirths = 0
+}
+
+RB.huntZone = {
+    paw = {
+        ID = 18,
+        X = 42.53,
+        Y = 718.35,
+        Y_Pull = 700,
+        Z = 4.12
+    },
+    pofire = {
+        ID = 217,
+        X = 612.22,
+        Y = 657.17,
+        Y_Pull = 627.17,
+        Z = -166.87
+    },
+    maiden = {
+        ID = 173,
+        X = 1426,
+        Y = 955,
+        Y_Pull = 925,
+        Z = -152
+    }
 }
 
 RB.ClassAAs = {
@@ -183,11 +193,11 @@ local function event_instance_handler(line, minutes)
             mq.delay(RB.wait_One)
             mq.cmdf('/say #create solo %s', RB.huntZoneName)
             mq.delay(RB.wait_Two)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
+            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.huntZoneName].ID end)
         else
             mq.cmdf('/say #create solo %s', RB.huntZoneName)
             mq.delay(RB.wait_Two)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
+            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.huntZoneName].ID end)
         end
     end
 end
@@ -199,13 +209,43 @@ function RB.CheckBuffs()
         RB.Terminate = false
         return
     end
-    if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() then
+    if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Warrior']) then
         mq.cmdf('/alt act %s', RB.ClassAAs['Warrior'])
         mq.delay(RB.wait_One)
     end
-
+    if RB.UseClassAA['Wizard'] and not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Wizard']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Wizard'])
+        mq.delay(RB.wait_One)
+    end
+    if RB.UseClassAA['Bard'] and not mq.TLO.Me.Buff('Bard Mastery Greatest In The World').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Bard']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Bard'])
+        mq.delay(RB.wait_One)
+    end
+    if RB.UseClassAA['Enchanter'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Enchanter']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Enchanter'])
+        mq.delay(RB.wait_One)
+    end
     if mq.TLO.Me.Buff(RB.BuffCheckName).ID() == nil and mq.TLO.Me.ItemReady(RB.buffItem)() then
         mq.cmdf('/useitem %s', RB.buffItem)
+        mq.delay(RB.wait_One)
+    end
+end
+
+function RB.UseClassCombatAAs()
+    if RB.UseClassAA['Rogue'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Rogue']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Rogue'])
+        mq.delay(RB.wait_One)
+    end
+    if RB.UseClassAA['Berseker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berseker']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Berseker'])
+        mq.delay(RB.wait_One)
+    end
+    if RB.UseClassAA['Shaman'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Shaman'])
+        mq.delay(RB.wait_One)
+    end
+    if RB.UseClassAA['Necromancer'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Necromancer'])
         mq.delay(RB.wait_One)
     end
 end
@@ -219,7 +259,10 @@ function RB.CheckLevel()
         mq.delay(RB.wait_Four)
         mq.cmd('/say #rebirth')
         mq.delay(RB.wait_Three)
-        mq.cmd('/say #deletecorpse')
+        if RB.hideCorpses then
+            mq.cmdf('%s', RB.corpse_Phrase)
+            mq.delay(RB.wait_Four)
+        end
         mq.delay(RB.rebirth_Wait)
         mq.cmd('/target npc')
         mq.delay(RB.wait_Four)
@@ -239,62 +282,47 @@ function RB.CheckLevel()
 end
 
 function RB.CheckLocation()
-    if mq.TLO.Zone.ID() == RB.huntZoneID and RB.staticHuntMode then
+    if mq.TLO.Zone.ID() == RB.huntZone[RB.huntZoneName].ID and RB.staticHuntMode then
         pcall(RB.MoveToStaticSpot)
     end
 end
 
 function RB.MoveToStaticSpot()
-    if mq.TLO.Zone.ID() == RB.huntZoneID then
+    if mq.TLO.Zone.ID() == RB.huntZone[RB.huntZoneName].ID then
         if RB.CheckDistanceToXYZ() > RB.returnHomeDistance then
-            mq.cmdf('/warp loc %s %s %s', RB.huntStaticY, RB.huntStaticX, RB.huntStaticZ)
+            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.huntZoneName].Y, RB.huntZone[RB.huntZoneName].X,
+            RB.huntZone[RB.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
     end
 end
 
 function RB.CheckDistanceToXYZ()
-    local deltaX = RB.huntStaticX - mq.TLO.Me.X()
-    local deltaY = RB.huntStaticY - mq.TLO.Me.Y()
-    local deltaZ = RB.huntStaticZ - mq.TLO.Me.Z()
+    local deltaX = RB.huntZone[RB.huntZoneName].X - mq.TLO.Me.X()
+    local deltaY = RB.huntZone[RB.huntZoneName].Y - mq.TLO.Me.Y()
+    local deltaZ = RB.huntZone[RB.huntZoneName].Z - mq.TLO.Me.Z()
     local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
     return distance
 end
 
 function RB.CheckZone()
-    if mq.TLO.Zone.ID() ~= RB.huntZoneID then
+    if mq.TLO.Zone.ID() ~= RB.huntZone[RB.huntZoneName].ID then
         if mq.TLO.DynamicZone() ~= nil then
             mq.cmdf('/say #enter')
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
+            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.huntZoneName].ID end)
             mq.delay(RB.wait_Four)
-            mq.cmd('/say #deletecorpse')
-            mq.delay(RB.wait_Two)
+            if RB.hideCorpses then
+                mq.cmdf('%s', RB.corpse_Phrase)
+                mq.delay(RB.wait_Four)
+            end
             pcall(RB.CheckLocation)
         else
             mq.cmdf('/say #create solo %s', RB.huntZoneName)
             mq.delay(RB.wait_One)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
+            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.huntZoneName].ID end)
             mq.delay(RB.wait_Four)
             pcall(RB.CheckLocation)
         end
-    end
-end
-
-function RB.InstanceFlip()
-    PRINTMETHOD('Moving to next instance!')
-    mq.cmd('/dzq')
-    if mq.TLO.DynamicZone() ~= nil then
-        mq.cmd('/dzq')
-        mq.delay(RB.wait_One)
-        mq.cmdf('/say #create solo %s', RB.huntZoneName)
-        mq.delay(RB.wait_Two)
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
-        mq.delay(RB.wait_One)
-    else
-        mq.cmdf('/say #create solo %s', RB.huntZoneName)
-        mq.delay(RB.wait_Two)
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZoneID end)
-        mq.delay(RB.wait_One)
     end
 end
 
@@ -303,19 +331,24 @@ function RB.AggroAllMobs()
         RB.Terminate = false
         return
     end
-    if mq.TLO.Zone.ID() == RB.huntZoneID then
-        if RB.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntStaticY, RB.huntStaticX, RB.huntStaticZ)
+    if mq.TLO.Zone.ID() == RB.huntZone[RB.huntZoneName].ID then
+        PRINTMETHOD('++ Attempting to Aggro the Zone ++')
+        if RB.hideCorpses then
+            mq.cmdf('%s', RB.corpse_Phrase)
+            mq.delay(RB.wait_Four)
+        end
+        if RB.moveOnPull and RB.staticHuntMode then
+            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.huntZoneName].Y, RB.huntZone[RB.huntZoneName].X, RB.huntZone[RB.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
         mq.cmd('/target myself')
-        mq.delay(RB.wait_One)
+        mq.delay(RB.wait_Two)
         mq.cmdf('/useitem %s', RB.zonePull)
-        mq.delay(RB.wait_One)
-        if RB.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntStaticY_Pull, RB.huntStaticX, RB.huntStaticZ)
+        mq.delay(RB.wait_Two)
+        if RB.moveOnPull and RB.staticHuntMode then
+            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.huntZoneName].Y_Pull, RB.huntZone[RB.huntZoneName].X, RB.huntZone[RB.huntZoneName].Z)
             mq.delay(RB.wait_One)
-            mq.cmdf('/squelch /face fast %s,%s', RB.huntStaticY, RB.huntStaticX)
+            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.huntZoneName].Y, RB.huntZone[RB.huntZoneName].X)
             mq.delay(RB.wait_One)
             mq.cmd('/target npc')
             mq.delay(RB.wait_One)
@@ -336,24 +369,15 @@ function RB.RespawnAllMobs()
         RB.Terminate = false
         return
     end
-    if mq.TLO.Zone.ID() == RB.huntZoneID then
-        if mq.TLO.Me.ItemReady(RB.zoneRefresh)() then
-            if mq.TLO.SpawnCount('npc')() < RB.reset_At_Mob_Count then
-                mq.cmdf('/useitem %s', RB.zoneRefresh)
-                mq.delay(RB.wait_Two)
-                RB.AggroAllMobs()
-                mq.delay(RB.wait_Two)
-            end
-        else
-            if RB.instanceFlipper then
-                if mq.TLO.SpawnCount('npc')() < RB.reset_At_Mob_Count then
-                    RB.InstanceFlip()
-                    RB.CheckLocation()
-                    mq.delay(RB.wait_Two)
-                    RB.AggroAllMobs()
-                    mq.delay(RB.wait_Two)
-                end
-            end
+    if mq.TLO.Zone.ID() == RB.huntZone[RB.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.zoneRefresh)() and mq.TLO.SpawnCount('npc')() < RB.reset_At_Mob_Count then
+        PRINTMETHOD('++ Attempting to Respawn the Zone ++')
+        mq.cmdf('/useitem %s', RB.zoneRefresh)
+        mq.delay(RB.wait_Two)
+        RB.AggroAllMobs()
+        mq.delay(RB.wait_Two)
+        if RB.hideCorpses then
+            mq.cmdf('%s', RB.corpse_Phrase)
+            mq.delay(RB.wait_Four)
         end
     end
 end
@@ -363,45 +387,54 @@ function RB.KillAllMobs()
         RB.Terminate = false
         return
     end
-    while mq.TLO.SpawnCount(RB.spawnSearch:format('npc ', RB.aggro_Radius, RB.aggro_zRadius))() > RB.reset_At_Mob_Count do
-        if not mq.TLO.Me.Combat() then
-            if mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.ID() ~= nil or mq.TLO.Target.Distance() > RB.returnHomeDistance then
-                mq.cmd('/target npc')
-                mq.delay(RB.wait_One)
-                if mq.TLO.Target.Name() == RB.ignoreTarget then return end
-            end
-            mq.cmd('/squelch /attack on')
-            mq.delay(RB.wait_One)
-            mq.cmd('/squelch /face fast')
-            mq.delay(RB.wait_One)
-            local lastTargID = mq.TLO.Target.ID()
-            while mq.TLO.Spawn(lastTargID)() ~= nil and not mq.TLO.Spawn(lastTargID).Dead() and mq.TLO.Target.ID() ~= nil and mq.TLO.Spawn(lastTargID).Distance() <= RB.returnHomeDistance do
-                if mq.TLO.Spawn(lastTargID)() ~= nil and not mq.TLO.Spawn(lastTargID).Dead() then
-                    if mq.TLO.Spawn(lastTargID).Distance() >= RB.returnHomeDistance then
-                        mq.cmd('/target npc')
-                    else
-                        mq.cmdf('/target id %s', lastTargID)
-                        mq.delay(RB.wait_One)
-                    end
-                end
-                RB.CheckZone()
-                if mq.TLO.Target.ID() == nil or (mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.Distance() > RB.returnHomeDistance) then
-                    mq.cmd('/target npc')
-                    mq.delay(RB.wait_One)
-                end
-                if not RB.staticHuntMode then RB.MoveTarg() end
-                if RB.castSpells then
-                    for i, spell in ipairs(RB.spells) do
-                        if mq.TLO.Spell(spell).Name() then
-                            mq.cmdf('/casting "%s"', spell)
-                            mq.delay(RB.wait_Three)
-                        end
-                    end
-                end
-                mq.delay(RB.wait_One)
-            end
-        end
+    pcall(RB.RespawnAllMobs)
+    if mq.TLO.Me.XTarget() <= RB.reset_At_Mob_Count and mq.TLO.SpawnCount('npc')() >= RB.reset_At_Mob_Count then
+        RB.AggroAllMobs()
     end
+    while mq.TLO.SpawnCount(RB.spawnSearch:format('npc ', RB.aggro_Radius, RB.aggro_zRadius))() > 0 do
+        RB.Checks()
+        if mq.TLO.Me.XTarget() <= RB.reset_At_Mob_Count then
+            RB.AggroAllMobs()
+            return
+        end
+        if not mq.TLO.Target.ID() or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.Distance() > RB.returnHomeDistance then
+            mq.cmd('/target npc')
+            mq.delay(RB.wait_Four)
+            if mq.TLO.Target.Name() == RB.ignoreTarget then return end
+        end
+        if mq.TLO.Target.Distance() >= RB.returnHomeDistance then
+            mq.cmd('/target clear')
+            return
+        end
+        while mq.TLO.Target.ID() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() and mq.TLO.Target.Distance() <= RB.returnHomeDistance and not mq.TLO.Spawn(mq.TLO.Target.ID()).Dead() do
+            RB.Checks()
+            if not mq.TLO.Me.Combat() then
+                mq.cmd('/squelch /attack on')
+                mq.delay(RB.wait_Four)
+                mq.cmd('/squelch /face fast')
+                mq.delay(RB.wait_Four)
+            end
+            if not RB.staticHuntMode then RB.MoveTarg() end
+            RB.UseClassCombatAAs()
+            if RB.castSpells then
+                for i, spell in ipairs(RB.spells) do
+                    if mq.TLO.Spell(spell).Name() then
+                        mq.cmdf('/casting "%s"', spell)
+                        mq.delay(RB.wait_Four)
+                    end
+                end
+                mq.delay(RB.wait_Four)
+            end
+            mq.delay(RB.wait_Four)
+        end
+        mq.delay(RB.wait_Four)
+    end
+end
+
+function RB.Checks()
+    pcall(RB.CheckLevel)
+    pcall(RB.CheckZone)
+    pcall(RB.CheckBuffs)
 end
 
 function RB.Main()
@@ -416,11 +449,7 @@ function RB.Main()
             RB.Terminate = false
             return
         end
-        pcall(RB.CheckLevel)
-        pcall(RB.CheckZone)
-        pcall(RB.CheckBuffs)
-        pcall(RB.RespawnAllMobs)
-        pcall(RB.AggroAllMobs)
+        RB.Checks()
         pcall(RB.KillAllMobs)
         mq.doevents()
     end
