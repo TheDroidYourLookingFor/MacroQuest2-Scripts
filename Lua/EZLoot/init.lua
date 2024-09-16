@@ -1,4 +1,6 @@
 local mq = require 'mq'
+---@type ImGui
+local ImGui = require 'ImGui'
 local lootutils = require 'EZLoot.lib.LootUtils'
 local Messages = require('EZLoot.lib.Messages')
 local GUI = require('EZLoot.lib.Gui')

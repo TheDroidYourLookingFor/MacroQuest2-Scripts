@@ -1,9 +1,7 @@
 ---@type Mq
 local mq = require('mq')
----@type ImGui
-local ImGui = require 'ImGui'
-local Storage = require('EZLoot.lib.Storage')
 local gui = {}
+local Storage = require('EZLoot.lib.Storage')
 
 gui.version = '1.0.0'
 gui.versionOrder = { "1.0.0" }

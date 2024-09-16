@@ -140,9 +140,10 @@ LootUtils = {
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
+    UseSingleFileForAllCharacters = true,
     useZoneLootFile = false,
-    useClassLootFile = true,
-    useArmorTypeLootFile = true,
+    useClassLootFile = false,
+    useArmorTypeLootFile = false,
 }
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -160,6 +161,11 @@ LootUtils.Settings = {
 
 LootUtils.Settings.logger.prefix = 'EZLoot'
 local function SetINIType()
+    if LootUtils.UseSingleFileForAllCharacters then
+        printf('LootFile: %s', LootUtils.Settings.LootFile)
+        LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
+        return
+    end
     local my_ArmorType
     if LootUtils.useArmorTypeLootFile then
         if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
