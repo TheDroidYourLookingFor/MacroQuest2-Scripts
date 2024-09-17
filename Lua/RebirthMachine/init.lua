@@ -1,6 +1,7 @@
 local mq = require('mq')
 
 local RB = {
+    version = '1.0.0',
     debug = false,
     Terminate = false,
     castSpells = false,
@@ -38,6 +39,13 @@ local RB = {
     corpse_Radius = 200,
     corpse_zRadius = 25,
     CurrentRebirths = 0
+}
+
+RB.AltToons = {
+    Binli = {
+        UseRepop = false,
+        UseRefresh = false
+    }
 }
 
 RB.huntZone = {
@@ -208,6 +216,10 @@ function RB.CheckBuffs()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
         RB.Terminate = false
         return
+    end
+    if RB.UseClassAA['Shadowknight'] and not mq.TLO.Me.Buff('Shad\'s Warts').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shadowknight']) then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Shadowknight'])
+        mq.delay(RB.wait_One)
     end
     if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Warrior']) then
         mq.cmdf('/alt act %s', RB.ClassAAs['Warrior'])
