@@ -5,6 +5,7 @@ local mq = require('mq')
 --
 local RB = {
     version = '1.0.1',
+    script_ShortName = 'RebirthMachine',
     debug = false,
     Terminate = false,
     CurrentRebirths = 0,
@@ -15,6 +16,8 @@ local RB = {
     wait_Two = 750,
     wait_Three = 1000,
     wait_Four = 250,
+    wait_CharChange = 25000,
+    wait_AtCharSelect = 30000,
     reset_Instance_At = 5,
     spawnSearch = '%s radius %d zradius %d',
 }
@@ -23,17 +26,18 @@ local RB = {
 -- Edit these settings
 --
 RB.Settings = {
+    swapClasses = false,                                                                -- DOESNT WORK CURRENTLY
     staticHuntMode = true,                                                              -- Should we camp a spot and kill or move around?
     huntZoneName = 'pofire',                                                            -- Where should we kill?
-    rebirthStopAt = 20,                                                                 -- After how many Rebirths should we stop?
+    rebirthStopAt = 10,                                                                 -- After how many Rebirths should we stop?
     reset_At_Mob_Count = 10,                                                            -- How few mobs in the zone should cause a repop?
     aggro_Radius = 75,                                                                  -- How far around our camp should we look for mobs
     aggro_zRadius = 25,                                                                 -- Same but Z axis
     returnHomeDistance = 50,                                                            -- How far away from camp should we get before returning
-    warpToMobDistance = 25,                                                             -- How coulse to warp to a mob?
+    warpToMobDistance = 25,                                                             -- How close to warp to a mob?
     hideCorpses = true,                                                                 -- Should we hide corpses?
-    --corpse_Phrase = '/say #deletecorpse',                                                  -- The commands we should use to hide corpses.
-    corpse_Phrase = '/hidecorpse all',                                                  -- The commands we should use to hide corpses.
+    corpse_Phrase = '/say #deletecorpse',                                               -- The commands we should use to hide corpses.
+    --corpse_Phrase = '/hidecorpse all',                                                  -- The commands we should use to hide corpses.
     castSpells = false,                                                                 -- Should we cast spells?
     spells = { 'My Awesome Pew Pew Spell', 'My Other Awesome Pew Pew Spell Rk. 9001' }, -- Which spells should we cast? Put as many as you want
     buffItem = 'Amulet of Ultimate Buffing',                                            -- Name of the item that gives us buff
@@ -45,7 +49,9 @@ RB.Settings = {
     moveOnPull = true,                                                                  -- Should we move automatically when we pull away from the mob stack?
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
     zonePull = 'Derekthomx\'s Horrorkrunk Hook',                                        -- Name of the item we use to mass aggro
-    hubZoneID = 451                                                                     -- Zone ID of our hub zone
+    hubZoneID = 451,                                                                    -- Zone ID of our hub zone
+    equip_Macro = '/ma equip',                                                          -- Line to restore all our gear
+    unequip_Macro = '/ma unequipall'                                                    -- Line to remove all our gear
 }
 
 RB.AltToons = {
@@ -122,7 +128,7 @@ RB.UseClassAA = {
 -- Stop editing! :D You know unless you really want to and know what you're doing
 --
 
--- TODO write class swaps
+-- Setup for DPS classes atm
 RB.Classes = {
     Bard = false,
     Beastlord = false,
@@ -133,12 +139,12 @@ RB.Classes = {
     Magician = false,
     Monk = false,
     Necromancer = false,
-    Paladin = false,
+    Paladin = true,
     Ranger = false,
     Rogue = false,
-    Shadowknight = false,
+    Shadowknight = true,
     Shaman = false,
-    Warrior = false,
+    Warrior = true,
     Wizard = false
 }
 
@@ -176,6 +182,20 @@ local Colors = {
     x = "\ax"   -- previous color
 }
 
+function ScriptInfo()
+    local level = 1
+    local sName
+    local sLine
+    while true do
+        local info = debug.getinfo(level, "l")
+        if not info then break end -- a Lua function
+        sName = RB.script_ShortName
+        sLine = info.currentline
+        level = level + 1
+    end
+    return sName .. ' @ ' .. sLine
+end
+
 function CONSOLEMETHOD(consoleMessage, ...)
     if RB.debug then
         printf("[%s] ---> " .. consoleMessage, ScriptInfo(), ...)
@@ -186,28 +206,96 @@ function PRINTMETHOD(printMessage, ...)
     printf(Colors.u .. "[Rebirth Machine]" .. Colors.w .. printMessage .. "\aC\n", ...)
 end
 
+function RB.UpdateCurrentClass()
+    local currentClass = mq.TLO.Me.Class() -- Get the current class
+    if RB.Classes[currentClass] ~= nil then
+        RB.Classes[currentClass] = true    -- Mark the class as completed
+    end
+end
+
+function RB.GetNextClass()
+    local availableClasses = {}
+    -- Collect all classes that are still false (not completed)
+    for class, completed in pairs(RB.Classes) do
+        if not completed then
+            table.insert(availableClasses, class)
+        end
+    end
+
+    -- Pick a random class from the remaining available classes
+    if #availableClasses > 0 then
+        local randomIndex = math.random(1, #availableClasses)
+        return availableClasses[randomIndex]
+    else
+        return nil -- No classes left
+    end
+end
+
+function RB.CheckClass()
+    if RB.Settings.swapClasses and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
+        if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
+            mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
+            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+            mq.delay(10000)
+        end
+        if mq.TLO.Zone.ID() == RB.Settings.hubZoneID then
+            mq.delay(RB.wait_Three)
+            mq.cmdf('/target npc %s', 'Caitlyn Jenner')
+            mq.delay(RB.wait_Three)
+            mq.cmd('/warp t')
+            mq.delay(RB.wait_Three)
+            mq.cmd('/say Yes, I will return to level 1.')
+            mq.delay(RB.wait_Three)
+            -- Update the current class in the table
+            RB.UpdateCurrentClass()
+
+            -- Get the next class to switch to
+            local nextClass = RB.GetNextClass()
+            if nextClass then
+                mq.cmdf('%s', RB.Settings.unequip_Macro)
+                mq.delay(2500)
+                -- Add logic to swap to the next class
+                mq.cmdf('/say %s', nextClass)
+                mq.delay(RB.wait_Three)
+                mq.cmdf("/say Yes, I want to become a %s", nextClass)
+                mq.delay(RB.wait_CharChange, function() return mq.TLO.EverQuest.GameState()() == 'CHARSELECT' end)
+                mq.delay(RB.wait_AtCharSelect)
+                mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+                mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                mq.delay(RB.wait_AtCharSelect)
+                mq.cmdf('%s', RB.Settings.equip_Macro)
+                mq.delay(RB.wait_Three)
+            else
+                print("All classes have been completed.")
+                mq.cmdf('/lua stop %s', RB.script_ShortName)
+            end
+        end
+    else
+        if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
+            if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
+                mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
+                mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                mq.delay(10000)
+            end
+            mq.cmdf('/lua stop %s', RB.script_ShortName)
+        end
+    end
+end
+
 local function event_rebirth_handler(line, rebirths)
     CONSOLEMETHOD('function event_rebirth_handler(line, rebirths)')
     RB.CurrentRebirths = tonumber(rebirths)
-    if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
-        if mq.TLO.Zone.ID() ~= RB.Settings.HubZoneID then mq.cmdf('/say #zone %s', RB.Settings.HubZoneID) end
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.HubZoneID end)
-        mq.delay(RB.wait_One)
-        mq.cmd('/lua stop RebirthMachine')
-    end
 end
 mq.event('RebirthLevel', "#*# whispers, 'You have rebirthed #1# times!'", event_rebirth_handler)
 mq.event('RebirthLevel2', "You have rebirthed #1# times!'", event_rebirth_handler)
 mq.event('RebirthLevelExp', "Rebirth Penalty: #1# rebirths = #*#", event_rebirth_handler)
-mq.event('RebirthLevel20', 'Congratulations on your #1#th rebirth! You have been granted #*# Mastery AA!',
-    event_rebirth_handler)
 
 local function event_instance_handler(line, minutes)
     CONSOLEMETHOD('function event_instance_handler(line, minutes)')
     local minutesLeft = tonumber(minutes)
     if minutesLeft >= RB.reset_Instance_At then
-        if mq.TLO.Zone.ID() ~= RB.Settings.HubZoneID then mq.cmdf('/say #zone %s', RB.Settings.HubZoneID) end
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.HubZoneID end)
+        if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then mq.cmdf('/say #zone %s', RB.Settings.hubZoneID) end
+        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
         mq.delay(RB.wait_One)
         mq.cmd('/dzq')
         if mq.TLO.DynamicZone() ~= nil then
@@ -226,32 +314,41 @@ end
 mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.",
     event_instance_handler)
 
+function RB.HandleDisconnect()
+    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+        mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+        mq.delay(RB.wait_Three)
+        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+        mq.delay(RB.wait_Two)
+    end
+end
+
 function RB.CheckBuffs()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.Terminate = false
+        RB.HandleDisconnect()
         return
     end
-    if not mq.TLO.Me.Buff(RB.Settings.XPPotionBuff).ID() then
+    if RB.Settings.useXP_Potions and not mq.TLO.Me.Buff(RB.Settings.XPPotionBuff).ID() then
         mq.cmdf('/useitem "%s"', RB.Settings.XPPotionName)
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Shadowknight'] and not mq.TLO.Me.Buff('Shad\'s Warts').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shadowknight']) then
+    if RB.UseClassAA['Shadowknight'] and not mq.TLO.Me.Buff('Shad\'s Warts').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shadowknight'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Shadowknight'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Warrior']) then
+    if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Warrior'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Warrior'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Wizard'] and not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Wizard']) then
+    if RB.UseClassAA['Wizard'] and not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Wizard'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Wizard'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Bard'] and not mq.TLO.Me.Buff('Bard Mastery Greatest In The World').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Bard']) then
+    if RB.UseClassAA['Bard'] and not mq.TLO.Me.Buff('Bard Mastery Greatest In The World').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Bard'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Bard'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Enchanter'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Enchanter']) then
+    if RB.UseClassAA['Enchanter'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Enchanter'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Enchanter'])
         mq.delay(RB.wait_One)
     end
@@ -262,19 +359,19 @@ function RB.CheckBuffs()
 end
 
 function RB.UseClassCombatAAs()
-    if RB.UseClassAA['Rogue'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Rogue']) then
+    if RB.UseClassAA['Rogue'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Rogue'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Rogue'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Berseker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berseker']) then
+    if RB.UseClassAA['Berseker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berseker'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Berseker'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Shaman'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman']) then
+    if RB.UseClassAA['Shaman'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Shaman'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Necromancer'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer']) then
+    if RB.UseClassAA['Necromancer'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Necromancer'])
         mq.delay(RB.wait_One)
     end
@@ -282,13 +379,19 @@ end
 
 function RB.CheckLevel()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.Terminate = false
+        RB.HandleDisconnect()
         return
     end
     if mq.TLO.Me.Level() >= 80 then
         mq.delay(RB.wait_Four)
         mq.cmd('/say #rebirth')
         mq.delay(RB.wait_Three)
+        mq.doevents()
+        mq.delay(RB.wait_Four)
+        if mq.TLO.Cursor() then
+            mq.cmd('/autoinv')
+            mq.delay(RB.wait_Two)
+        end
         if RB.Settings.hideCorpses then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
@@ -321,7 +424,7 @@ function RB.MoveToStaticSpot()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
         if RB.CheckDistanceToXYZ() > RB.Settings.returnHomeDistance then
             mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
-            RB.huntZone[RB.Settings.huntZoneName].X,
+                RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
@@ -337,29 +440,35 @@ function RB.CheckDistanceToXYZ()
 end
 
 function RB.CheckZone()
-    if mq.TLO.Zone.ID() ~= RB.huntZone[RB.Settings.huntZoneName].ID then
-        if mq.TLO.DynamicZone() ~= nil then
-            mq.cmdf('/say #enter')
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
-            mq.delay(RB.wait_Four)
-            if RB.Settings.hideCorpses then
-                mq.cmdf('%s', RB.Settings.corpse_Phrase)
+    if RB.CurrentRebirths < RB.Settings.rebirthStopAt then
+        if mq.TLO.Zone.ID() ~= RB.huntZone[RB.Settings.huntZoneName].ID then
+            if mq.TLO.DynamicZone() ~= nil then
+                mq.cmdf('/say #enter')
+                mq.delay(RB.zone_Wait,
+                    function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
                 mq.delay(RB.wait_Four)
+                if RB.Settings.hideCorpses then
+                    mq.cmdf('%s', RB.Settings.corpse_Phrase)
+                    mq.delay(RB.wait_Four)
+                end
+                pcall(RB.CheckLocation)
+            else
+                mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
+                mq.delay(RB.wait_One)
+                mq.delay(RB.zone_Wait,
+                    function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+                mq.delay(RB.wait_Four)
+                pcall(RB.CheckLocation)
             end
-            pcall(RB.CheckLocation)
-        else
-            mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
-            mq.delay(RB.wait_One)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
-            mq.delay(RB.wait_Four)
-            pcall(RB.CheckLocation)
         end
+    else
+        RB.CheckClass()
     end
 end
 
 function RB.AggroAllMobs()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.Terminate = false
+        RB.HandleDisconnect()
         return
     end
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
@@ -369,7 +478,8 @@ function RB.AggroAllMobs()
             mq.delay(RB.wait_Four)
         end
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X,
+            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
+                RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
@@ -378,10 +488,12 @@ function RB.AggroAllMobs()
         mq.cmdf('/useitem %s', RB.Settings.zonePull)
         mq.delay(RB.wait_Two)
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull, RB.huntZone[RB.Settings.huntZoneName].X,
+            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
+                RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
-            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X)
+            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y,
+                RB.huntZone[RB.Settings.huntZoneName].X)
             mq.delay(RB.wait_One)
             mq.cmd('/target npc')
             mq.delay(RB.wait_One)
@@ -399,7 +511,7 @@ end
 
 function RB.RespawnAllMobs()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.Terminate = false
+        RB.HandleDisconnect()
         return
     end
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.Settings.zoneRefresh)() and mq.TLO.SpawnCount('npc')() < RB.Settings.reset_At_Mob_Count then
@@ -417,7 +529,7 @@ end
 
 function RB.KillAllMobs()
     if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.Terminate = false
+        RB.HandleDisconnect()
         return
     end
     pcall(RB.RespawnAllMobs)
@@ -468,19 +580,19 @@ function RB.Checks()
     pcall(RB.CheckLevel)
     pcall(RB.CheckZone)
     pcall(RB.CheckBuffs)
+    mq.doevents()
 end
 
 function RB.Main()
     PRINTMETHOD('++ Initialized ++')
-    PRINTMETHOD('++ Sequence: Taunt Morzain initiated ++')
+    PRINTMETHOD('++ Sequence: Unlimted Grind Initiated ++')
     CONSOLEMETHOD('Main Loop Entry')
     PRINTMETHOD('Putting MQ2Melee into basic melee mode.')
     mq.cmd('/melee melee=on stickmode=off stickrange=75 save')
     mq.doevents()
     while not RB.Terminate do
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-            RB.Terminate = false
-            return
+            RB.HandleDisconnect()
         end
         RB.Checks()
         pcall(RB.KillAllMobs)

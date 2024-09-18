@@ -394,7 +394,7 @@ local function getRule(item)
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
-            if item.AugSlotType() ~= nil then
+            if item.AugType() ~= nil then
                 lootDecision = 'Bank'
             end
         end
