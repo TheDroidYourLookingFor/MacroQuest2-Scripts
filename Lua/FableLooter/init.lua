@@ -111,6 +111,7 @@ function FableLooter.MoveToCamp()
 end
 
 function FableLooter.Main()
+    mq.cmd('/hidecorpse looted')
     PRINTMETHOD('++ Initialized ++')
     CONSOLEMETHOD('Main Loop Entry')
     while not FableLooter.Terminate do
@@ -134,4 +135,4 @@ end
 
 FableLooter.Main()
 
-return fHunt
+return FableLooter
