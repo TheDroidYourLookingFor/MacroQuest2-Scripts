@@ -134,6 +134,7 @@ local LootUtils = {
     LootPlatinumBags = true,
     LootTokensOfAdvancement = true,
     LootEmpoweredFabled = true,
+    EmpoweredFabledName = 'Empowered',
     EmpoweredFabledMinHP = 0,
     StackPlatValue = 0,
     NoDropDefaults = "Quest|Keep|Ignore|Announce",
@@ -387,14 +388,14 @@ local function getRule(item)
         if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice then lootDecision = 'Sell' end
         if not stackable and LootUtils.StackableOnly then lootDecision = 'Ignore' end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
-        if LootUtils.LootEmpoweredFabled and string.find(itemName, 'Empowered Fabled') then
+        if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
                 lootDecision = 'Bank'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
-            if item.AugSlotType() ~= nil then
+            if item.AugType() ~= nil then
                 lootDecision = 'Bank'
             end
         end

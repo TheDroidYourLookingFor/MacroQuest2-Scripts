@@ -9,6 +9,7 @@ local FableLooter = {
 }
 
 FableLooter.Settings = {
+    returnHomeAfterLoot = false,
     camp_Check = false,
     zone_Check = true,
     huntZoneID = mq.TLO.Zone.ID(),
@@ -104,7 +105,8 @@ end
 function FableLooter.MoveToCamp()
     if mq.TLO.Zone.ID() == FableLooter.Settings.huntZoneID then
         if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
-            mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X, FableLooter.Settings.camp_Z)
+            mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+                FableLooter.Settings.camp_Z)
             mq.delay(500)
         end
     end
@@ -120,12 +122,18 @@ function FableLooter.Main()
         if FableLooter.Settings.zone_Check then FableLooter.CheckZone() end
         if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
         if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.aggro_Radius, FableLooter.Settings.aggro_zRadius))() > 0 then
-            mq.cmdf('/target %s', mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.aggro_Radius, FableLooter.Settings.aggro_zRadius))())
+            mq.cmdf('/target %s',
+                mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName,
+                    FableLooter.Settings.aggro_Radius, FableLooter.Settings.aggro_zRadius))())
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 mq.cmd('/warp t')
                 mq.delay(250)
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
+                if FableLooter.returnHomeAfterLoot then
+                    mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X, FableLooter.Settings.camp_Z)
+                    mq.delay(250)
+                end
             end
         end
         mq.delay(100)
