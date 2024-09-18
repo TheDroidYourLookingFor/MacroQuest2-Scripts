@@ -9,7 +9,7 @@ local FableLooter = {
 }
 
 FableLooter.Settings = {
-    returnHomeAfterLoot = false,
+    returnHomeAfterLoot = true,
     camp_Check = false,
     zone_Check = true,
     huntZoneID = mq.TLO.Zone.ID(),
@@ -130,7 +130,7 @@ function FableLooter.Main()
                 mq.delay(250)
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
-                if FableLooter.returnHomeAfterLoot then
+                if FableLooter.Settings.returnHomeAfterLoot then
                     mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X, FableLooter.Settings.camp_Z)
                     mq.delay(250)
                 end
