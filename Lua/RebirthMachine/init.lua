@@ -19,7 +19,7 @@ local RB = {
     wait_CharChange = 25000,
     wait_AtCharSelect = 30000,
     reset_Instance_At = 5,
-    spawnSearch = '%s radius %d zradius %d',
+    spawnSearch = '%s targetable radius %d zradius %d noalert 1',
 }
 
 --
@@ -29,7 +29,7 @@ RB.Settings = {
     swapClasses = false,                                                                -- DOESNT WORK CURRENTLY
     staticHuntMode = true,                                                              -- Should we camp a spot and kill or move around?
     huntZoneName = 'pofire',                                                            -- Where should we kill?
-    rebirthStopAt = 10,                                                                 -- After how many Rebirths should we stop?
+    rebirthStopAt = 20,                                                                 -- After how many Rebirths should we stop?
     reset_At_Mob_Count = 10,                                                            -- How few mobs in the zone should cause a repop?
     aggro_Radius = 75,                                                                  -- How far around our camp should we look for mobs
     aggro_zRadius = 25,                                                                 -- Same but Z axis
@@ -86,6 +86,28 @@ RB.huntZone = {
         Z = -152,
         ignoreTarget = ''
     }
+}
+
+RB.IgnoreList = {
+    "Gillamina Garstobidokis",
+    "an ornate chest",
+    "${Me.CleanName}'s Pet",
+    "${Me.CleanName}",
+    "Cruel Illusion",
+    "lockout ikkinz",
+    "Kilidna",
+    "Pixtt Grand Summoner",
+    "Kevren Nalavat",
+    "Kenra Kalekkio",
+    "Pixtt Nemis",
+    "Undari Perunea",
+    "Sentinel of the Altar",
+    "Retharg",
+    "Siska the Spumed",
+    "a shark",
+    "The ground",
+    'Essence of Fire',
+    'an imprisoned gnoll'
 }
 
 RB.ClassAAs = {
@@ -242,7 +264,7 @@ function RB.CheckClass()
             mq.delay(RB.wait_Three)
             mq.cmdf('/target npc %s', 'Caitlyn Jenner')
             mq.delay(RB.wait_Three)
-            mq.cmd('/warp t')
+            mq.cmd('/squelch /warp t')
             mq.delay(RB.wait_Three)
             mq.cmd('/say Yes, I will return to level 1.')
             mq.delay(RB.wait_Three)
@@ -423,7 +445,7 @@ end
 function RB.MoveToStaticSpot()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
         if RB.CheckDistanceToXYZ() > RB.Settings.returnHomeDistance then
-            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
                 RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
@@ -478,7 +500,7 @@ function RB.AggroAllMobs()
             mq.delay(RB.wait_Four)
         end
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
                 RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
@@ -488,7 +510,7 @@ function RB.AggroAllMobs()
         mq.cmdf('/useitem %s', RB.Settings.zonePull)
         mq.delay(RB.wait_Two)
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
                 RB.huntZone[RB.Settings.huntZoneName].X,
                 RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
@@ -514,7 +536,7 @@ function RB.RespawnAllMobs()
         RB.HandleDisconnect()
         return
     end
-    if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.Settings.zoneRefresh)() and mq.TLO.SpawnCount('npc')() < RB.Settings.reset_At_Mob_Count then
+    if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.Settings.zoneRefresh)() and mq.TLO.SpawnCount('npc noalert 1')() < RB.Settings.reset_At_Mob_Count then
         PRINTMETHOD('++ Attempting to Respawn the Zone ++')
         mq.cmdf('/useitem %s', RB.Settings.zoneRefresh)
         mq.delay(RB.wait_Two)
@@ -533,7 +555,7 @@ function RB.KillAllMobs()
         return
     end
     pcall(RB.RespawnAllMobs)
-    if mq.TLO.Me.XTarget() <= RB.Settings.reset_At_Mob_Count and mq.TLO.SpawnCount('npc')() >= RB.Settings.reset_At_Mob_Count then
+    if mq.TLO.Me.XTarget() <= RB.Settings.reset_At_Mob_Count and mq.TLO.SpawnCount('npc noalert 1')() >= RB.Settings.reset_At_Mob_Count then
         RB.AggroAllMobs()
     end
     while mq.TLO.SpawnCount(RB.spawnSearch:format('npc ', RB.Settings.aggro_Radius, RB.Settings.aggro_zRadius))() > 0 do
@@ -546,6 +568,7 @@ function RB.KillAllMobs()
             mq.cmd('/target npc')
             mq.delay(RB.wait_Four)
             if mq.TLO.Target.Name() == RB.huntZone[RB.Settings.huntZoneName].ignoreTarget then return end
+            mq.cmd('/squelch /attack on')
         end
         if mq.TLO.Target.Distance() >= RB.Settings.returnHomeDistance then
             mq.cmd('/target clear')
@@ -553,12 +576,10 @@ function RB.KillAllMobs()
         end
         while mq.TLO.Target.ID() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() and mq.TLO.Target.Distance() <= RB.Settings.returnHomeDistance and not mq.TLO.Spawn(mq.TLO.Target.ID()).Dead() do
             RB.Checks()
-            if not mq.TLO.Me.Combat() then
-                mq.cmd('/squelch /attack on')
-                mq.delay(RB.wait_Four)
-                mq.cmd('/squelch /face fast')
-                mq.delay(RB.wait_Four)
-            end
+            mq.cmd('/squelch /attack on')
+            mq.delay(RB.wait_Four)
+            mq.cmd('/squelch /face fast')
+            mq.delay(RB.wait_Four)
             if not RB.Settings.staticHuntMode then RB.MoveTarg() end
             RB.UseClassCombatAAs()
             if RB.Settings.castSpells then
@@ -585,6 +606,12 @@ end
 
 function RB.Main()
     PRINTMETHOD('++ Initialized ++')
+    PRINTMETHOD('++ Setting up Ignore List ++')
+    mq.cmdf('/squelch /alert clear %s', 1)
+    for _, name in ipairs(RB.IgnoreList) do
+        mq.cmdf('/squelch /alert add 1 "%s"', name)
+        mq.delay(25)
+    end
     PRINTMETHOD('++ Sequence: Unlimted Grind Initiated ++')
     CONSOLEMETHOD('Main Loop Entry')
     PRINTMETHOD('Putting MQ2Melee into basic melee mode.')

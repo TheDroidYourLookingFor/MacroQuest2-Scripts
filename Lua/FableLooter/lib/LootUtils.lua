@@ -456,7 +456,7 @@ local function setupBinds()
 end
 
 local reportPrefix = '/%s \a-t]\ax\ayEZLoot\ax\a-t]\ax '
-local function report(message, ...)
+function LootUtils.report(message, ...)
     if LootUtils.ReportLoot then
         local prefixWithChannel = reportPrefix:format(LootUtils.LootChannel)
         mq.cmdf(prefixWithChannel .. message, ...)
@@ -511,7 +511,7 @@ local function lootItem(index, doWhat, button)
     mq.delay(1) -- force next frame
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
-    report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
+    LootUtils.report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -520,7 +520,7 @@ function LootUtils.lootCorpse(corpseID)
     LootUtils.Settings.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
-        report('My bags are full, I can\'t loot anymore!')
+        LootUtils.report('My bags are full, I can\'t loot anymore!')
     end
     for i = 1, 3 do
         mq.cmd('/loot')

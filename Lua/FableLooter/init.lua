@@ -5,27 +5,25 @@ local FableLooter = {
     script_ShortName = 'FableLooter',
     debug = false,
     Terminate = false,
-    mob_Wait = 50000,
+    mob_Wait = 50000
 }
 
 FableLooter.Settings = {
-    lootGroundSpawns = true,
-    returnHomeAfterLoot = true,
+    scan_Radius = 10000,
+    scan_zRadius = 250,
+    returnToCampDistance = 200,
     camp_Check = false,
     zone_Check = true,
+    lootGroundSpawns = true,
+    returnHomeAfterLoot = true,
+    doStand = true,
+    targetName = 'treasure',
+    spawnSearch = '%s radius %d zradius %d',
     huntZoneID = mq.TLO.Zone.ID(),
     huntZoneName = mq.TLO.Zone.ShortName(),
     camp_X = mq.TLO.Me.X(),
     camp_Y = mq.TLO.Me.Y(),
-    camp_Z = mq.TLO.Me.Z(),
-    returnToCampDistance = 200,
-    doStand = true,
-    targetName = 'treasure',
-    spawnSearch = '%s radius %d zradius %d',
-    corpse_Radius = 200,
-    corpse_zRadius = 25,
-    aggro_Radius = 2000,
-    aggro_zRadius = 250
+    camp_Z = mq.TLO.Me.Z()
 }
 
 local Colors = {
@@ -106,7 +104,7 @@ end
 function FableLooter.MoveToCamp()
     if mq.TLO.Zone.ID() == FableLooter.Settings.huntZoneID then
         if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
-            mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
                 FableLooter.Settings.camp_Z)
             mq.delay(500)
         end
@@ -115,16 +113,18 @@ end
 
 function FableLooter.GroundSpawns()
     if mq.TLO.GroundItemCount('Generic')() > 0 then
-        mq.cmdf('/warp loc %s %s %s', mq.TLO.ItemTarget.Y(), mq.TLO.ItemTarget.X(), mq.TLO.ItemTarget.Z())
+        mq.cmdf('/squelch /warp loc %s %s %s', mq.TLO.ItemTarget.Y(), mq.TLO.ItemTarget.X(), mq.TLO.ItemTarget.Z())
         mq.delay(250)
         mq.cmd('/click left item')
         mq.delay(250)
         if mq.TLO.Cursor() then
             mq.cmd('/autoinv')
             mq.delay(250)
+            -- report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
+            LootUtils.report('Looted: %s', mq.TLO.ItemTarget.DisplayName())
         end
         if FableLooter.Settings.returnHomeAfterLoot then
-            mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
                 FableLooter.Settings.camp_Z)
             mq.delay(250)
         end
@@ -140,17 +140,17 @@ function FableLooter.Main()
         if FableLooter.Settings.camp_Check then FableLooter.MoveToCamp() end
         if FableLooter.Settings.zone_Check then FableLooter.CheckZone() end
         if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
-        if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.aggro_Radius, FableLooter.Settings.aggro_zRadius))() > 0 then
+        if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 then
             mq.cmdf('/target %s',
                 mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName,
-                    FableLooter.Settings.aggro_Radius, FableLooter.Settings.aggro_zRadius))())
+                    FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))())
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
-                mq.cmd('/warp t')
+                mq.cmd('/squelch /warp t')
                 mq.delay(250)
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
                 if FableLooter.Settings.returnHomeAfterLoot then
-                    mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+                    mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
                         FableLooter.Settings.camp_Z)
                     mq.delay(250)
                 end
