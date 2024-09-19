@@ -177,29 +177,26 @@ function CampFarmer.CombatSpells()
 end
 
 function CampFarmer.Kill()
-    if not mq.TLO.Me.Combat() and mq.TLO.Target.ID() ~= nil then
-        mq.cmd('/squelch /attack on')
-        mq.delay(CampFarmer.DelayTimes.Three)
-        mq.cmd('/squelch /face fast')
-        mq.delay(CampFarmer.DelayTimes.Three)
-    end
+    mq.cmd('/squelch /attack on')
+    mq.delay(CampFarmer.DelayTimes.One)
+    mq.cmd('/squelch /face fast')
+    mq.delay(CampFarmer.DelayTimes.One)
     if mq.TLO.Me.Combat() and mq.TLO.Me.Pet.ID() and not mq.TLO.Me.Pet.Combat() then
         mq.cmd('/pet attack')
-        mq.delay(CampFarmer.DelayTimes.Three)
+        mq.delay(CampFarmer.DelayTimes.One)
     end
     CampFarmer.CombatSpells()
 end
 
 function CampFarmer.RespawnZone()
     if mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() > CampFarmer.Settings.MinMobsInZone then return end
-    if not mq.TLO.Me.ItemReady(CampFarmer.Settings.respawnItem)() or mq.TLO.FindItem(CampFarmer.Settings.respawnItem).TimerReady() > 0 then return end
+    if not mq.TLO.Me.ItemReady(CampFarmer.Settings.respawnItem)() then return end
     mq.cmdf('/useitem %s', CampFarmer.Settings.respawnItem)
     mq.delay(CampFarmer.DelayTimes.Two)
 end
 
 function CampFarmer.AggroZone()
     if mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() <= CampFarmer.Settings.MinMobsInZone then return end
-    if mq.TLO.Me.XTAggroCount() then return end
     mq.cmd('/target myself')
     mq.delay(CampFarmer.DelayTimes.Four, function() return mq.TLO.Target.ID()() == mq.TLO.Me.ID()() end)
     mq.cmdf('/useitem %s', CampFarmer.Settings.aggroItem)
@@ -215,8 +212,6 @@ function CampFarmer.CheckForGoblins()
             mq.delay(250)
             CampFarmer.Kill()
         end
-    end
-    if mq.TLO.SpawnCount(CampFarmer.Settings.goblinSearch)() > 0 then
         if mq.TLO.Me.AltAbilityReady(33911)() then
             mq.cmdf('/alt act %s', 39911)
             mq.delay(250)
@@ -248,19 +243,6 @@ function CampFarmer.HideCorpses()
     end
 end
 
-function CampFarmer.CheckAggro()
-    if mq.TLO.Me.XTarget() > 0 then
-        if not mq.TLO.Target() then
-            if mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() > 0 then
-                mq.cmd('/target id %s', mq.TLO.Spawn(CampFarmer.Settings.spawnSearch).ID())
-                mq.delay(CampFarmer.DelayTimes.One)
-            end
-        end
-    else
-        CampFarmer.AggroZone()
-    end
-end
-
 function CampFarmer.UseAATokens()
     if CampFarmer.Settings.ClickAATokens and mq.TLO.FindItemCount('Token of Advancement')() then
         mq.cmdf('/useitem %s', mq.TLO.FindItem('Token of Advancement').Name())
@@ -275,16 +257,46 @@ function CampFarmer.CheckCamp()
     end
 end
 
+function CampFarmer.FarmMobs()
+    if mq.TLO.SpawnCount(CampFarmer.Settings.goblinSearch)() > 0 then return end
+    if mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() > 0 then
+        mq.cmdf('/target id %s', mq.TLO.Spawn(CampFarmer.Settings.spawnSearch).ID())
+        mq.delay(250)
+        if mq.TLO.Target() and mq.TLO.Target.Distance() > CampFarmer.Settings.warpToMobDistance and mq.TLO.Target.CleanName() ~= 'Raging Treasure Goblin' then
+            mq.cmd('/warp t')
+            mq.delay(250)
+            CampFarmer.Kill()
+        end
+    else
+        CampFarmer.AggroZone()
+    end
+end
+
 function CampFarmer.Checks()
     CampFarmer.CheckZone()
     CampFarmer.CheckCamp()
     CampFarmer.HideCorpses()
-    CampFarmer.RespawnZone()
-    CampFarmer.AggroZone()
-    CampFarmer.CheckAggro()
+    if mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() <= CampFarmer.Settings.MinMobsInZone then CampFarmer.RespawnZone() end
+    if mq.TLO.Me.XTarget() == 0 then CampFarmer.AggroZone() end
+    CampFarmer.FarmMobs()
     CampFarmer.CheckForGoblins()
     CampFarmer.UseAATokens()
 end
+
+local function event_refreshInstance_handler(line, minutes)
+    CONSOLEMETHOD('function event_refreshInstance_handler(line, rebirths)')
+    local minutesLeft = tonumber(minutes)
+    if minutesLeft <= 5 then
+        mq.cmdf('%s', '/dgga /dzq')
+        mq.delay(250)
+        mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
+        mq.delay(50000, function() return mq.TLO.Zone.ID()() == CampFarmer.startZone end)
+        mq.delay(1000)
+        mq.cmdf('%s','/dgge /say #enter')
+        mq.delay(250)
+    end
+end
+mq.event('RefreshInstance', "You only have #1# minutes remaining before this expedition comes to an end.", event_refreshInstance_handler)
 
 function CampFarmer.Main()
     PRINTMETHOD('++ Starting Up ++')

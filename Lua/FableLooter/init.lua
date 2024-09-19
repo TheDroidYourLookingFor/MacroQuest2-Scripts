@@ -9,6 +9,7 @@ local FableLooter = {
 }
 
 FableLooter.Settings = {
+    lootGroundSpawns = true,
     returnHomeAfterLoot = true,
     camp_Check = false,
     zone_Check = true,
@@ -112,6 +113,24 @@ function FableLooter.MoveToCamp()
     end
 end
 
+function FableLooter.GroundSpawns()
+    if mq.TLO.GroundItemCount('Generic')() > 0 then
+        mq.cmdf('/warp loc %s %s %s', mq.TLO.ItemTarget.Y(), mq.TLO.ItemTarget.X(), mq.TLO.ItemTarget.Z())
+        mq.delay(250)
+        mq.cmd('/click left item')
+        mq.delay(250)
+        if mq.TLO.Cursor() then
+            mq.cmd('/autoinv')
+            mq.delay(250)
+        end
+        if FableLooter.Settings.returnHomeAfterLoot then
+            mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+                FableLooter.Settings.camp_Z)
+            mq.delay(250)
+        end
+    end
+end
+
 function FableLooter.Main()
     mq.cmd('/hidecorpse looted')
     PRINTMETHOD('++ Initialized ++')
@@ -131,11 +150,13 @@ function FableLooter.Main()
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
                 if FableLooter.Settings.returnHomeAfterLoot then
-                    mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X, FableLooter.Settings.camp_Z)
+                    mq.cmdf('/warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+                        FableLooter.Settings.camp_Z)
                     mq.delay(250)
                 end
             end
         end
+        FableLooter.GroundSpawns()
         mq.delay(100)
     end
     CONSOLEMETHOD('Main Loop Exit')
