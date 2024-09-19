@@ -135,7 +135,7 @@ local LootUtils = {
     LootTokensOfAdvancement = true,
     LootEmpoweredFabled = true,
     EmpoweredFabledName = 'Empowered',
-    EmpoweredFabledMinHP = 0,
+    EmpoweredFabledMinHP = 100,
     StackPlatValue = 0,
     NoDropDefaults = "Quest|Keep|Ignore|Announce",
     SaveBagSlots = 3,
@@ -151,7 +151,7 @@ local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
     Terminate = true,
     logger = Write,
-    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_Name .. '.ini'
+    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
     -- LootLagDelay = 0,
     -- GlobalLootOn = true,
     -- CorpseRotTime = "440s",
@@ -395,7 +395,7 @@ local function getRule(item)
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
-            if item.AugType() ~= nil then
+            if item.AugType() ~= nil and item.AugType() > 0 then
                 lootDecision = 'Bank'
             end
         end

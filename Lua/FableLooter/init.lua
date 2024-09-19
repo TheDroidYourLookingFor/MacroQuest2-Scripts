@@ -121,7 +121,7 @@ function FableLooter.GroundSpawns()
             mq.cmd('/autoinv')
             mq.delay(250)
             -- report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
-            LootUtils.report('Looted: %s', mq.TLO.ItemTarget.DisplayName())
+            LootUtils.report('Looted: %s', 'Small Bag of Platinum')
         end
         if FableLooter.Settings.returnHomeAfterLoot then
             mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
