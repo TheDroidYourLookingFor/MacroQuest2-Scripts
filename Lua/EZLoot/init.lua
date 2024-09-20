@@ -1,7 +1,7 @@
 local mq = require 'mq'
 ---@type ImGui
 local ImGui = require 'ImGui'
-local lootutils = require 'EZLoot.lib.LootUtils'
+LootUtils = require('EZLoot.lib.LootUtils')
 local Messages = require('EZLoot.lib.Messages')
 local GUI = require('EZLoot.lib.Gui')
 local Storage = require('EZLoot.lib.Storage')
@@ -95,13 +95,13 @@ if EZLoot.returnToHome then
 end
 while not EZLoot.terminate do
     if not EZLoot.doPause then
-        local deadCount = mq.TLO.SpawnCount(EZLoot.spawnSearch:format('npccorpse', lootutils.CorpseRadius))()
+        local deadCount = mq.TLO.SpawnCount(EZLoot.spawnSearch:format('npccorpse', LootUtils.CorpseRadius))()
         if EZLoot.doLoot and deadCount ~= 0 then
-            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!',lootutils.AnnounceChannel,mq.TLO.Time()) end
+            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!',LootUtils.AnnounceChannel,mq.TLO.Time()) end
             if EZLoot.doCorpseFix then mq.cmd('/say #corpsefix') end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'TRUE' then mq.cmd('/mqpause on') end
             mq.delay(500)
-            lootutils.lootMobs()
+            LootUtils.lootMobs()
             if EZLoot.debug then Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s',
                 GetDistance(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z)) end
             if EZLoot.returnToHome and GetDistance(EZLoot.home_X, EZLoot.home_Y, EZLoot.home_Z) > EZLoot.home_Dist then
@@ -109,10 +109,10 @@ while not EZLoot.terminate do
             end
             mq.delay(500)
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end
-            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!',lootutils.AnnounceChannel,mq.TLO.Time()) end
+            if EZLoot.announce and EZLoot.doLootMessages then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!',LootUtils.AnnounceChannel,mq.TLO.Time()) end
         end
         if EZLoot.doSell then
-            lootutils.sellStuff()
+            LootUtils.sellStuff()
             EZLoot.doSell = false
         end
     end
