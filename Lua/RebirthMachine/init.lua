@@ -4,11 +4,12 @@ local mq = require('mq')
 -- Dont edit these settings
 --
 local RB = {
-    version = '1.0.1',
+    version = '1.0.2',
     script_ShortName = 'RebirthMachine',
     debug = false,
     Terminate = false,
     CurrentRebirths = 0,
+    CurrentAugAmount = 0,
     mob_Wait = 50000,
     zone_Wait = 50000,
     rebirth_Wait = 2500,
@@ -26,32 +27,33 @@ local RB = {
 -- Edit these settings
 --
 RB.Settings = {
-    swapClasses = false,                                                                -- DOESNT WORK CURRENTLY
-    staticHuntMode = true,                                                              -- Should we camp a spot and kill or move around?
-    huntZoneName = 'pofire',                                                            -- Where should we kill?
-    rebirthStopAt = 20,                                                                 -- After how many Rebirths should we stop?
-    reset_At_Mob_Count = 10,                                                            -- How few mobs in the zone should cause a repop?
-    aggro_Radius = 75,                                                                  -- How far around our camp should we look for mobs
-    aggro_zRadius = 25,                                                                 -- Same but Z axis
-    returnHomeDistance = 50,                                                            -- How far away from camp should we get before returning
-    warpToMobDistance = 25,                                                             -- How close to warp to a mob?
-    hideCorpses = true,                                                                 -- Should we hide corpses?
-    corpse_Phrase = '/say #deletecorpse',                                               -- The commands we should use to hide corpses.
+    farmClassAugs = true,                          -- DOESNT WORK CURRENTLY
+    farmClassAugsAmount = 2,                       -- How many of the class augments should we farm?
+    rebirthStopAt = 10,                            -- After how many Rebirths should we stop?
+    staticHuntMode = true,                         -- Should we camp a spot and kill or move around?
+    huntZoneName = 'pofire',                       -- Where should we kill?
+    reset_At_Mob_Count = 10,                       -- How few mobs in the zone should cause a repop?
+    aggro_Radius = 75,                             -- How far around our camp should we look for mobs
+    aggro_zRadius = 25,                            -- Same but Z axis
+    returnHomeDistance = 50,                       -- How far away from camp should we get before returning
+    warpToMobDistance = 25,                        -- How close to warp to a mob?
+    hideCorpses = true,                            -- Should we hide corpses?
+    corpse_Phrase = '/say #deletecorpse',          -- The commands we should use to hide corpses.
     --corpse_Phrase = '/hidecorpse all',                                                  -- The commands we should use to hide corpses.
-    castSpells = false,                                                                 -- Should we cast spells?
-    spells = { 'My Awesome Pew Pew Spell', 'My Other Awesome Pew Pew Spell Rk. 9001' }, -- Which spells should we cast? Put as many as you want
-    buffItem = 'Amulet of Ultimate Buffing',                                            -- Name of the item that gives us buff
-    BuffCheckName = 'Hand of Conviction',                                               -- The name of the buff we should be checking to see if buffItem worked
-    useXP_Potions = false,                                                              -- Should we consume XP potions?
-    XPPotionName = 'Potion of Adventure II',                                            -- What is the name of the XP Potion?
-    XPPotionBuff = 'Potion of Adventure II',                                            -- What is the name of the XP Potion Buff?
-    zoneRefresh = 'Charm of Refreshing',                                                -- Name of the item we use to refresh the zone
-    moveOnPull = true,                                                                  -- Should we move automatically when we pull away from the mob stack?
+    castSpells = false,                            -- Should we cast spells?
+    spells = { 'Cool Spell 01', 'Cool Spell 02' }, -- Which spells should we cast? Put as many as you want
+    buffItem = 'Amulet of Ultimate Buffing',       -- Name of the item that gives us buff
+    BuffCheckName = 'Hand of Conviction',          -- The name of the buff we should be checking to see if buffItem worked
+    useXP_Potions = false,                         -- Should we consume XP potions?
+    XPPotionName = 'Potion of Adventure II',       -- What is the name of the XP Potion?
+    XPPotionBuff = 'Potion of Adventure II',       -- What is the name of the XP Potion Buff?
+    zoneRefresh = 'Charm of Refreshing',           -- Name of the item we use to refresh the zone
+    moveOnPull = true,                             -- Should we move automatically when we pull away from the mob stack?
+    zonePull = 'Derekthomx\'s Horrorkrunk Hook',   -- Name of the item we use to mass aggro
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
-    zonePull = 'Derekthomx\'s Horrorkrunk Hook',                                        -- Name of the item we use to mass aggro
-    hubZoneID = 451,                                                                    -- Zone ID of our hub zone
-    equip_Macro = '/ma equip',                                                          -- Line to restore all our gear
-    unequip_Macro = '/ma unequipall'                                                    -- Line to remove all our gear
+    hubZoneID = 451,                               -- Zone ID of our hub zone
+    equip_Macro = '/ma equip',                     -- Line to restore all our gear
+    unequip_Macro = '/ma unequipall'               -- Line to remove all our gear
 }
 
 RB.AltToons = {
@@ -228,78 +230,30 @@ function PRINTMETHOD(printMessage, ...)
     printf(Colors.u .. "[Rebirth Machine]" .. Colors.w .. printMessage .. "\aC\n", ...)
 end
 
-function RB.UpdateCurrentClass()
-    local currentClass = mq.TLO.Me.Class() -- Get the current class
-    if RB.Classes[currentClass] ~= nil then
-        RB.Classes[currentClass] = true    -- Mark the class as completed
-    end
-end
-
-function RB.GetNextClass()
-    local availableClasses = {}
-    -- Collect all classes that are still false (not completed)
-    for class, completed in pairs(RB.Classes) do
-        if not completed then
-            table.insert(availableClasses, class)
-        end
-    end
-
-    -- Pick a random class from the remaining available classes
-    if #availableClasses > 0 then
-        local randomIndex = math.random(1, #availableClasses)
-        return availableClasses[randomIndex]
-    else
-        return nil -- No classes left
-    end
-end
-
 function RB.CheckClass()
-    if RB.Settings.swapClasses and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
+    if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
         if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
             mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
             mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
             mq.delay(10000)
         end
         if mq.TLO.Zone.ID() == RB.Settings.hubZoneID then
-            mq.delay(RB.wait_Three)
-            mq.cmdf('/target npc %s', 'Caitlyn Jenner')
-            mq.delay(RB.wait_Three)
-            mq.cmd('/squelch /warp t')
-            mq.delay(RB.wait_Three)
-            mq.cmd('/say Yes, I will return to level 1.')
-            mq.delay(RB.wait_Three)
-            -- Update the current class in the table
-            RB.UpdateCurrentClass()
-
-            -- Get the next class to switch to
-            local nextClass = RB.GetNextClass()
-            if nextClass then
-                mq.cmdf('%s', RB.Settings.unequip_Macro)
-                mq.delay(2500)
-                -- Add logic to swap to the next class
-                mq.cmdf('/say %s', nextClass)
+            if RB.Settings.farmClassAugs then
                 mq.delay(RB.wait_Three)
-                mq.cmdf("/say Yes, I want to become a %s", nextClass)
-                mq.delay(RB.wait_CharChange, function() return mq.TLO.EverQuest.GameState()() == 'CHARSELECT' end)
-                mq.delay(RB.wait_AtCharSelect)
-                mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-                mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
-                mq.delay(RB.wait_AtCharSelect)
-                mq.cmdf('%s', RB.Settings.equip_Macro)
+                mq.cmdf('/target npc %s', 'Rebirther')
                 mq.delay(RB.wait_Three)
-            else
-                print("All classes have been completed.")
+                mq.cmd('/squelch /warp t')
+                mq.delay(RB.wait_Three)
+                mq.cmd('/say confirm reset')
+                mq.delay(RB.wait_Three)
+                RB.Settings.CurrentAugAmount = RB.Settings.CurrentAugAmount + 1
+            end
+            if RB.CurrentAugAmount >= RB.Settings.farmClassAugsAmount then
                 mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
-        end
-    else
-        if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
-            if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
-                mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
-                mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
-                mq.delay(10000)
+            if not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
+                mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
-            mq.cmdf('/lua stop %s', RB.script_ShortName)
         end
     end
 end
@@ -385,8 +339,8 @@ function RB.UseClassCombatAAs()
         mq.cmdf('/alt act %s', RB.ClassAAs['Rogue'])
         mq.delay(RB.wait_One)
     end
-    if RB.UseClassAA['Berseker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berseker'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Berseker'])
+    if RB.UseClassAA['Berserker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berserker'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Berserker'])
         mq.delay(RB.wait_One)
     end
     if RB.UseClassAA['Shaman'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman'])() then
