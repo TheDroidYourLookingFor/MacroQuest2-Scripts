@@ -139,7 +139,7 @@ function FableLooter.GroundSpawns()
 end
 
 function FableLooter.BankDropOff()
-    if mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots then
+    if mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots or FableLooter.needToBank then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
             mq.delay(1000)
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
@@ -148,6 +148,7 @@ function FableLooter.BankDropOff()
         end
         if mq.TLO.Zone.ID() == FableLooter.Settings.bankZone then
             mq.cmdf('/target npc %s', FableLooter.Settings.bankNPC)
+            mq.delay(250)
             mq.delay(5000, function() return mq.TLO.Target()() ~= nil end)
             mq.cmd('/squelch /warp t')
             mq.delay(500)
@@ -159,7 +160,22 @@ function FableLooter.BankDropOff()
     end
 end
 
+local function commandHandler(...)
+    local args = { ... }
+    if #args == 1 then
+        if args[1] == 'bank' then
+            FableLooter.needToBank = true
+            FableLooter.BankDropOff()
+        end
+    end
+end
+
+local function setupBinds()
+    mq.bind('/fableloot', commandHandler)
+end
+
 function FableLooter.Main()
+    setupBinds()
     mq.cmd('/hidecorpse looted')
     PRINTMETHOD('++ Initialized ++')
     CONSOLEMETHOD('Main Loop Entry')
@@ -168,7 +184,7 @@ function FableLooter.Main()
         if FableLooter.Settings.bankDeposit and mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots then
             FableLooter.needToBank = true
             FableLooter.BankDropOff()
-         end
+        end
         if FableLooter.Settings.zone_Check then FableLooter.CheckZone() end
         if FableLooter.Settings.camp_Check then FableLooter.MoveToCamp() end
         if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
@@ -182,7 +198,8 @@ function FableLooter.Main()
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
                 if FableLooter.Settings.returnHomeAfterLoot then
-                    mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X, FableLooter.Settings.camp_Z)
+                    mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
+                    FableLooter.Settings.camp_Z)
                     mq.delay(250)
                 end
             end
@@ -194,5 +211,7 @@ function FableLooter.Main()
 end
 
 FableLooter.Main()
+
+mq.unbind('/fableloot')
 
 return FableLooter
