@@ -1,61 +1,74 @@
+|------------------------------------------------------------| 
+|                   KillAll2NI.mac 
+|
+|   Written by: Lano  
+|      Last Modified by: TheDroidUrLookingFor 
+|
+|		Version:	1.1
+|
+| Contributors: Lano, TheDroidUrLookingFor 
+|------------------------------------------------------------|
+|------------------------------------------------------------| 
+|          Events 
+|------------------------------------------------------------| 
 #Event InstTime "You only have #1# minutes remaining before this expedition comes to an end."
 #Event CantLoot "You may not loot this corpse at this time."
 #Event OorLoot "#*#You are too far away to loot that corpse#*#"
 #Event OorLoot "#*#Corpse too far away.#*#"
-
-| delay to wait before starting to scan corpse for loot
-#define CorpseOpenDelay 3
+|------------------------------------------------------------| 
+|          Defines 
+|------------------------------------------------------------| 
 #define CorpseScanDelay 1
 #define CorpseScanLoops 2
-
-| Change LootFableds to false to skip looting fableds that you have not maked as loot
-#define DoLoot false
-#define LootFableds false
-#define LootGroundSpawns false
-
-#define UseExpPotions true
-
+#define CorpseOpenDelay 3
 #define MaxLootAttempts 3
-
 #define MinMobsInZone 10
-
 #define RefreshInstanceAtMins 5
-
+|------------------------------------------------------------| 
+|          Main Rountine 
+|------------------------------------------------------------|
+sub PRINTMETHOD(Message)
+    /echo [KillAll2NI] ${Message}
+/return
 sub Main
-    /echo Killall by Lano
-    /hidec looted
-    /declare AttemptLootCounter int outer 0
-    
-    | what we will attack
+    /call PRINTMETHOD "KillAll by Lano"
+    /call ClearCorpses
+    |------------------------------------------------------------| 
+    |          Declares 
+    |------------------------------------------------------------| 
+    /call PRINTMETHOD "Initializing"
+    | Radius to check around user for mobs
     /declare spawnSearch string outer "npc radius 60 los targetable noalert 1"
-
     | Count number of mobs in Zone
     /declare mobsSearch string outer "npc targetable noalert 1"
-
     | Aggro Item
     /declare aggroItem string outer "Charm of Hate"
-
     | Refresh Item
     /declare respawnItem string outer "Uber Charm of Refreshing"
-
-    | Corpse Search string, Loot all corpses 
-    | /declare corpseSearch string outer "npccorpse noalert 25"
-
     | only loots goblins
     /declare corpseSearch string outer "npccorpse treasure goblin noalert 25"
-
-    | Part of string we should look for on Empowered Fabled items
+    | Filter for items containing name
     /declare fabledCheck string outer "Empowered"
-
-    /declare MaxMobs int outer -1
-        
     | Set to true if you want it to use AA tokens
     /declare ClickAATokens bool outer true
-
     | Group a character to do the looting?
     /declare GroupAlt bool outer true
+    | Name of the FableLooter character
     /declare AltLooterName string outer Binli
+    | Do you want to loot items?
+    /declare DoLoot bool outer false
+    | | Change LootFabledItems to false to skip looting fableds that you have not maked as loot
+    /declare LootFabledItems bool outer false
+    | Should we pickup things goblins are dropping when running?
+    /declare LootGroundSpawns bool outer false
+    | Which INI file should we read for looting?
+    /declare lootINIFile string outer "wtloot.ini"
+    | Should we use Experience Potions?
+    /declare UseExpPotions bool outer true
+    | Make sure we don't delevel below 80?
+    /declare KeepMaxLevel bool outer true
     
+    /call PRINTMETHOD "Loading Ignore Alert List"
     | add any spawn you wish to ignore here 
     /squelch /alert clear 1
 	/squelch /alert add 1 "Gillamina Garstobidokis"
@@ -78,6 +91,7 @@ sub Main
     /squelch /alert add 1 "Swarmcontroller"
     /squelch /alert add 1 "SwarmSpawnB"
 
+    /call PRINTMETHOD "Loading Priority Alert List"
     | comment out any goblin you don't prioritize 
     /squelch /alert clear 2
 	/squelch /alert add 2 "Cash Treasure Goblin"
@@ -89,19 +103,27 @@ sub Main
     | clear loot avoid list
     /squelch /alert clear 25
 
+    | Stop editing
+    /declare MaxMobs int outer -1
+    /declare AttemptLootCounter int outer 0
     /declare startY float outer ${Me.Y}
 	/declare startX float outer ${Me.X}
 	/declare startZ float outer ${Me.Z}
 	/declare startZone int outer ${Zone.ID}
     /declare startZoneName string outer ${Zone.ShortName}
-	/declare tokenTimer timer outer 
+	/declare tokenTimer timer outer
+
+    /call PRINTMETHOD "Initialized"
+    /call PRINTMETHOD "Camp set in zone ${startZoneName}"
+    /call PRINTMETHOD "Location: X(${startX}) Y(${startY}) Z(${startZ})"
 
     /if (${Pet.ID}) /call CheckPetAoE
-
-    :KillLoop
     /call CheckBuffs
+
+    /call PRINTMETHOD "Starting the slaughter!"
+    :KillLoop
     /if (${Zone.ID} != ${startZone}) {
-        /echo We left zone !!! 
+         /call PRINTMETHOD "We left zone !!!"
         /if (${DynamicZone.Name.NotEqual[NULL]}) {
             /say #enter
             /delay 15s ${Zone.ID} == ${startZone}
@@ -116,20 +138,22 @@ sub Main
         }  
     }
 
-    /if (${Me.Level} <= 79) {
-        /alt on 90
-    } else {
-        /alt on 100
+    /if (${KeepMaxLevel}) {
+        /if (${Me.Level} <= 79) {
+            /alt on 90
+        } else {
+            /alt on 100
+        }
     }
 
-    /if (${GroupAlt}) {
-        /if (!${Me.Grouped} && ${Spawn[pc ${AltLooterName}].ID} != 0) {
+    /if (${GroupAlt} && !${Me.Grouped}) {
+        /if (${Spawn[pc ${AltLooterName}].ID} != 0) {
             /invite ${AltLooterName} 
             /delay 1
         }
     }
 
-    /if (!DoLoot && ${SpawnCount[corpse]}>=50) /call ClearCorpses
+    /if (!${DoLoot} && ${SpawnCount[corpse]}>=50) /call ClearCorpses
 
     /if (${Target.ID}) {
         /if (${Target.Type.Equal[Pet]} || ${Target.Type.Equal[Corpse]} || ${Target.Type.Equal[Pc]} || ${Target.ID} == ${Me.ID} || ${Target.CleanName.Equal[${Me.CleanName} 's Pet']}) /squelch /target clear 
@@ -155,7 +179,7 @@ sub Main
             /delay 1 ${Target.ID}
             /if (${Target.Distance} > 5 && ${Target.CleanName.NotEqual[Raging Treasure Goblin]}) /squelch /warp t 
             /call killThis 
-            /if (DoLoot && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory} && !${Me.CombatState.Equal[COMBAT]}) /call LootMobs 
+            /if (${DoLoot} && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory} && !${Me.CombatState.Equal[COMBAT]}) /call LootMobs 
             /call CheckGroundSpawns
         }
 	}
@@ -209,12 +233,9 @@ sub Main
     /delay 1s ${SpawnCount[${spawnSearch}]}
     /if (${SpawnCount[${spawnSearch}]}) /goto :KillLoop
     :EndLoop
-    /if (DoLoot && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory}) /call LootMobs
+    /if (${DoLoot} && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory}) /call LootMobs
     /squelch /warp loc ${startY} ${startX} ${startZ}
-    /if (!${Pet.ID} && ${Me.AltAbilityReady[39915]}) {
-        /alt act 39915
-        /delay 10000 !${Me.Casting}
-    }
+    /call CheckPet
 	/doevents
     /call RespawnZone
     /call AggroZone
@@ -222,8 +243,16 @@ sub Main
     /goto :KillLoop
 /return
 
+sub CheckPet
+    /call CheckAggro
+    /if (!${Pet.ID} && ${Me.AltAbilityReady[39915]} && ${Macro.Return} == 0) {
+        /alt act 39915
+        /delay 10000 !${Me.Casting.ID}
+    }
+/return
 sub CheckGroundSpawns
-    /if (LootGroundSpawns) {
+    /if (${LootGroundSpawns}) {
+         /call PRINTMETHOD "Attempting to loot a ground spawn"
         /if (${Cursor.ID}) /autoinv 
         /if (${GroundItemCount[Generic(sm)]} > 0) {
             /squelch /itemtarget Generic(sm) 
@@ -243,14 +272,15 @@ sub CheckBuffs
     /if (${FindItem[Soulriever's Charm of Currency].ID} > 0 && ${Me.ItemReady[Soulriever's Charm of Currency]} && !${Me.Buff[Soulriever's Currency Doubler].ID}) /useitem "Soulriever's Charm of Currency"
     /if ((${Me.Diseased.ID} || ${Me.Cursed.ID} || ${Me.PctHPs}<70) && ${Me.AltAbilityReady[39903]}) /alt act 39903
     /if ((${Me.Diseased.ID} || ${Me.Cursed.ID}) && ${FindItem[Bemvaras's Golden Breastplate Rk. I].ID} && ${Me.ItemReady[Bemvaras's Golden Breastplate Rk. I]}) /useitem "Bemvaras's Golden Breastplate Rk. I"
-    /if (!${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat}) {
+    /call CheckAggro
+    /if (!${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
         /alt act 39902
-        /delay 10000 !${Me.Casting}
+        /delay 10000 !${Me.Casting.ID}
     }
     /if (${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
-        /if (UseExpPotions && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
+        /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
     } else {
-        /if (UseExpPotions && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50) /useitem "Potion of Adventure II"
+        /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50) /useitem "Potion of Adventure II"
     }
     /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Gauntlets]} && !${Me.Buff[Talisman of Guenhwyvar].ID}) /useitem "Bemvaras's Holy Gauntlets"
     /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
@@ -299,7 +329,6 @@ sub CheckAggro
     /for x 1 to 13
         /if ( ${Me.XTarget[${x}].ID} > 0 && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.NotEqual[Untargetable]} && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.Equal[NPC]}) {
             /varcalc y ${y}+1
-            |/echo ${Spawn[id ${Me.XTarget[${x}].ID}].Name}
         }
     /next x 
 /return ${y}
@@ -332,6 +361,7 @@ Sub killthis
 sub RespawnZone
     /if (${SpawnCount[${mobsSearch}]} > MinMobsInZone) /return
     /if (${FindItem[${respawnItem}].TimerReady} > 0) /return
+    /call PRINTMETHOD "Attempting to Respawn the Zone"
     /if (${SpawnCount[corpse]}>0) /call ClearCorpses
     /declare mobs int local ${SpawnCount[${mobsSearch}]}
     /delay 1s ${Cast.Ready[${respawnItem}]}
@@ -394,15 +424,15 @@ Sub ScanCorpse
     :reScan
     /for x 0 to 30
         /if (${Corpse.Item[${x}].ID}) {
-            /varset lootItem ${Corpse.Item[${x}].Name} /varset itemAction ${Ini[wtloot.ini, ${lootItem.Left[1]}, ${lootItem}]}
+            /varset lootItem ${Corpse.Item[${x}].Name} /varset itemAction ${Ini[${lootINIFile}, ${lootItem.Left[1]}, ${lootItem}]}
             /if (${itemAction.Equal[keep]} || ${itemAction.Equal[sell]}) {
                 /call LootItem ${x}
-                /echo Looting<${lootItem}> to $ { itemAction }
+                /call PRINTMETHOD "Looting<${lootItem}> to ${itemAction}"
             } else /if (${itemAction.Equal[ignore]}) {
-                /echo Skipping<${lootItem}>
-            } else /if (${lootItem.Find[${fabledCheck}]} > 0 && LootFableds) {
+                /call PRINTMETHOD "Skipping<${lootItem}>"
+            } else /if (${lootItem.Find[${fabledCheck}]} > 0 && ${LootFabledItems}) {
                 /call LootItem ${x}
-                /echo Looting<${lootItem}>
+                /call PRINTMETHOD "Looting<${lootItem}>"
             }
         }
         /varset lootItem ""
@@ -425,12 +455,12 @@ Sub LootItem(slot)
     /if (!${Corpse.Open}) /return
     /if (!${Corpse.Item[${slot}].ID}) /return
     /if (${Me.FreeInventory}==0) {
-        /echo Full Inventory!
+        /call PRINTMETHOD "Full Inventory!"
         /return
     }
     /if (${Corpse.Item[${slot}].Lore}) {
         /if (${FindItemCount[${Corpse.Item[${slot}].Name}]} || ${FindItemBankCount[${Corpse.Item[${slot}].Name}]}) {
-            /echo Lore and We already have it :( ${Corpse.Item[${slot}].Name} 
+            /call PRINTMETHOD "Lore and We already have it :( ${Corpse.Item[${slot}].Name}"
             /return
         } 
     }
@@ -469,8 +499,7 @@ sub Event_OorLoot
 /return
 
 sub Event_InstTime(Line, Minutes)
-    /varset RefreshInstance 0
-    /if (${Minutes} <= ${RefreshInstanceAtMins}) {
+    /if (${Minutes} <= RefreshInstanceAtMins) {
         /dgga /dzq
         /delay 5
         /say #create solo ${startZoneName}
