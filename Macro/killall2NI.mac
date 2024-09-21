@@ -62,7 +62,7 @@ sub Main
     | Should we pickup things goblins are dropping when running?
     /declare LootGroundSpawns bool outer false
     | Which INI file should we read for looting?
-    /declare lootINIFile string outer "wtloot.ini"
+    /declare lootINIFile string outer wtloot.ini
     | Should we use Experience Potions?
     /declare UseExpPotions bool outer true
     | Make sure we don't delevel below 80?
@@ -156,7 +156,7 @@ sub Main
     /if (!${DoLoot} && ${SpawnCount[corpse]}>=50) /call ClearCorpses
 
     /if (${Target.ID}) {
-        /if (${Target.Type.Equal[Pet]} || ${Target.Type.Equal[Corpse]} || ${Target.Type.Equal[Pc]} || ${Target.ID} == ${Me.ID} || ${Target.CleanName.Equal[${Me.CleanName} 's Pet']}) /squelch /target clear 
+        /if (${Target.Type.Equal[Pet]} || ${Target.Type.Equal[Corpse]} || ${Target.Type.Equal[Pc]} || ${Target.ID} == ${Me.ID} || ${Target.CleanName.Equal[${Me.CleanName}'s Pet']}) /squelch /target clear 
 
         /if (${Target.Distance} > ${Target.MaxRangeTo} && ${NearestSpawn[${spawnSearch}].ID} != ${Target.ID}) {
             | /squelch /target clear 
@@ -203,7 +203,7 @@ sub Main
 
     /if (!${Target.ID}) {
         /if (${SpawnCount[${spawnSearch}]}) {
-            /squelch /target id $ { Spawn[${spawnSearch}].ID }
+            /squelch /target id ${Spawn[${spawnSearch}].ID}
         }
     }
 
@@ -280,13 +280,13 @@ sub CheckBuffs
     /if (${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
         /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
     } else {
-        /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50) /useitem "Potion of Adventure II"
+        /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50 && !${Me.Buff[Bemvaras' s Enhanced Learning].ID}) /useitem "Potion of Adventure II"
     }
     /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Gauntlets]} && !${Me.Buff[Talisman of Guenhwyvar].ID}) /useitem "Bemvaras's Holy Gauntlets"
     /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
-        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Circle of Fireskin].Duration.Ticks}) /itemnotify charm rightmouseup
+        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Circle of Fireskin].ID}) /itemnotify charm rightmouseup
     } else {
-        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk.III].Duration.Ticks}) /itemnotify charm rightmouseup
+        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk.III].ID}) /itemnotify charm rightmouseup
     }
 /return
 
