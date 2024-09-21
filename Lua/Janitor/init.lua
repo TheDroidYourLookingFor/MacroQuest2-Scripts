@@ -4,12 +4,13 @@ local Janitor = {}
 
 Janitor.Settings = {
     main_Loop = true,
-    camp_Check = false,
-    huntZoneID = 173,
+    camp_Check = true,
+    hide_Corpses = true,
+    huntZoneID = mq.TLO.Zone.ID(),
     camp_X = mq.TLO.Me.X(),
     camp_Y = mq.TLO.Me.Y(),
     camp_Z = mq.TLO.Me.Z(),
-    returnToCampDistance = 650
+    returnToCampDistance = 100
 }
 
 function Janitor.CheckZone()
@@ -18,6 +19,7 @@ function Janitor.CheckZone()
         mq.cmd('/say #enter')
         mq.delay(50000, function() return mq.TLO.Zone.ID()() == Janitor.Settings.huntZoneID end)
         mq.delay(1000)
+        mq.cmdf('/warp loc %s %s %s', Janitor.Settings.camp_Y, Janitor.Settings.camp_X, Janitor.Settings.camp_Z)
     end
 end
 
@@ -41,7 +43,10 @@ end
 function Janitor.Main()
     while Janitor.Settings.main_Loop do
         Janitor.CheckZone()
+        if mq.TLO.Me.Level() < 80 then mq.cmd('/alt on 90') end
+        if mq.TLO.Me.Level() >= 80 then mq.cmd('/alt on 100') end
         if Janitor.Settings.camp_Check then Janitor.MoveToCamp() end
+        if Janitor.Settings.hide_Corpses and mq.TLO.SpawnCount('corpse')() > 50 then mq.cmd('/hidecorpse all') end
         mq.delay(1000)
     end
 end

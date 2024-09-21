@@ -26,7 +26,7 @@ local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 local my_Server = mq.TLO.EverQuest.Server() or ''
 local ConfigDir = mq.configDir .. '\\EmuHelper'
-local FileName = '\\' .. my_Name .. '.ini'
+local FileName = '\\' .. my_Name .. '.' .. my_Server .. '.ini'
 local ClickFileName = '\\' .. my_Name .. '.' .. my_Server .. '.ClickItems.ini'
 local HealthFileName = '\\' .. my_Name .. '.' .. my_Server .. '.HealthItems.ini'
 local BotsFileName = '\\' .. my_Name .. '.' .. my_Server .. '.Bots.ini'
@@ -57,8 +57,6 @@ local EmuHelper = {
     directMessage = '/dex',
     Raid_Mode = true,
 }
-
-
 
 EmuHelper.Raid_Members = 18
 EmuHelper.Raid_Groups = {
@@ -177,189 +175,45 @@ EmuHelper.Bot.CastRange_Options = {
 
 EmuHelper.Bots = {
     version = version,
-    [1] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [2] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [3] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [4] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [5] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [6] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [7] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [8] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [9] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [10] = {
-        UseBot = false,
-        Name = 'None'
-    },
-    [11] = {
-        UseBot = false,
-        Name = 'None'
-    }
 }
 
-EmuHelper.ItemClicks = {
-    version = version,
-    [1] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [2] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [3] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [4] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [5] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [6] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [7] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [8] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [9] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-    [10] = {
-        UseItem = false,
-        Name = 'None',
-        AttackRange = 20,
-        PctHP = 100,
-        CombatOnly = false
-    },
-}
+local function InitializeArrays()
+    -- Initialize Bots with default values
+    for i = 1, 11 do
+        EmuHelper.Bots[i] = {
+            UseBot = false,
+            Name = 'None'
+        }
+    end
 
-EmuHelper.HealthItems = {
-    version = version,
-    [1] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [2] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [3] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [4] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [5] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [6] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [7] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [8] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [9] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
-    },
-    [10] = {
-        UseItem = false,
-        Name = 'None',
-        PctHP = 95,
-        CombatOnly = false
+    EmuHelper.ItemClicks = {
+        version = version,
     }
-}
+    -- Initialize ItemClicks with default values
+    for i = 1, 10 do
+        EmuHelper.ItemClicks[i] = {
+            UseItem = false,
+            Name = 'None',
+            AttackRange = 20,
+            PctHP = 100,
+            CombatOnly = false
+        }
+    end
+
+    EmuHelper.HealthItems = {
+        version = version,
+    }
+    -- Initialize HealthItems with default values
+    for i = 1, 10 do
+        EmuHelper.HealthItems[i] = {
+            UseItem = false,
+            Name = 'None',
+            PctHP = 95,
+            CombatOnly = false
+        }
+    end
+end
+InitializeArrays()
 
 function EmuHelper.GenerateSettings()
     local settings = {
@@ -675,7 +529,6 @@ local function EmuHelperGUI()
 
             if ImGui.CollapsingHeader("Bots") then
                 ImGui.Indent()
-
                 -- Floating Buttons
                 local buttonWidth, buttonHeight = 100, 25
                 local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
@@ -719,7 +572,8 @@ local function EmuHelperGUI()
                 createButton('Set##Stance', function() EmuHelper.SetBotStance = true end)
                 ImGui.SameLine()
                 ImGui.SetNextItemWidth(150)
-                local index, changed = ImGui.Combo("Select Stance", EmuHelper.Settings.SelectedBotStance, EmuHelper.Bot.Stances)
+                local index, changed = ImGui.Combo("Select Stance", EmuHelper.Settings.SelectedBotStance,
+                    EmuHelper.Bot.Stances)
                 if changed then
                     EmuHelper.Settings.SelectedBotStance = index
                     SaveSettings(IniPath, EmuHelper.Settings)
@@ -765,6 +619,20 @@ local function EmuHelperGUI()
                 ImGui.Columns(2)
                 for i = 1, numBotsPerColumn do
                     local botIndex = i
+                    if ImGui.BeginPopupContextItem() then
+                        if ImGui.MenuItem("Add New Bot") then
+                            -- Define default bot configuration
+                            local defaultBot = {
+                                UseBot = false,
+                                Name = 'None'
+                            }
+                            table.insert(EmuHelper.Bots, i + 1, defaultBot) -- Insert a new bot at the correct position
+                        end
+                        if ImGui.MenuItem("Delete Bot") and #EmuHelper.Bots > 1 then
+                            table.remove(EmuHelper.Bots, i) -- Delete the bot at the given position if there are multiple bots
+                        end
+                        ImGui.EndPopup()
+                    end
                     if ImGui.TreeNode("Bot " .. botIndex .. "##Bot" .. botIndex) then
                         -- Enable checkbox
                         EmuHelper.Bots[botIndex].UseBot = ImGui.Checkbox('Enable##Bot' .. botIndex,
@@ -801,6 +669,20 @@ local function EmuHelperGUI()
                 ImGui.NextColumn()
                 for i = numBotsPerColumn + 1, numBots do
                     local botIndex = i
+                    if ImGui.BeginPopupContextItem() then
+                        if ImGui.MenuItem("Add New Bot") then
+                            -- Define default bot configuration
+                            local defaultBot = {
+                                UseBot = false,
+                                Name = 'None'
+                            }
+                            table.insert(EmuHelper.Bots, i + 1, defaultBot) -- Insert a new bot at the correct position
+                        end
+                        if ImGui.MenuItem("Delete Bot") and #EmuHelper.Bots > 1 then
+                            table.remove(EmuHelper.Bots, i) -- Delete the bot at the given position if there are multiple bots
+                        end
+                        ImGui.EndPopup()
+                    end
                     if ImGui.TreeNode("Bot " .. botIndex .. "##Bot" .. botIndex) then
                         -- Enable checkbox
                         EmuHelper.Bots[botIndex].UseBot = ImGui.Checkbox('Enable##Bot' .. botIndex,
@@ -901,7 +783,7 @@ local function EmuHelperGUI()
                         if EmuHelper.Settings['UseItemClick' .. string.format("%02d", i)] ~= EmuHelper.ItemClicks[i].UseItem then
                             EmuHelper.Settings['UseItemClick' .. string.format("%02d", i)] = EmuHelper.ItemClicks
                                 [i].UseItem
-                            SaveSettings(IniPathHealthClicks, EmuHelper.ItemClicks)
+                            SaveSettings(IniPathItemClicks, EmuHelper.ItemClicks)
                         end
 
                         ImGui.SameLine()
@@ -912,7 +794,7 @@ local function EmuHelperGUI()
                         if EmuHelper.Settings['CombatOnly' .. string.format("%02d", i)] ~= EmuHelper.ItemClicks[i].CombatOnly then
                             EmuHelper.Settings['CombatOnly' .. string.format("%02d", i)] = EmuHelper
                                 .ItemClicks[i].CombatOnly
-                            SaveSettings(IniPathHealthClicks, EmuHelper.ItemClicks)
+                            SaveSettings(IniPathItemClicks, EmuHelper.ItemClicks)
                         end
                         ImGui.Separator();
 
@@ -923,30 +805,30 @@ local function EmuHelperGUI()
                         if EmuHelper.Settings['ClickItem' .. string.format("%02d", i)] ~= EmuHelper.ItemClicks[i].Name then
                             EmuHelper.Settings['ClickItem' .. string.format("%02d", i)] = EmuHelper.ItemClicks[i]
                                 .Name
-                            SaveSettings(IniPathHealthClicks, EmuHelper.ItemClicks)
+                            SaveSettings(IniPathItemClicks, EmuHelper.ItemClicks)
                         end
 
                         ImGui.Separator();
 
                         EmuHelper.ItemClicks[i].PctHP = ImGui.SliderInt("Start HP##ClickItem" .. i,
-                            EmuHelper.ItemClicks[i].PctHP, 1, 99)
+                            EmuHelper.ItemClicks[i].PctHP, 1, 100)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The percentage of HP to start using item #1.')
                         if EmuHelper.Settings['clickAtPct' .. string.format("%02d", i)] ~= EmuHelper.ItemClicks[i].PctHP then
                             EmuHelper.Settings['clickAtPct' .. string.format("%02d", i)] = EmuHelper.ItemClicks[i].PctHP
-                            SaveSettings(IniPathHealthClicks, EmuHelper.ItemClicks)
+                            SaveSettings(IniPathItemClicks, EmuHelper.ItemClicks)
                         end
 
                         ImGui.Separator();
 
-                        EmuHelper.ItemClicks[1].AttackRange = ImGui.SliderInt("Start Distance##ClickItem00",
-                            EmuHelper.ItemClicks[1].AttackRange, 1, 500)
+                        EmuHelper.ItemClicks[i].AttackRange = ImGui.SliderInt("Start Distance##ClickItem" .. i,
+                            EmuHelper.ItemClicks[i].AttackRange, 1, 500)
                         ImGui.SameLine()
-                        ImGui.HelpMarker('The range to start using ItemClicks00.')
+                        ImGui.HelpMarker('The range to start using ItemClicks.')
                         if EmuHelper.Settings['ItemClicksRange' .. string.format("%02d", i)] ~= EmuHelper.ItemClicks[i].AttackRange then
                             EmuHelper.Settings['ItemClicksRange' .. string.format("%02d", i)] = EmuHelper.ItemClicks[i]
                                 .AttackRange
-                            SaveSettings(IniPathHealthClicks, EmuHelper.ItemClicks)
+                            SaveSettings(IniPathItemClicks, EmuHelper.ItemClicks)
                         end
                     end
                 end
@@ -1279,54 +1161,113 @@ function EmuHelper.Main()
     while not EmuHelper.Terminate do
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then EmuHelper.Terminate = true end
         if EmuHelper.FormRaid then
-            EmuHelper.Raid_Form()
-            EmuHelper.FormRaid = false
+            local RaidForm_Status, RaidForm_Error = pcall(EmuHelper.Raid_Form)
+            if RaidForm_Status then
+                EmuHelper.FormRaid = false
+            else
+                EmuHelper.FormRaid = false
+                Messages.CONSOLEMETHOD(false, "Issue forming raid!")
+                Messages.CONSOLEMETHOD(false, RaidForm_Error)
+            end
         end
         if EmuHelper.StartRaid then
-            EmuHelper.Raid_Start()
-            EmuHelper.StartRaid = false
+            local RaidStart_Status, RaidStart_Error = pcall(EmuHelper.Raid_Start)
+            if RaidStart_Status then
+                EmuHelper.StartRaid = false
+            else
+                EmuHelper.StartRaid = false
+                Messages.CONSOLEMETHOD(false, "Issue starting raid!")
+                Messages.CONSOLEMETHOD(false, RaidStart_Error)
+            end
         end
         if EmuHelper.RaidLoot then
-            EmuHelper.Raid_Loot()
-            EmuHelper.RaidLoot = false
+            local RaidLoot_Status, RaidLoot_Error = pcall(EmuHelper.Raid_Loot)
+            if RaidLoot_Status then
+                EmuHelper.RaidLoot = false
+            else
+                EmuHelper.RaidLoot = false
+                Messages.CONSOLEMETHOD(false, "Issue starting raid looting!")
+                Messages.CONSOLEMETHOD(false, RaidLoot_Error)
+            end
         end
         if EmuHelper.RaidGive then
-            EmuHelper.Raid_Give()
-            EmuHelper.RaidGive = false
+            local RaidGive_Status, RaidGive_Error = pcall(EmuHelper.Raid_Give)
+            if RaidGive_Status then
+                EmuHelper.RaidGive = false
+            else
+                EmuHelper.RaidGive = false
+                Messages.CONSOLEMETHOD(false, "Issue starting raid give!")
+                Messages.CONSOLEMETHOD(false, RaidGive_Error)
+            end
         end
 
         if EmuHelper.SpawnBots then
-            EmuHelper.BotsSpawn()
-            EmuHelper.SpawnBots = false
+            local SpawnBots_Status, SpawnBots_Error = pcall(EmuHelper.BotsSpawn)
+            if SpawnBots_Status then
+                EmuHelper.SpawnBots = false
+            else
+                EmuHelper.SpawnBots = false
+                Messages.CONSOLEMETHOD(false, "Issue spawning bots!")
+                Messages.CONSOLEMETHOD(false, SpawnBots_Error)
+            end
         end
         if EmuHelper.SetBotStance then
-            EmuHelper.BotsStance()
-            EmuHelper.SetBotStance = false
+            local SetBotStance_Status, SetBotStance_Error = pcall(EmuHelper.BotsStance)
+            if SetBotStance_Status then
+                EmuHelper.SetBotStance = false
+            else
+                EmuHelper.SetBotStance = false
+                Messages.CONSOLEMETHOD(false, "Issue setting bot stance!")
+                Messages.CONSOLEMETHOD(false, SetBotStance_Error)
+            end
         end
         if EmuHelper.SetBotRange then
-            EmuHelper.BotsRange()
-            EmuHelper.SetBotRange = false
+            local SetBotRange_Status, SetBotRange_Error = pcall(EmuHelper.BotsRange)
+            if SetBotRange_Status then
+                EmuHelper.SetBotRange = false
+            else
+                EmuHelper.SetBotRange = false
+                Messages.CONSOLEMETHOD(false, "Issue setting bot range!")
+                Messages.CONSOLEMETHOD(false, SetBotRange_Error)
+            end
         end
         if EmuHelper.GroupBots then
-            EmuHelper.BotsInvite()
-            EmuHelper.GroupBots = false
+            local GroupBots_Status, GroupBots_Error = pcall(EmuHelper.BotsInvite)
+            if GroupBots_Status then
+                EmuHelper.GroupBots = false
+            else
+                EmuHelper.GroupBots = false
+                Messages.CONSOLEMETHOD(false, "Issue inviting bots to group!")
+                Messages.CONSOLEMETHOD(false, GroupBots_Error)
+            end
         end
         if EmuHelper.SummonBots then
-            EmuHelper.BotsSummon()
-            EmuHelper.SummonBots = false
+            local SummonBots_Status, SummonBots_Error = pcall(EmuHelper.BotsSummon)
+            if SummonBots_Status then
+                EmuHelper.SummonBots = false
+            else
+                EmuHelper.SummonBots = false
+                Messages.CONSOLEMETHOD(false, "Issue summmoning bots!")
+                Messages.CONSOLEMETHOD(false, SummonBots_Error)
+            end
         end
         if EmuHelper.BotRunning then
             for i = 1, #EmuHelper.ItemClicks do
                 if EmuHelper.ItemClicks[i].UseItem then
-                    EmuHelper.ItemClick(EmuHelper.ItemClicks[i].Name, EmuHelper.ItemClicks[i].AttackRange,
-                        EmuHelper.ItemClicks[i].CombatOnly)
+                    local ItemClick_Status, ItemClick_Error = pcall(EmuHelper.ItemClick, EmuHelper.ItemClicks[i].Name,
+                        EmuHelper.ItemClicks[i].AttackRange, EmuHelper.ItemClicks[i].CombatOnly)
+                    if not ItemClick_Status then
+                        Messages.CONSOLEMETHOD(false, "Item Click Error!!!")
+                        Messages.CONSOLEMETHOD(false, ItemClick_Error)
+                    end
                 end
             end
 
             for i = 1, #EmuHelper.HealthItems do
-                if EmuHelper.HealthItems[i].UseItem then
-                    EmuHelper.ResourceClick(EmuHelper.HealthItems[i].Name, EmuHelper.HealthItems[i].PctHP,
-                        EmuHelper.HealthItems[i].CombatOnly)
+                local HealthItems_Status, HealthItems_Error = pcall(EmuHelper.ResourceClick, EmuHelper.HealthItems[i].Name, EmuHelper.HealthItems[i].PctHP, EmuHelper.HealthItems[i].CombatOnly)
+                if not HealthItems_Status then
+                    Messages.CONSOLEMETHOD(false, "Resource Click Error!!!")
+                    Messages.CONSOLEMETHOD(false, HealthItems_Error)
                 end
             end
         end

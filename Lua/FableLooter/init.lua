@@ -22,6 +22,7 @@ FableLooter.Settings = {
     lootGroundSpawns = true,
     returnHomeAfterLoot = true,
     doStand = true,
+    lootAll = true,
     targetName = 'treasure',
     spawnSearch = '%s radius %d zradius %d',
     huntZoneID = mq.TLO.Zone.ID(),
@@ -181,6 +182,7 @@ function FableLooter.Main()
     CONSOLEMETHOD('Main Loop Entry')
     while not FableLooter.Terminate do
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then MainLoop = false end
+        if mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack') end
         if FableLooter.Settings.bankDeposit and mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots then
             FableLooter.needToBank = true
             FableLooter.BankDropOff()
@@ -188,18 +190,24 @@ function FableLooter.Main()
         if FableLooter.Settings.zone_Check then FableLooter.CheckZone() end
         if FableLooter.Settings.camp_Check then FableLooter.MoveToCamp() end
         if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
-        if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 then
-            mq.cmdf('/target %s',
-                mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName,
-                    FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))())
+        if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 or (FableLooter.Settings.lootAll and mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse', FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0) then
+            if FableLooter.Settings.lootAll then
+                mq.cmdf('/target %s',mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse', FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))())
+            else
+                mq.cmdf('/target %s',mq.TLO.NearestSpawn(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))())
+            end
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 mq.cmd('/squelch /warp t')
                 mq.delay(250)
+                if FableLooter.doStand and not mq.TLO.Me.Standing() then
+                    mq.cmd('/stand')
+                    mq.delay(250)
+                end
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(250)
                 if FableLooter.Settings.returnHomeAfterLoot then
                     mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
-                    FableLooter.Settings.camp_Z)
+                        FableLooter.Settings.camp_Z)
                     mq.delay(250)
                 end
             end
