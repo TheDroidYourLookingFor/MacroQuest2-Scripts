@@ -1,0 +1,481 @@
+#Event InstTime "You only have #1# minutes remaining before this expedition comes to an end."
+#Event CantLoot "You may not loot this corpse at this time."
+#Event OorLoot "#*#You are too far away to loot that corpse#*#"
+#Event OorLoot "#*#Corpse too far away.#*#"
+
+| delay to wait before starting to scan corpse for loot
+#define CorpseOpenDelay 3
+#define CorpseScanDelay 1
+#define CorpseScanLoops 2
+
+| Change LootFableds to false to skip looting fableds that you have not maked as loot
+#define DoLoot false
+#define LootFableds false
+#define LootGroundSpawns false
+
+#define UseExpPotions true
+
+#define MaxLootAttempts 3
+
+#define MinMobsInZone 10
+
+#define RefreshInstanceAtMins 5
+
+sub Main
+    /echo Killall by Lano
+    /hidec looted
+    /declare AttemptLootCounter int outer 0
+    
+    | what we will attack
+    /declare spawnSearch string outer "npc radius 60 los targetable noalert 1"
+
+    | Count number of mobs in Zone
+    /declare mobsSearch string outer "npc targetable noalert 1"
+
+    | Aggro Item
+    /declare aggroItem string outer "Charm of Hate"
+
+    | Refresh Item
+    /declare respawnItem string outer "Uber Charm of Refreshing"
+
+    | Corpse Search string, Loot all corpses 
+    | /declare corpseSearch string outer "npccorpse noalert 25"
+
+    | only loots goblins
+    /declare corpseSearch string outer "npccorpse treasure goblin noalert 25"
+
+    | Part of string we should look for on Empowered Fabled items
+    /declare fabledCheck string outer "Empowered"
+
+    /declare MaxMobs int outer -1
+        
+    | Set to true if you want it to use AA tokens
+    /declare ClickAATokens bool outer true
+
+    | Group a character to do the looting?
+    /declare GroupAlt bool outer true
+    /declare AltLooterName string outer Binli
+    
+    | add any spawn you wish to ignore here 
+    /squelch /alert clear 1
+	/squelch /alert add 1 "Gillamina Garstobidokis"
+	/squelch /alert add 1 "an ornate chest"
+	/squelch /alert add 1 "${Me.CleanName}'s Pet"
+	/squelch /alert add 1 "${Me.CleanName}"
+    /squelch /alert add 1 "Cruel Illusion"
+    /squelch /alert add 1 "lockout ikkinz"
+    /squelch /alert add 1 "Kilidna"
+    /squelch /alert add 1 "Pixtt Grand Summoner"
+    /squelch /alert add 1 "Kevren Nalavat"
+    /squelch /alert add 1 "Kenra Kalekkio"
+    /squelch /alert add 1 "Pixtt Nemis"
+    /squelch /alert add 1 "Undari Perunea"
+    /squelch /alert add 1 "Sentinel of the Altar"
+    /squelch /alert add 1 "Retharg"
+    /squelch /alert add 1 "Siska the Spumed"
+    /squelch /alert add 1 "a shark"
+    /squelch /alert add 1 "a guardian spirit"
+    /squelch /alert add 1 "Swarmcontroller"
+    /squelch /alert add 1 "SwarmSpawnB"
+
+    | comment out any goblin you don't prioritize 
+    /squelch /alert clear 2
+	/squelch /alert add 2 "Cash Treasure Goblin"
+	/squelch /alert add 2 "Platinum Treasure Goblin"
+	/squelch /alert add 2 "Augment Treasure Goblin"
+	/squelch /alert add 2 "Paper Treasure Goblin"
+	/squelch /alert add 2 "Treasure Goblin"
+
+    | clear loot avoid list
+    /squelch /alert clear 25
+
+    /declare startY float outer ${Me.Y}
+	/declare startX float outer ${Me.X}
+	/declare startZ float outer ${Me.Z}
+	/declare startZone int outer ${Zone.ID}
+    /declare startZoneName string outer ${Zone.ShortName}
+	/declare tokenTimer timer outer 
+
+    /if (${Pet.ID}) /call CheckPetAoE
+
+    :KillLoop
+    /call CheckBuffs
+    /if (${Zone.ID} != ${startZone}) {
+        /echo We left zone !!! 
+        /if (${DynamicZone.Name.NotEqual[NULL]}) {
+            /say #enter
+            /delay 15s ${Zone.ID} == ${startZone}
+            /squelch /warp loc ${startY} ${startX} ${startZ}
+            /delay 1
+        } else {
+            /say #create solo ${startZoneName} 
+            /delay 15s ${Zone.ID} == ${startZone} 
+            /squelch /warp loc ${startY} ${startX} ${startZ} 
+            /delay 1000 
+            /dgge /say #enter
+        }  
+    }
+
+    /if (${Me.Level} <= 79) {
+        /alt on 90
+    } else {
+        /alt on 100
+    }
+
+    /if (${GroupAlt}) {
+        /if (!${Me.Grouped} && ${Spawn[pc ${AltLooterName}].ID} != 0) {
+            /invite ${AltLooterName} 
+            /delay 1
+        }
+    }
+
+    /if (!DoLoot && ${SpawnCount[corpse]}>=50) /call ClearCorpses
+
+    /if (${Target.ID}) {
+        /if (${Target.Type.Equal[Pet]} || ${Target.Type.Equal[Corpse]} || ${Target.Type.Equal[Pc]} || ${Target.ID} == ${Me.ID} || ${Target.CleanName.Equal[${Me.CleanName} 's Pet']}) /squelch /target clear 
+
+        /if (${Target.Distance} > ${Target.MaxRangeTo} && ${NearestSpawn[${spawnSearch}].ID} != ${Target.ID}) {
+            | /squelch /target clear 
+            /if (${NearestSpawn[${spawnSearch}].ID}) /target id ${NearestSpawn[${spawnSearch}].ID}
+        }
+
+        /if (${Target.Distance} <= ${Target.MaxRangeTo} && ${Target.Speed} == 0 && !${Me.Combat}) {
+            /call killthis 
+            /if (${Target.ID}) /face fast
+        }
+
+        /if (${Me.Pet.ID} && ${Target.ID} && ${Me.Combat} && !${Me.Pet.Target.ID}) {
+            /pet attack
+        }        
+	}
+
+    /if (${SpawnCount[npc alert 2]} > 0) {
+        /if (!${{Target.CleanName.Find[Treasure Goblin]}} > 0 && ${Stick.StickTarget} != ${Spawn[npc alert 2].ID}) {
+            /target id ${Spawn[npc alert 2].ID}
+            /delay 1 ${Target.ID}
+            /if (${Target.Distance} > 5 && ${Target.CleanName.NotEqual[Raging Treasure Goblin]}) /squelch /warp t 
+            /call killThis 
+            /if (DoLoot && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory} && !${Me.CombatState.Equal[COMBAT]}) /call LootMobs 
+            /call CheckGroundSpawns
+        }
+	}
+
+    /if (${ClickAATokens} && ${FindItemCount[Token of Advancement]} && !${tokenTimer}) {
+		/useitem "${FindItem[Token of Advancement].Name}"
+		/varset tokenTimer 1s
+	}
+
+    /call CombatSpells
+    
+    /if (${SpawnCount[npc alert 2]} >= 3) {
+        /if (${Me.AltAbilityReady[39914]}) { 
+            /alt act 39914 
+            /delay 3
+        } 
+        /if (${Me.AltAbilityReady[39911]}) {
+            /alt act 39911 /delay 3
+        } 
+	}
+
+    /if (!${Target.ID}) {
+        /if (${SpawnCount[${spawnSearch}]}) {
+            /squelch /target id $ { Spawn[${spawnSearch}].ID }
+        }
+    }
+
+    /call CheckAggro
+    /if (${Macro.Return} <= 2 && ${Target.ID}) {
+        /if (${Target.Distance} > 10) /squelch /warp t 
+        /delay 2 
+        /call killThis
+    }
+
+    /if (${Macro.Return} > 3 && ${SpawnCount[npc alert 2]} == 0 && ${Math.Distance[${Me.Y}, ${Me.X}, ${Me.Z}: ${startY}, ${startX}, ${startZ}]} > 10) /squelch /warp loc ${startY} ${startX} ${startZ}
+    /call CheckAggro
+    /if (${Macro.Return} == 0 && ${SpawnCount[${mobsSearch}]} > MinMobsInZone) {
+        /target id ${Me.ID}
+        /delay 3
+        /useitem "${aggroItem}"
+        /delay 3
+	}
+
+    /delay 2
+    /call CheckAggro
+    /if (${Macro.Return}==13 && !${Me.Combat} && ${Target.Name.Equal[NULL]}) /goto :EndLoop
+    /if (${Macro.Return}==13 && ${Me.Combat} && ${Target.Type.Equal[NPC]}) /goto :KillLoop
+    |/if (${Me.CombatState.Equal[Combat]}) /goto :KillLoop
+    |/if (${SpawnCount[${mobsSearch}]}>0) /goto :KillLoop
+    /if (${Macro.Return}>0) /goto :KillLoop
+    /delay 1s ${SpawnCount[${spawnSearch}]}
+    /if (${SpawnCount[${spawnSearch}]}) /goto :KillLoop
+    :EndLoop
+    /if (DoLoot && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory}) /call LootMobs
+    /squelch /warp loc ${startY} ${startX} ${startZ}
+    /if (!${Pet.ID} && ${Me.AltAbilityReady[39915]}) {
+        /alt act 39915
+        /delay 10000 !${Me.Casting}
+    }
+	/doevents
+    /call RespawnZone
+    /call AggroZone
+
+    /goto :KillLoop
+/return
+
+sub CheckGroundSpawns
+    /if (LootGroundSpawns) {
+        /if (${Cursor.ID}) /autoinv 
+        /if (${GroundItemCount[Generic(sm)]} > 0) {
+            /squelch /itemtarget Generic(sm) 
+            /if (${Ground.Distance} <= 20) {
+                /nomodkey /click left itemtarget
+            }
+        }
+
+        /if (${SpawnCount[npc alert 2]} == 0 && ${GroundItemCount[Generic(sm)]} && ${Ground.Distance} > 20) {
+            /warp loc ${Ground.Y} ${Ground.X} ${Ground.Z}
+        }
+    }
+/return
+
+sub CheckBuffs
+    /if (${Me.ItemReady[Bemvaras' Coin Sack]}) /useitem "Bemvaras' Coin Sack"
+    /if (${FindItem[Soulriever's Charm of Currency].ID} > 0 && ${Me.ItemReady[Soulriever's Charm of Currency]} && !${Me.Buff[Soulriever's Currency Doubler].ID}) /useitem "Soulriever's Charm of Currency"
+    /if ((${Me.Diseased.ID} || ${Me.Cursed.ID} || ${Me.PctHPs}<70) && ${Me.AltAbilityReady[39903]}) /alt act 39903
+    /if ((${Me.Diseased.ID} || ${Me.Cursed.ID}) && ${FindItem[Bemvaras's Golden Breastplate Rk. I].ID} && ${Me.ItemReady[Bemvaras's Golden Breastplate Rk. I]}) /useitem "Bemvaras's Golden Breastplate Rk. I"
+    /if (!${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat}) {
+        /alt act 39902
+        /delay 10000 !${Me.Casting}
+    }
+    /if (${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
+        /if (UseExpPotions && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
+    } else {
+        /if (UseExpPotions && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50) /useitem "Potion of Adventure II"
+    }
+    /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Gauntlets]} && !${Me.Buff[Talisman of Guenhwyvar].ID}) /useitem "Bemvaras's Holy Gauntlets"
+    /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
+        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Circle of Fireskin].Duration.Ticks}) /itemnotify charm rightmouseup
+    } else {
+        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk.III].Duration.Ticks}) /itemnotify charm rightmouseup
+    }
+/return
+
+sub CombatSpells
+    /call CheckBuffs
+    /if (!${Me.Buff[Shad's Warts].Duration.Ticks} && ${Me.AltAbilityReady[39905]}) /alt act 39905
+    /if (!${Me.Buff[Mystereon's Prismatic Rune].Duration.Ticks} && ${Me.AltAbilityReady[39912]}) /alt act 39912
+    /if (!${Me.Buff[Monk Mastery of A Thousand Fists].Duration.Ticks} && ${Me.AltAbilityReady[39907]}) /alt act 39907
+    /if (${Me.AltAbilityReady[39910]} && ${SpawnCount[${spawnSearch}]} >= 3) /alt act 39910
+    /if (${Me.AltAbilityReady[39911]} && ${SpawnCount[${spawnSearch}]} >= 3) /alt act 39911
+    /if (${Me.AltAbilityReady[39909]}) /alt act 39909
+    /if (${Me.AltAbilityReady[39916]}) /alt act 39916
+    /if (${Me.AltAbilityReady[39908]}) /alt act 39908
+    /if (${Me.AltAbilityReady[39904]}) /alt act 39904
+    /if (!${Me.Casting.ID} && ${Me.Buff[Spikecoat].Duration.Ticks}<=50) {
+        /useitem "${FindItem[living thorns].Name}"
+        /delay 5
+    }
+    /if (${Target.Type.Equal[npc]} && ${Me.Class.ShortName.Equal[WIZ]} && !${Me.Stunned}) {
+        /casting "Fires of Lorelahna"
+        /delay 4
+    }
+    /if (${Target.Type.Equal[npc]} && ${Me.Class.ShortName.Equal[Mag]} && !${Me.Stunned}) {
+        /casting "Fires of Lorelahna"
+        /delay 4
+    }
+    /if (${Target.Type.Equal[npc]} && ${Me.Class.ShortName.Equal[Nec]} && !${Me.Stunned}) {
+        /casting "Drucilog's Virulent Poison Rk. I"
+        /delay 4
+    }
+    /if (${Target.Type.Equal[npc]} && ${Me.Class.ShortName.Equal[Dru]} && !${Me.Stunned}) {
+        /casting "Flame Lick"
+        /delay 4
+    }
+/return
+
+sub CheckAggro
+    /declare x int local
+    /declare y int local 0
+    /for x 1 to 13
+        /if ( ${Me.XTarget[${x}].ID} > 0 && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.NotEqual[Untargetable]} && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.Equal[NPC]}) {
+            /varcalc y ${y}+1
+            |/echo ${Spawn[id ${Me.XTarget[${x}].ID}].Name}
+        }
+    /next x 
+/return ${y}
+
+Sub CheckPetAoE
+    /declare x int local 0
+    /if (${Window[PetInfoWindow].Open}) {
+        /for x 0 to 10
+            /call CheckPetButton ${x} "hold" 0
+            /call CheckPetButton ${x} "focus" 1
+            |/call CheckPetButton ${x} "taunt" 0
+        /next x
+    }
+ /return
+
+ Sub CheckPetButton(numButton,buttonText,stateWanted)
+    /if (${Window[PetInfoWindow].Child[Pet${numButton}_Button].Text.Equal[${buttonText}]}) {
+        /if (${Window[PetInfoWindow].Child[Pet${numButton} _Button].Checked} != ${stateWanted}) {
+            /notify PetInfoWindow Pet${numButton} _Button leftmouseup
+        } 
+    }
+/return
+
+Sub killthis
+	/squelch /stick
+	/attack on
+	/if (${Pet.ID}) /pet attack
+/return
+
+sub RespawnZone
+    /if (${SpawnCount[${mobsSearch}]} > MinMobsInZone) /return
+    /if (${FindItem[${respawnItem}].TimerReady} > 0) /return
+    /if (${SpawnCount[corpse]}>0) /call ClearCorpses
+    /declare mobs int local ${SpawnCount[${mobsSearch}]}
+    /delay 1s ${Cast.Ready[${respawnItem}]}
+    /useitem "${respawnItem}"
+    /if (${MaxMobs}==-1) {
+        /delay 2s 
+        /varset MaxMobs $ {SpawnCount[${mobsSearch}]}
+    } else {
+        /delay 1s ${SpawnCount[${mobsSearch}]} == ${MaxMobs}
+    }
+/return
+
+sub AggroZone
+    /if (${SpawnCount[${mobsSearch}]} < MinMobsInZone) /return
+    /delay 5
+    /target myself
+    /delay 3
+    /useitem "${aggroItem}"
+    /delay 5
+/return
+
+sub LootMobs
+    /if (!${SpawnCount[${corpseSearch}]}) /return
+    /if (${Me.FreeInventory}==0) {
+        /call ClearCorpses
+        /return
+    }
+    /say #corpsefix
+    /delay 0.5s
+    /declare corpses int local 0
+    
+    :lootLoop 
+        /doevents
+        /target id ${NearestSpawn[${corpseSearch}].ID}
+        /delay 1
+        /if (${Target.ID} && ${Target.Distance}>10) {
+            /warp t
+            /delay 3
+        }
+        /if (${Cursor.ID} && ${Me.FreeInventory}) /autoinv
+        /if (${Target.ID} && ${Target.Type.Equal[Corpse]})  {
+            /loot
+            /delay 3 ${Corpse.Open} || !${Target.ID}
+        }
+        /doevents
+        /if (${Corpse.Open}) /call ScanCorpse
+           
+    /if (${SpawnCount[${corpseSearch}]}) /goto :lootLoop
+    /call  ClearCorpses
+    /alert clear 25
+/return
+
+Sub ScanCorpse
+    /declare x int local 0
+    /declare Rescan int local 0
+    /declare MaxRescan int local CorpseScanLoops
+    /delay CorpseOpenDelay ${Corpse.Items}
+    /declare itemAction string local
+    /declare lootItem string local
+    :reScan
+    /for x 0 to 30
+        /if (${Corpse.Item[${x}].ID}) {
+            /varset lootItem ${Corpse.Item[${x}].Name} /varset itemAction ${Ini[wtloot.ini, ${lootItem.Left[1]}, ${lootItem}]}
+            /if (${itemAction.Equal[keep]} || ${itemAction.Equal[sell]}) {
+                /call LootItem ${x}
+                /echo Looting<${lootItem}> to $ { itemAction }
+            } else /if (${itemAction.Equal[ignore]}) {
+                /echo Skipping<${lootItem}>
+            } else /if (${lootItem.Find[${fabledCheck}]} > 0 && LootFableds) {
+                /call LootItem ${x}
+                /echo Looting<${lootItem}>
+            }
+        }
+        /varset lootItem ""
+        /varset itemAction ""
+    /next x
+
+    /if (${Rescan}<= ${MaxRescan}) {
+        /delay CorpseScanDelay
+        /varcalc Rescan ${Rescan}+1
+        /goto :reScan
+    }
+
+    /delay 1
+    /nomodkey /notify LootWnd LW_DoneButton leftmouseup
+    /delay 5s !${Corpse.Open}
+    /delay 1
+/return
+
+Sub LootItem(slot)
+    /if (!${Corpse.Open}) /return
+    /if (!${Corpse.Item[${slot}].ID}) /return
+    /if (${Me.FreeInventory}==0) {
+        /echo Full Inventory!
+        /return
+    }
+    /if (${Corpse.Item[${slot}].Lore}) {
+        /if (${FindItemCount[${Corpse.Item[${slot}].Name}]} || ${FindItemBankCount[${Corpse.Item[${slot}].Name}]}) {
+            /echo Lore and We already have it :( ${Corpse.Item[${slot}].Name} 
+            /return
+        } 
+    }
+
+    /shift /itemnotify loot${slot} rightmouseup
+    /delay 15s !${Corpse.Item[${slot}].ID} || !${Corpse.Open}
+/return
+
+sub ClearCorpses
+    /hidec all
+    /hidec looted
+    /delay 0.5s
+/return
+
+sub Event_CantLoot
+    /if (${Target.ID} && ${Target.Type.Equal[Corpse]}) {
+        /alert add 25 id ${Target.ID}
+        /target clear
+        /varset AttemptLootCounter 0
+    }
+/return
+
+sub Event_OorLoot
+    /if (${Target.ID} && ${Target.Type.Equal[Corpse]}) {
+        /if (${AttemptLootCounter} <= MaxLootAttempts) {
+            /say #corpsefix
+            /delay 0.5s
+            /loot
+            /varcalc AttemptLootCounter ${AttemptLootCounter} + 1
+        } else {
+            /alert add 25 id ${Target.ID} 
+            /target clear 
+            /varset AttemptLootCounter 0
+        }
+     }
+/return
+
+sub Event_InstTime(Line, Minutes)
+    /varset RefreshInstance 0
+    /if (${Minutes} <= ${RefreshInstanceAtMins}) {
+        /dgga /dzq
+        /delay 5
+        /say #create solo ${startZoneName}
+        /delay 30s ${DynamicZone.Name.Length}
+        /delay 5
+        /dgge /say #enter
+    }
+/return
