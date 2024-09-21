@@ -142,7 +142,6 @@ end
 function FableLooter.BankDropOff()
     if mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots or FableLooter.needToBank then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
-            mq.delay(1000)
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
             mq.delay(50000, function() return mq.TLO.Zone.ID()() == FableLooter.Settings.bankZone end)
             mq.delay(1000)
@@ -175,6 +174,13 @@ local function setupBinds()
     mq.bind('/fableloot', commandHandler)
 end
 
+local function event_CantLoot_handler(line)
+    CONSOLEMETHOD('function event_CantLoot_handler(line)')
+    mq.cmdf('%s', '/say #corpsefix')
+end
+mq.event('OutOfRange1', "#*#You are too far away to loot that corpse#*#", event_CantLoot_handler)
+mq.event('OutOfRange2', "#*#Corpse too far away.#*#", event_CantLoot_handler)
+
 function FableLooter.Main()
     setupBinds()
     mq.cmd('/hidecorpse looted')
@@ -198,17 +204,19 @@ function FableLooter.Main()
             end
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 mq.cmd('/squelch /warp t')
-                mq.delay(250)
+                mq.delay(100)
                 if FableLooter.doStand and not mq.TLO.Me.Standing() then
                     mq.cmd('/stand')
                     mq.delay(250)
                 end
                 LootUtils.lootCorpse(mq.TLO.Target.ID())
-                mq.delay(250)
+                mq.delay(100)
+                mq.doevents()
+                mq.delay(100)
                 if FableLooter.Settings.returnHomeAfterLoot then
                     mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.camp_Y, FableLooter.Settings.camp_X,
                         FableLooter.Settings.camp_Z)
-                    mq.delay(250)
+                    mq.delay(100)
                 end
             end
         end

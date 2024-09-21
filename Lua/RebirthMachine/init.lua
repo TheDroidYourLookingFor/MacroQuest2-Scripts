@@ -18,16 +18,19 @@ local RB = {
     wait_Three = 1000,
     wait_Four = 250,
     wait_CharChange = 25000,
-    wait_AtCharSelect = 30000,
+    wait_AtCharSelect = 15000,
     reset_Instance_At = 5,
     spawnSearch = '%s targetable radius %d zradius %d noalert 1',
+    nextClass = '',
+    AllClassesDone = false
 }
 
 --
 -- Edit these settings
 --
 RB.Settings = {
-    farmClassAugs = true,                          -- DOESNT WORK CURRENTLY
+    swapClasses = true,                            -- Swap classes when we hit rebirth cap?
+    farmClassAugs = false,                          -- DOESNT WORK CURRENTLY
     farmClassAugsAmount = 2,                       -- How many of the class augments should we farm?
     rebirthStopAt = 10,                            -- After how many Rebirths should we stop?
     staticHuntMode = true,                         -- Should we camp a spot and kill or move around?
@@ -39,7 +42,7 @@ RB.Settings = {
     warpToMobDistance = 25,                        -- How close to warp to a mob?
     hideCorpses = true,                            -- Should we hide corpses?
     corpse_Phrase = '/say #deletecorpse',          -- The commands we should use to hide corpses.
-    --corpse_Phrase = '/hidecorpse all',                                                  -- The commands we should use to hide corpses.
+    --corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
     castSpells = false,                            -- Should we cast spells?
     spells = { 'Cool Spell 01', 'Cool Spell 02' }, -- Which spells should we cast? Put as many as you want
     buffItem = 'Amulet of Ultimate Buffing',       -- Name of the item that gives us buff
@@ -47,7 +50,7 @@ RB.Settings = {
     useXP_Potions = false,                         -- Should we consume XP potions?
     XPPotionName = 'Potion of Adventure II',       -- What is the name of the XP Potion?
     XPPotionBuff = 'Potion of Adventure II',       -- What is the name of the XP Potion Buff?
-    zoneRefresh = 'Charm of Refreshing',           -- Name of the item we use to refresh the zone
+    zoneRefresh = 'Uber Charm of Refreshing',           -- Name of the item we use to refresh the zone
     moveOnPull = true,                             -- Should we move automatically when we pull away from the mob stack?
     zonePull = 'Derekthomx\'s Horrorkrunk Hook',   -- Name of the item we use to mass aggro
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
@@ -230,6 +233,32 @@ function PRINTMETHOD(printMessage, ...)
     printf(Colors.u .. "[Rebirth Machine]" .. Colors.w .. printMessage .. "\aC\n", ...)
 end
 
+function RB.UpdateCurrentClass()
+    local currentClass = mq.TLO.Me.Class() -- Get the current class
+    if RB.Classes[currentClass] ~= nil then
+        RB.Classes[currentClass] = true    -- Mark the class as completed
+    end
+end
+
+function RB.GetNextClass()
+    local availableClasses = {}
+    -- Collect all classes that are still false (not completed)
+    for class, completed in pairs(RB.Classes) do
+        if not completed then
+            table.insert(availableClasses, class)
+        end
+    end
+
+    -- Pick a random class from the remaining available classes
+    if #availableClasses > 0 then
+        local randomIndex = math.random(1, #availableClasses)
+        return availableClasses[randomIndex]
+    else
+        RB.AllClassesDone = true
+        return nil -- No classes left
+    end
+end
+
 function RB.CheckClass()
     if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
         if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
@@ -238,7 +267,7 @@ function RB.CheckClass()
             mq.delay(10000)
         end
         if mq.TLO.Zone.ID() == RB.Settings.hubZoneID then
-            if RB.Settings.farmClassAugs then
+            if RB.Settings.farmClassAugs and RB.CurrentAugAmount <= RB.Settings.farmClassAugsAmount then
                 mq.delay(RB.wait_Three)
                 mq.cmdf('/target npc %s', 'Rebirther')
                 mq.delay(RB.wait_Three)
@@ -248,15 +277,66 @@ function RB.CheckClass()
                 mq.delay(RB.wait_Three)
                 RB.Settings.CurrentAugAmount = RB.Settings.CurrentAugAmount + 1
             end
-            if RB.CurrentAugAmount >= RB.Settings.farmClassAugsAmount then
+            if RB.Settings.swapClasses then
+                if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
+                    mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
+                    mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                    mq.delay(RB.wait_One)
+                end
+
+                mq.cmdf('/target npc %s', 'Caitlyn Jenner')
+                mq.delay(RB.wait_Three)
+                mq.cmd('/warp t')
+                mq.delay(RB.wait_Four)
+                mq.cmd('/say Yes, I will return to level 1.')
+                mq.delay(RB.wait_Four)
+                -- Update the current class in the table
+                RB.UpdateCurrentClass()
+
+                -- Get the next class to switch to
+                RB.nextClass = RB.GetNextClass()
+                if RB.nextClass then
+                    mq.cmdf('%s', RB.Settings.unequip_Macro)
+                    mq.delay(RB.wait_Three)
+                    -- Add logic to swap to the next class
+                    mq.cmd('/say change class')
+                    mq.delay(1000)
+                    mq.doevents()
+                    mq.delay(1500)
+                    mq.doevents()
+                    mq.delay(1500)
+                    mq.delay(RB.wait_CharChange, function() return mq.TLO.EverQuest.GameState()() == 'CHARSELECT' end)
+                    mq.delay(RB.wait_AtCharSelect)
+                    mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+                    mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                    mq.delay(RB.wait_One)
+                    mq.cmdf('%s', RB.Settings.equip_Macro)
+                    mq.delay(RB.wait_Three)
+                end
+            end
+            if RB.Settings.farmClassAugs and RB.CurrentAugAmount >= RB.Settings.farmClassAugsAmount and not RB.Settings.swapClasses then
                 mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
-            if not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
+            if RB.Settings.swapClasses and not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt and RB.AllClassesDone then
+                mq.cmdf('/lua stop %s', RB.script_ShortName)
+            end
+            if not RB.Settings.swapClasses and not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
                 mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
         end
     end
 end
+
+local function event_classSwap_handler(line)
+    local links = mq.ExtractLinks(line)
+    for _, link in ipairs(links) do
+        local linkText = link.text or tostring(link)
+        if string.find(linkText, RB.nextClass) then
+            mq.ExecuteTextLink(link)
+        end
+    end
+end
+mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, { keepLinks = true })
 
 local function event_rebirth_handler(line, rebirths)
     CONSOLEMETHOD('function event_rebirth_handler(line, rebirths)')
