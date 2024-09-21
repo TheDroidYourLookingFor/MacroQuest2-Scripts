@@ -11,7 +11,7 @@
 |------------------------------------------------------------| 
 |          Events 
 |------------------------------------------------------------| 
-#Event InstTime "You only have #1# minutes remaining before this expedition comes to an end."
+#Event InstTime "#*#You only have #1# minutes remaining before this expedition comes to an end."
 #Event CantLoot "You may not loot this corpse at this time."
 #Event OorLoot "#*#You are too far away to loot that corpse#*#"
 #Event OorLoot "#*#Corpse too far away.#*#"
@@ -225,7 +225,7 @@ sub Main
 
     /delay 2
     /call CheckAggro
-    /if (${Macro.Return}==13 && !${Me.Combat} && ${Target.Name.Equal[NULL]}) /goto :EndLoop
+    |/if (${Macro.Return}==13 && !${Me.Combat} && ${Target.Name.Equal[NULL]}) /goto :EndLoop
     /if (${Macro.Return}==13 && ${Me.Combat} && ${Target.Type.Equal[NPC]}) /goto :KillLoop
     |/if (${Me.CombatState.Equal[Combat]}) /goto :KillLoop
     |/if (${SpawnCount[${mobsSearch}]}>0) /goto :KillLoop
@@ -504,7 +504,7 @@ sub Event_InstTime(Line, Minutes)
         /delay 5
         /say #create solo ${startZoneName}
         /delay 30s ${DynamicZone.Name.Length}
-        /delay 5
+        /delay 10000 ${Zone.ID} == ${startZone}
         /dgge /say #enter
     }
 /return
