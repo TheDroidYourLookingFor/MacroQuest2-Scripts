@@ -1,0 +1,40 @@
+Sub Main
+    /declare AltCharacter string outer Binli
+    /declare MainCharacter string outer Minli
+    /declare HuntZone string outer maiden
+    /declare HuntZoneID int outer 173
+    /declare huntX int outer 1426.87
+    /declare huntY int outer 955.12
+    /declare huntZ int outer -152.25
+    /if (${Me.Name.Equal[${MainCharacter}]}) {
+        /if (${Zone.ShortName.Equal[${HuntZone}]}) {
+            /mac killall2ni
+        } else {
+            /if (${DynamicZone.Name.NotEqual[NULL]}) {
+                /say #enter
+                /delay 15s ${Zone.ID} == ${HuntZoneID}
+                /dza ${AltCharacter}
+                /delay 5
+                /squelch /warp loc ${huntY} ${huntX} ${huntZ}
+                /delay 3
+                /mac killall2ni
+            } else {
+                /say #create solo ${HuntZone} 
+                /delay 15s ${Zone.ID} == ${HuntZoneID}
+                /dza ${AltCharacter}
+                /delay 5
+                /squelch /warp loc ${huntY} ${huntX} ${huntZ} 
+                /delay 3
+                /mac killall2ni
+            } 
+        }
+    } 
+    /if (${Me.Name.Equal[${AltCharacter}]}) {
+        /if (${DynamicZone.Name.NotEqual[NULL]}) {
+                /dex ${MainCharacter} /dza ${AltCharacter}
+                /lua run fablelooter
+            } else {
+                /lua run fablelooter
+            } 
+    }
+/return
