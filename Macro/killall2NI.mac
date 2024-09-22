@@ -4,7 +4,6 @@
 |   Written by: Lano  
 |      Last Modified by: TheDroidUrLookingFor 
 |
-|		Version:	1.1
 |
 | Contributors: Lano, TheDroidUrLookingFor 
 |------------------------------------------------------------|
@@ -31,7 +30,10 @@ sub PRINTMETHOD(Message)
     /echo [KillAll2NI] ${Message}
 /return
 sub Main
+    /declare currentVersion string outer 1.1
     /call PRINTMETHOD "KillAll by Lano"
+    /call PRINTMETHOD "Version: ${currentVersion}"
+    /echo 
     /call ClearCorpses
     |------------------------------------------------------------| 
     |          Declares 
@@ -225,10 +227,7 @@ sub Main
 
     /delay 2
     /call CheckAggro
-    |/if (${Macro.Return}==13 && !${Me.Combat} && ${Target.Name.Equal[NULL]}) /goto :EndLoop
     /if (${Macro.Return}==13 && ${Me.Combat} && ${Target.Type.Equal[NPC]}) /goto :KillLoop
-    |/if (${Me.CombatState.Equal[Combat]}) /goto :KillLoop
-    |/if (${SpawnCount[${mobsSearch}]}>0) /goto :KillLoop
     /if (${Macro.Return}>0) /goto :KillLoop
     /delay 1s ${SpawnCount[${spawnSearch}]}
     /if (${SpawnCount[${spawnSearch}]}) /goto :KillLoop
@@ -247,7 +246,7 @@ sub CheckPet
     /call CheckAggro
     /if (!${Pet.ID} && ${Me.AltAbilityReady[39915]} && ${Macro.Return} == 0) {
         /alt act 39915
-        /delay 10000 !${Me.Casting.ID}
+        /delay 1000
     }
 /return
 sub CheckGroundSpawns
