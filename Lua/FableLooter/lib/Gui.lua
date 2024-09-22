@@ -24,6 +24,20 @@ gui.SPAWNSEARCH = '%s radius %d zradius %d'
 
 gui.Open = false
 gui.ShowUI = false
+
+gui.outputLog = {}
+-- Function to add output to the log with a timestamp
+function gui.addToConsole(text, ...)
+    -- Get the current time in a readable format (HH:MM:SS)
+    local timestamp = os.date("[%H:%M:%S]")
+    -- Combine all arguments into a single string
+    local combinedText = string.format(text, ...)
+    -- Add the timestamp to the message
+    local logEntry = string.format("%s %s", timestamp, combinedText)
+    -- Add the combined message with timestamp to the log
+    table.insert(gui.outputLog, logEntry)
+end
+
 function gui.FableLooterGUI()
     if gui.Open then
         gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui.version, gui.Open)
@@ -72,7 +86,8 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
 
-                FableLooter.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', FableLooter.Settings.bankDeposit)
+                FableLooter.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', FableLooter.Settings
+                    .bankDeposit)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
                 if gui.BANKDEPOSIT ~= FableLooter.Settings.bankDeposit then
@@ -81,7 +96,8 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
 
-                FableLooter.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots", FableLooter.Settings.bankAtFreeSlots, 1, 20)
+                FableLooter.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
+                    FableLooter.Settings.bankAtFreeSlots, 1, 20)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The amount of free slots before we should bank.')
                 if gui.BANKATFREESLOTS ~= FableLooter.Settings.bankAtFreeSlots then
@@ -108,7 +124,8 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
 
-                FableLooter.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_Radius, 1, 100000)
+                FableLooter.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_Radius, 1,
+                    100000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The radius we should look for corpses.')
                 if gui.SCANRADIUS ~= FableLooter.Settings.scan_Radius then
@@ -117,7 +134,8 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
 
-                FableLooter.Settings.scan_zRadius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_zRadius, 1, 10000)
+                FableLooter.Settings.scan_zRadius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_zRadius, 1,
+                    10000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The radius we should look for corpses.')
                 if gui.SCANZRADIUS ~= FableLooter.Settings.scan_zRadius then
@@ -209,6 +227,17 @@ function gui.FableLooterGUI()
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                 end
                 ImGui.Separator();
+            end
+
+            if ImGui.CollapsingHeader("Console") then
+                local ImGuiWindowFlags_AlwaysVerticalScrollbar = ImGuiWindowFlags.AlwaysVerticalScrollbar
+                if ImGui.BeginChild("ScrollingRegion", -1, 550, nil, ImGuiWindowFlags_AlwaysVerticalScrollbar) then
+                    for _, line in ipairs(gui.outputLog) do
+                        ImGui.Text(line)
+                    end
+                    ImGui.SetScrollHereY(1.0) -- Scroll to the bottom of the log
+                end
+                ImGui.EndChild()
             end
         end
         ImGui.End()

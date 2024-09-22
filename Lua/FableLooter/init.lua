@@ -1,8 +1,9 @@
 local mq = require('mq')
-local LootUtils = require('FableLooter.lib.LootUtils')
 
 FableLooter = {
     script_ShortName = 'FableLooter',
+    command_ShortName = 'flr',
+    command_LongName = 'fableloot',
     Terminate = false,
     needToBank = false,
     mob_Wait = 50000,
@@ -97,14 +98,18 @@ end
 function FableLooter.GroundSpawns()
     if mq.TLO.GroundItemCount('Generic')() > 0 then
         if FableLooter.Settings.pauseMacro then
-            if mq.TLO.Macro() then mq.cmd('/mqpause on') end
+            if mq.TLO.Macro() then
+                mq.cmd('/mqpause on')
+                mq.delay(50)
+            end
         end
         mq.cmdf('/squelch /warp loc %s %s %s', mq.TLO.ItemTarget.Y(), mq.TLO.ItemTarget.X(), mq.TLO.ItemTarget.Z())
         mq.delay(250)
         mq.cmd('/click left item')
         mq.delay(250)
         if mq.TLO.Cursor() then
-            LootUtils.report('Picked Up: %s', mq.TLO.Cursor.ItemLink('CLICKABLE')())
+            FableLooter.GUI.addToConsole('Picked Up: %s', mq.TLO.Cursor.Name())
+            FableLooter.LootUtils.report('Picked Up: %s', mq.TLO.Cursor.ItemLink('CLICKABLE')())
             mq.cmd('/autoinv')
             mq.delay(5000, function() return mq.TLO.Cursor()() == nil end)
             mq.delay(250)
@@ -115,7 +120,10 @@ function FableLooter.GroundSpawns()
             mq.delay(250)
         end
         if FableLooter.Settings.pauseMacro then
-            if mq.TLO.Macro() then mq.cmd('/mqpause off') end
+            if mq.TLO.Macro() then
+                mq.cmd('/mqpause off')
+                mq.delay(50)
+             end
         end
     end
 end
@@ -135,28 +143,41 @@ function FableLooter.BankDropOff()
             mq.delay(500)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function() return mq.TLO.Window('MerchantWnd').Open() end)
-            LootUtils.bankStuff()
+            FableLooter.LootUtils.bankStuff()
             FableLooter.needToBank = false
         end
     end
 end
 
-local function commandHandler(...)
+local function binds(...)
     local args = { ... }
-    if #args == 1 then
+    if args ~= nil then
         if args[1] == 'gui' then
             FableLooter.GUI.Open = not FableLooter.GUI.Open
         elseif args[1] == 'bank' then
             FableLooter.needToBank = true
             FableLooter.BankDropOff()
+        elseif args[1] == 'quit' then
+            FableLooter.terminate = true
+        else
+            FableLooter.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', FableLooter.command_ShortName)
+            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items', FableLooter.command_ShortName)
+            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableLooter.command_ShortName)
         end
+    else
+        FableLooter.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', FableLooter.command_ShortName)
+        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items', FableLooter.command_ShortName)
+        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableLooter.command_ShortName)
     end
 end
 
 FableLooter.GUI.initGUI()
 
 local function setupBinds()
-    mq.bind('/fableloot', commandHandler)
+    mq.bind('/' .. FableLooter.command_ShortName, binds)
+    mq.bind('/' .. FableLooter.command_LongName, binds)
 end
 
 local function event_CantLoot_handler(line)
@@ -183,7 +204,10 @@ function FableLooter.Main()
         if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
         if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 or (FableLooter.Settings.lootAll and mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse', FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0) then
             if FableLooter.Settings.pauseMacro then
-                if mq.TLO.Macro()then mq.cmd('/mqpause on') end
+                if mq.TLO.Macro() then
+                    mq.cmd('/mqpause on')
+                    mq.delay(50)
+                 end
             end
             if FableLooter.Settings.lootAll then
                 mq.cmdf('/target %s',
@@ -202,7 +226,7 @@ function FableLooter.Main()
                     mq.cmd('/stand')
                     mq.delay(250)
                 end
-                LootUtils.lootCorpse(mq.TLO.Target.ID())
+                FableLooter.LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(100)
                 mq.doevents()
                 mq.delay(100)
@@ -213,7 +237,10 @@ function FableLooter.Main()
                 end
             end
             if FableLooter.Settings.pauseMacro then
-                if mq.TLO.Macro() then mq.cmd('/mqpause off') end
+                if mq.TLO.Macro() then
+                    mq.cmd('/mqpause off')
+                    mq.delay(50)
+                 end
             end
         end
         FableLooter.GroundSpawns()

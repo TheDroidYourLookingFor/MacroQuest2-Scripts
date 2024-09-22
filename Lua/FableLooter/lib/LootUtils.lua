@@ -533,6 +533,7 @@ local function lootItem(index, doWhat, button)
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
     LootUtils.report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
+    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name())
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -542,6 +543,7 @@ function LootUtils.lootCorpse(corpseID)
     if mq.TLO.Cursor() then checkCursor() end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
         LootUtils.report('My bags are full, I can\'t loot anymore!')
+        FableLooter.GUI.addToConsole('My bags are full, I can\'t loot anymore!')
     end
     for i = 1, 3 do
         mq.cmd('/loot')
@@ -552,6 +554,8 @@ function LootUtils.lootCorpse(corpseID)
     mq.delay(3000, function() return cantLootID > 0 or mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.Settings.logger.Warn(('Can\'t loot %s right now'):format(mq.TLO.Target.CleanName()))
+        FableLooter.GUI.addToConsole(('Can\'t loot %s right now'):format(mq.TLO.Target.CleanName()) ..
+            ' ID: ' .. mq.TLO.Target.ID())
         cantLootList[corpseID] = os.time()
         return
     end
@@ -594,6 +598,7 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
+            FableLooter.GUI.addToConsole(skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -657,6 +662,7 @@ function eventSell(line, itemName)
     end
     if LootUtils.AddNewSales then
         LootUtils.Settings.logger.Info(string.format('Setting %s to Sell', itemName))
+        FableLooter.GUI.addToConsole(string.format('Setting %s to Sell', itemName))
         if not lootData[firstLetter] then lootData[firstLetter] = {} end
         lootData[firstLetter][itemName] = 'Sell'
         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, firstLetter, itemName, 'Sell')
@@ -706,6 +712,7 @@ local function sellToVendor(itemToSell)
     while mq.TLO.FindItemCount('=' .. itemToSell)() > 0 do
         if mq.TLO.Window('MerchantWnd').Open() then
             LootUtils.Settings.logger.Info('Selling ' .. itemToSell)
+            FableLooter.GUI.addToConsole('Selling ' .. itemToSell)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
             mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
             mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
@@ -769,6 +776,7 @@ function LootUtils.sellStuff(closeWindowWhenDone)
     end
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
     LootUtils.Settings.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
+    FableLooter.GUI.addToConsole(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
 end
 
 -- BANKING
@@ -856,17 +864,26 @@ function eventForage()
         -- >= because .. does finditemcount not count the item on the cursor?
         if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
             if mq.TLO.Cursor.Name() == foragedItem then
-                if LootUtils.LootForageSpam then LootUtils.Settings.logger.Info('Destroying foraged item ' .. foragedItem) end
+                if LootUtils.LootForageSpam then
+                    LootUtils.Settings.logger.Info('Destroying foraged item ' .. foragedItem)
+                    FableLooter.GUI.addToConsole('Destroying foraged item ' .. foragedItem)
+                end
                 mq.cmd('/destroy')
                 mq.delay(500)
             end
             -- will a lore item we already have even show up on cursor?
             -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
         elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
-            if LootUtils.LootForageSpam then LootUtils.Settings.logger.Info('Keeping foraged item ' .. foragedItem) end
+            if LootUtils.LootForageSpam then
+                LootUtils.Settings.logger.Info('Keeping foraged item ' .. foragedItem)
+                FableLooter.GUI.addToConsole('Keeping foraged item ' .. foragedItem)
+            end
             mq.cmd('/autoinv')
         else
-            if LootUtils.LootForageSpam then LootUtils.Settings.logger.Warn('Unable to process item ' .. foragedItem) end
+            if LootUtils.LootForageSpam then
+                LootUtils.Settings.logger.Warn('Unable to process item ' .. foragedItem)
+                FableLooter.GUI.addToConsole('Unable to process item ' .. foragedItem)
+            end
             break
         end
         mq.delay(50)
