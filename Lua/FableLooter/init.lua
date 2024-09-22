@@ -2,7 +2,7 @@ local mq = require('mq')
 
 FableLooter = {
     script_ShortName = 'FableLooter',
-    command_ShortName = 'flr',
+    command_ShortName = 'flb',
     command_LongName = 'fableloot',
     Terminate = false,
     needToBank = false,

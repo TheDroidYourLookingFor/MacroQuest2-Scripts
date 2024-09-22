@@ -234,7 +234,7 @@ function gui.FableLooterGUI()
 
                 FableLooter.Settings.lootAll = ImGui.Checkbox('Enable Loot all', FableLooter.Settings.lootAll)
                 ImGui.SameLine()
-                ImGui.HelpMarker('Should we just loot everything on the corpse no matter what?')
+                ImGui.HelpMarker('Should we just loot all corpses ignoring corpse filter?')
                 if gui.LOOTALL ~= FableLooter.Settings.lootAll then
                     gui.LOOTALL = FableLooter.Settings.lootAll
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
