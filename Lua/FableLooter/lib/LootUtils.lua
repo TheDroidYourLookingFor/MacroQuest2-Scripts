@@ -113,26 +113,6 @@ if not success then
     return
 end
 
-local shouldLootActions = {
-    Keep = true,
-    Bank = true,
-    Sell = true,
-    Destroy = false,
-    Ignore = false,
-    Quest = false,
-    Announce = true
-}
-local validActions = {
-    keep = 'Keep',
-    bank = 'Bank',
-    sell = 'Sell',
-    fabledSell = 'FabledSell',
-    ignore = 'Ignore',
-    destroy = 'Destroy',
-    quest = 'Quest',
-    announce = 'Announce'
-}
-
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
     Version = "1.4",

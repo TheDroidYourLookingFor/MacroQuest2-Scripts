@@ -4,6 +4,7 @@ local gui = {}
 
 gui.version = '1.0.0'
 
+-- FableLooter
 gui.DEBUG = false
 gui.PAUSEMACRO = false
 gui.BANKDEPOSIT = false
@@ -21,6 +22,36 @@ gui.DOSTAND = true
 gui.LOOTALL = false
 gui.TARGETNAME = 'treasure'
 gui.SPAWNSEARCH = '%s radius %d zradius %d'
+
+-- EZLoot
+gui.USEWARP = true
+gui.ADDNEWSALES = true
+gui.LOOTFORAGE = true
+gui.LOOTTRADESKILL = false
+gui.DOLOOT = true
+gui.EQUIPUSABLE = false
+gui.CORPSERADIUS = 100
+gui.MOBSTOOCLOSE = 40
+gui.REPORTLOOT = true
+gui.REPORTSKIPPED = true
+gui.LOOTCHANNEL = "dgt"
+gui.ANNOUNCECHANNEL = 'dgt'
+gui.SPAMLOOTINFO = false
+gui.LOOTFORAGESPAM = false
+gui.COMBATLOOTING = true
+gui.LOOTPLATINUMBAGS = true
+gui.LOOTTOKENSOFADVANCEMENT = true
+gui.LOOTEMPOWEREDFABLED = true
+gui.EMPOWEREDFABLEDNAME = 'Empowered'
+gui.EMPOWEREDFABLEDMINHP = 700
+gui.STACKPLATVALUE = 0
+gui.SAVEBAGSLOTS = 3
+gui.MINSELLPRICE = 5000
+gui.STACKABLEONLY = false
+gui.USESINGLEFILEFORALLCHARACTERS = true
+gui.USEZONELOOTFILE = false
+gui.USECLASSLOOTFILE = false
+gui.USEARMORTYPELOOTFILE = false
 
 gui.Open = false
 gui.ShowUI = false
@@ -228,7 +259,240 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
             end
+            if ImGui.CollapsingHeader('EZLoot Options') then
+                FableLooter.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', FableLooter.LootUtils.UseWarp)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Uses warp when enabled.')
+                if gui.USEWARP ~= FableLooter.LootUtils.UseWarp then
+                    gui.USEWARP = FableLooter.LootUtils.UseWarp
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
 
+                FableLooter.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', FableLooter.LootUtils.AddNewSales)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Add new sales when enabled.')
+                if gui.ADDNEWSALES ~= FableLooter.LootUtils.AddNewSales then
+                    gui.ADDNEWSALES = FableLooter.LootUtils.AddNewSales
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', FableLooter.LootUtils.LootForage)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot forage when enabled.')
+                if gui.LOOTFORAGE ~= FableLooter.LootUtils.LootForage then
+                    gui.LOOTFORAGE = FableLooter.LootUtils.LootForage
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
+                    FableLooter.LootUtils.LootTradeSkill)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot trade skill items when enabled.')
+                if gui.LOOTTRADESKILL ~= FableLooter.LootUtils.LootTradeSkill then
+                    gui.LOOTTRADESKILL = FableLooter.LootUtils.LootTradeSkill
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', FableLooter.LootUtils.DoLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Enables looting.')
+                if gui.DOLOOT ~= FableLooter.LootUtils.DoLoot then
+                    gui.DOLOOT = FableLooter.LootUtils.DoLoot
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
+                    FableLooter.LootUtils.EquipUsable)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Equips usable items. Buggy at best.')
+                if gui.EQUIPUSABLE ~= FableLooter.LootUtils.EquipUsable then
+                    gui.EQUIPUSABLE = FableLooter.LootUtils.EquipUsable
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', FableLooter.LootUtils.ReportLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports looted items.')
+                if gui.REPORTLOOT ~= FableLooter.LootUtils.ReportLoot then
+                    gui.REPORTLOOT = FableLooter.LootUtils.ReportLoot
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
+                    FableLooter.LootUtils.ReportSkipped)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports skipped loots.')
+                if gui.REPORTSKIPPED ~= FableLooter.LootUtils.ReportSkipped then
+                    gui.REPORTSKIPPED = FableLooter.LootUtils.ReportSkipped
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
+                    FableLooter.LootUtils.SpamLootInfo)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Spams loot info.')
+                if gui.SPAMLOOTINFO ~= FableLooter.LootUtils.SpamLootInfo then
+                    gui.SPAMLOOTINFO = FableLooter.LootUtils.SpamLootInfo
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
+                    FableLooter.LootUtils.LootForageSpam)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Spams loot forage info.')
+                if gui.LOOTFORAGESPAM ~= FableLooter.LootUtils.LootForageSpam then
+                    gui.LOOTFORAGESPAM = FableLooter.LootUtils.LootForageSpam
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
+                    FableLooter.LootUtils.CombatLooting)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots during combat.')
+                if gui.COMBATLOOTING ~= FableLooter.LootUtils.CombatLooting then
+                    gui.COMBATLOOTING = FableLooter.LootUtils.CombatLooting
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
+                    FableLooter.LootUtils.LootPlatinumBags)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots platinum bags.')
+                if gui.LOOTPLATINUMBAGS ~= FableLooter.LootUtils.LootPlatinumBags then
+                    gui.LOOTPLATINUMBAGS = FableLooter.LootUtils.LootPlatinumBags
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
+                    FableLooter.LootUtils.LootTokensOfAdvancement)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots tokens of advancement.')
+                if gui.LOOTTOKENSOFADVANCEMENT ~= FableLooter.LootUtils.LootTokensOfAdvancement then
+                    gui.LOOTTOKENSOFADVANCEMENT = FableLooter.LootUtils.LootTokensOfAdvancement
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
+                    FableLooter.LootUtils.LootEmpoweredFabled)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots empowered fabled items.')
+                if gui.LOOTEMPOWEREDFABLED ~= FableLooter.LootUtils.LootEmpoweredFabled then
+                    gui.LOOTEMPOWEREDFABLED = FableLooter.LootUtils.LootEmpoweredFabled
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", FableLooter.LootUtils.CorpseRadius,
+                    1, 5000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The radius we should scan for corpses.')
+                if gui.CORPSERADIUS ~= FableLooter.LootUtils.CorpseRadius then
+                    gui.CORPSERADIUS = FableLooter.LootUtils.CorpseRadius
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", FableLooter.LootUtils
+                    .MobsTooClose, 1, 5000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The range to check for nearby mobs.')
+                if gui.MOBSTOOCLOSE ~= FableLooter.LootUtils.MobsTooClose then
+                    gui.MOBSTOOCLOSE = FableLooter.LootUtils.MobsTooClose
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
+                    FableLooter.LootUtils.EmpoweredFabledMinHP, 1, 10000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
+                if gui.EMPOWEREDFABLEDMINHP ~= FableLooter.LootUtils.EmpoweredFabledMinHP then
+                    gui.EMPOWEREDFABLEDMINHP = FableLooter.LootUtils.EmpoweredFabledMinHP
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value",
+                    FableLooter.LootUtils.StackPlatValue, 0, 10000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The value of platinum stacks.')
+                if gui.STACKPLATVALUE ~= FableLooter.LootUtils.StackPlatValue then
+                    gui.STACKPLATVALUE = FableLooter.LootUtils.StackPlatValue
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", FableLooter.LootUtils
+                    .SaveBagSlots, 0, 100)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The number of bag slots to save.')
+                if gui.SAVEBAGSLOTS ~= FableLooter.LootUtils.SaveBagSlots then
+                    gui.SAVEBAGSLOTS = FableLooter.LootUtils.SaveBagSlots
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", FableLooter.LootUtils
+                    .MinSellPrice, 1, 100000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum price at which items will be sold.')
+                if gui.MINSELLPRICE ~= FableLooter.LootUtils.MinSellPrice then
+                    gui.MINSELLPRICE = FableLooter.LootUtils.MinSellPrice
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootChannel = ImGui.InputText('Loot Channel', FableLooter.LootUtils.LootChannel)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Channel to report loot to.')
+                if gui.LOOTCHANNEL ~= FableLooter.LootUtils.LootChannel then
+                    gui.LOOTCHANNEL = FableLooter.LootUtils.LootChannel
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
+                    FableLooter.LootUtils.AnnounceChannel)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Channel to announce events.')
+                if gui.ANNOUNCECHANNEL ~= FableLooter.LootUtils.AnnounceChannel then
+                    gui.ANNOUNCECHANNEL = FableLooter.LootUtils.AnnounceChannel
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
+                    FableLooter.LootUtils.EmpoweredFabledName)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Name of the empowered fabled item.')
+                if gui.EMPOWEREDFABLEDNAME ~= FableLooter.LootUtils.EmpoweredFabledName then
+                    gui.EMPOWEREDFABLEDNAME = FableLooter.LootUtils.EmpoweredFabledName
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.Defaults = ImGui.InputText('Loot Defaults', FableLooter.LootUtils.Defaults)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Default loot actions.')
+                if gui.DEFAULTS ~= FableLooter.LootUtils.Defaults then
+                    gui.DEFAULTS = FableLooter.LootUtils.Defaults
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+            end
             if ImGui.CollapsingHeader("Console") then
                 local ImGuiWindowFlags_AlwaysVerticalScrollbar = ImGuiWindowFlags.AlwaysVerticalScrollbar
                 if ImGui.BeginChild("ScrollingRegion", -1, 550, nil, ImGuiWindowFlags_AlwaysVerticalScrollbar) then
