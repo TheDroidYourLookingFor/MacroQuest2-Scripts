@@ -113,6 +113,26 @@ if not success then
     return
 end
 
+local shouldLootActions = {
+    Keep = true,
+    Bank = true,
+    Sell = true,
+    Destroy = false,
+    Ignore = false,
+    Quest = false,
+    Announce = true
+}
+local validActions = {
+    keep = 'Keep',
+    bank = 'Bank',
+    sell = 'Sell',
+    fabledSell = 'FabledSell',
+    ignore = 'Ignore',
+    destroy = 'Destroy',
+    quest = 'Quest',
+    announce = 'Announce'
+}
+
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
     Version = "1.4",
@@ -135,9 +155,9 @@ local LootUtils = {
     LootTokensOfAdvancement = true,
     LootEmpoweredFabled = true,
     EmpoweredFabledName = 'Empowered',
-    EmpoweredFabledMinHP = 100,
+    EmpoweredFabledMinHP = 700,
     StackPlatValue = 0,
-    NoDropDefaults = "Quest|Keep|Ignore|Announce",
+    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|FabledSell",
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
@@ -245,6 +265,7 @@ local validActions = {
     keep = 'Keep',
     bank = 'Bank',
     sell = 'Sell',
+    fabledSell = 'FabledSell',
     ignore = 'Ignore',
     destroy = 'Destroy',
     quest = 'Quest',
@@ -267,7 +288,7 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.NoDropDefaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Defaults)
     end
 end
 
@@ -390,10 +411,10 @@ local function getRule(item)
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
-                lootDecision = 'Bank'
+                lootDecision = 'FabledSell'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
-                lootDecision = 'Bank'
+                lootDecision = 'FabledSell'
             end
             if item.AugType() ~= nil and item.AugType() > 0 then
                 lootDecision = 'Bank'
@@ -798,7 +819,7 @@ function LootUtils.bankStuff()
             if bagSlot.ID() then
                 local itemToBank = bagSlot.Name()
                 local bankRule = getRule(bagSlot)
-                if bankRule == 'Bank' then bankItem(itemToBank) end
+                if bankRule == 'Bank' or bankRule == 'FabledSell' then bankItem(itemToBank) end
             end
         end
     end
@@ -811,7 +832,7 @@ function LootUtils.bankStuff()
                 local itemToBank = bagSlot.Item(j).Name()
                 if itemToBank then
                     local bankRule = getRule(bagSlot.Item(j))
-                    if bankRule == 'Bank' then bankItem(itemToBank) end
+                    if bankRule == 'Bank' or bankRule == 'FabledSell' then bankItem(itemToBank) end
                 end
             end
         end
