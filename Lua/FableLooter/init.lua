@@ -352,7 +352,22 @@ function FableLooter.Main()
     FableLooter.Messages.CONSOLEMETHOD(false, 'Main Loop Entry')
     while not FableLooter.Terminate do
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then MainLoop = false end
-        if mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack') end
+        if mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then
+            if mq.TLO.Me.BardSongPlaying() then
+                if mq.TLO.Plugin('MQ2Medley').IsLoaded() then
+                    mq.cmdf('/medley %s', 'stop')
+                    mq.delay(50)
+                elseif mq.TLO.Plugin('MQ2Twist').IsLoaded() then
+                    mq.cmdf('/twist %s', 'stop')
+                    mq.delay(50)
+                end
+                mq.cmd('/stopcast')
+                mq.delay(50)
+                mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack')
+            else
+                mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack')
+            end
+        end
         if FableLooter.Settings.useExpPotions then FableLooter.UseExpPotion() end
         if FableLooter.Settings.bankDeposit and mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots then
             FableLooter.needToBank = true
