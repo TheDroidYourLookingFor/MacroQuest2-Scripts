@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.4",
+    Version = "1.0.6",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
@@ -134,10 +134,11 @@ local LootUtils = {
     LootPlatinumBags = true,
     LootTokensOfAdvancement = true,
     LootEmpoweredFabled = true,
+    LootAllFabledAugs = true,
     EmpoweredFabledName = 'Empowered',
     EmpoweredFabledMinHP = 700,
     StackPlatValue = 0,
-    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|FabledSell",
+    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
@@ -225,6 +226,7 @@ SetINIType()
 -- Internal settings
 local lootData = {}
 local doSell = false
+local doCashSell = false
 local cantLootList = {}
 local cantLootID = 0
 
@@ -236,6 +238,8 @@ local shouldLootActions = {
     Keep = true,
     Bank = true,
     Sell = true,
+    Cash = true,
+    Fabled = true,
     Destroy = false,
     Ignore = false,
     Quest = false,
@@ -245,7 +249,8 @@ local validActions = {
     keep = 'Keep',
     bank = 'Bank',
     sell = 'Sell',
-    fabledSell = 'FabledSell',
+    fabled = 'Fabled',
+    cash = 'Cash',
     ignore = 'Ignore',
     destroy = 'Destroy',
     quest = 'Quest',
@@ -391,12 +396,12 @@ local function getRule(item)
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
-                lootDecision = 'FabledSell'
+                lootDecision = 'Fabled'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
-                lootDecision = 'FabledSell'
+                lootDecision = 'Bank'
             end
-            if item.AugType() ~= nil and item.AugType() > 0 then
+            if LootUtils.LootAllFabledAugs and item.AugType() ~= nil and item.AugType() > 0 then
                 lootDecision = 'Bank'
             end
         end
@@ -413,6 +418,10 @@ local itemNoValue = nil
 local function eventNovalue(line, item)
     itemNoValue = item
 end
+local cashItemNoValue = nil
+local function eventCashNovalue(line, item)
+    cashItemNoValue = item
+end
 
 local function setupEvents()
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
@@ -422,6 +431,7 @@ local function setupEvents()
         mq.event("Forage", "You have scrounged up #*#", eventForage)
     end
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
+    mq.event("CashNovalue", "#*#I will not give you any #*# for the #1#.", eventCashNovalue)
 end
 
 -- BINDS
@@ -431,6 +441,8 @@ local function commandHandler(...)
     if #args == 1 then
         if args[1] == 'sell' and not LootUtils.Settings.Terminate then
             doSell = true
+        elseif args[1] == 'cash' and not LootUtils.Settings.Terminate then
+            doCashSell = true
         elseif args[1] == 'reload' then
             lootData = {}
             LootUtils.Settings.logger.Info("Reloaded Loot File")
@@ -663,12 +675,12 @@ local function goToVendor()
     return true
 end
 
-local function openVendor()
+local function openVendor(vendorType)
     LootUtils.Settings.logger.Debug('Opening merchant window')
     mq.cmd('/nomodkey /click right target')
     LootUtils.Settings.logger.Debug('Waiting for merchant window to populate')
-    mq.delay(1000, function() return mq.TLO.Window('MerchantWnd').Open() end)
-    if not mq.TLO.Window('MerchantWnd').Open() then return false end
+    mq.delay(1000, function() return mq.TLO.Window(vendorType).Open() end)
+    if not mq.TLO.Window(vendorType).Open() then return false end
     mq.delay(5000, function() return mq.TLO.Merchant.ItemsReceived() end)
     return mq.TLO.Merchant.ItemsReceived()
 end
@@ -711,7 +723,7 @@ end
 function LootUtils.sellStuff(closeWindowWhenDone)
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then return end
-        if not openVendor() then return end
+        if not openVendor('MerchantWnd') then return end
     end
 
     local totalPlat = mq.TLO.Me.Platinum()
@@ -757,6 +769,76 @@ function LootUtils.sellStuff(closeWindowWhenDone)
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
     LootUtils.Settings.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
     FableLooter.GUI.addToConsole(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
+end
+
+local function sellCashItemsToVendor(itemToSell)
+    if NEVER_SELL[itemToSell] then return end
+    while mq.TLO.FindItemCount('=' .. itemToSell)() > 0 do
+        if mq.TLO.Window('NewPointMerchantWnd').Open() then
+            mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
+            LootUtils.Settings.logger.Info('Selling ' .. mq.TLO.SelectedItem.ItemLink('CLICKABLE')())
+            FableLooter.GUI.addToConsole('Selling ' .. mq.TLO.SelectedItem.Name())
+            mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == itemToSell end)
+            mq.delay(500)
+            mq.cmd('/nomodkey /shiftkey /notify NewPointMerchantWnd NewPointMerchant_SellButton leftmouseup')
+            mq.doevents('eventNovalue')
+            if cashItemNoValue == itemToSell then
+                -- addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
+                cashItemNoValue = nil
+                break
+            end
+            -- TODO: handle vendor not wanting item / item can't be sold
+            mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == '' end)
+        end
+    end
+end
+
+function LootUtils.sellCashItems(closeWindowWhenDone)
+    if not mq.TLO.Window('NewPointMerchantWnd').Open() then
+        if not goToVendor() then return end
+        if not openVendor('NewPointMerchantWnd') then return end
+    end
+
+    local totalCash = mq.TLO.Me.AltCurrency('Cash')()
+    -- sell any top level inventory items that are marked as well, which aren't bags
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        if bagSlot.Container() == 0 then
+            if bagSlot.ID() then
+                local itemToSell = bagSlot.Name()
+                local sellRule = getRule(bagSlot)
+                if sellRule == 'Cash' then
+                    sellCashItemsToVendor(itemToSell)
+                    mq.delay(250)
+                end
+            end
+        end
+    end
+    -- sell any items in bags which are marked as sell
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        local containerSize = bagSlot.Container()
+        if containerSize and containerSize > 0 then
+            for j = 1, containerSize do
+                local itemToSell = bagSlot.Item(j).Name()
+                if itemToSell then
+                    local sellRule = getRule(bagSlot.Item(j))
+                    if sellRule == 'Cash' then
+                        sellCashItemsToVendor(itemToSell)
+                        mq.delay(250)
+                    end
+                end
+            end
+        end
+    end
+    mq.flushevents('Sell')
+    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then
+        mq.cmd(
+            '/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup')
+    end
+    local newTotalCash = mq.TLO.Me.AltCurrency('Cash')() - totalCash
+    LootUtils.Settings.logger.Info(string.format('Total cash value sold: \ag%s\ax', newTotalCash))
+    FableLooter.GUI.addToConsole(string.format('Total cash value sold: \ag%s\ax', newTotalCash))
 end
 
 -- BANKING
@@ -807,7 +889,7 @@ function LootUtils.bankStuff()
             if bagSlot.ID() then
                 local itemToBank = bagSlot.Name()
                 local bankRule = getRule(bagSlot)
-                if bankRule == 'Bank' or bankRule == 'FabledSell' then bankItem(itemToBank) end
+                if bankRule == 'Bank' then bankItem(itemToBank) end
             end
         end
     end
@@ -820,7 +902,7 @@ function LootUtils.bankStuff()
                 local itemToBank = bagSlot.Item(j).Name()
                 if itemToBank then
                     local bankRule = getRule(bagSlot.Item(j))
-                    if bankRule == 'Bank' or bankRule == 'FabledSell' then bankItem(itemToBank) end
+                    if bankRule == 'Bank' then bankItem(itemToBank) end
                 end
             end
         end
@@ -876,6 +958,10 @@ local function processArgs(args)
     if #args == 1 then
         if args[1] == 'Sell' then
             LootUtils.sellStuff(false)
+        elseif args[1] == 'fabled' then
+            -- LootUtils.sellCashItems(false)
+        elseif args[1] == 'cash' then
+            LootUtils.sellCashItems(false)
         elseif args[1] == 'once' then
             LootUtils.lootMobs()
         elseif args[1] == 'standalone' then
@@ -904,6 +990,10 @@ while not LootUtils.Settings.Terminate do
     if doSell then
         LootUtils.sellStuff(false)
         doSell = false
+    end
+    if doCashSell then
+        LootUtils.sellCashItems(false)
+        doCashSell = false
     end
     mq.delay(1000)
 end

@@ -8,9 +8,13 @@ gui.version = '1.0.0'
 gui.DEBUG = false
 gui.PAUSEMACRO = false
 gui.BANKDEPOSIT = false
+gui.SELLCASH = false
+gui.SELLFABLED = false
 gui.BANKATFREESLOTS = 5
 gui.BANKZONE = 451
 gui.BANKNPC = 'Griphook'
+gui.FABLEDNPC = 'The Fabled Jim Carrey'
+gui.CASHNPC = 'Silent Bob'
 gui.SCANRADIUS = 10000
 gui.SCANZRADIUS = 250
 gui.RETURNTOCAMPDISTANCE = 200
@@ -42,6 +46,7 @@ gui.COMBATLOOTING = true
 gui.LOOTPLATINUMBAGS = true
 gui.LOOTTOKENSOFADVANCEMENT = true
 gui.LOOTEMPOWEREDFABLED = true
+gui.LOOTALLFABLEDAUGS = true
 gui.EMPOWEREDFABLEDNAME = 'Empowered'
 gui.EMPOWEREDFABLEDMINHP = 700
 gui.STACKPLATVALUE = 0
@@ -81,10 +86,27 @@ function gui.FableLooterGUI()
         ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
         ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
         if gui.ShowUI then
+            local buttonWidth, buttonHeight = 150, 30
+            local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
+            if ImGui.Button('Bank', buttonImVec2) then
+                FableLooter.needToBank = true
+            end
+            ImGui.SameLine(235)
+            ImGui.Spacing()
+            ImGui.SameLine()
+            if ImGui.Button('Cash Sell', buttonImVec2) then
+                FableLooter.needToCashSell = true
+            end
+            ImGui.SameLine(455)
+            ImGui.Spacing()
+            ImGui.SameLine()
+            if ImGui.Button('Fabled Sell', buttonImVec2) then
+                FableLooter.needToFabledSell = true
+            end
+
             if ImGui.CollapsingHeader("Fable Loot Bot") then
-                ImGui.Text("This is a simple macro I threw together to help out a few friends.\n" ..
-                    "You can run it on a Shaman, Magician, Enchanter, Ranger, Druid, Wizard,\n" ..
-                    "Beastlord, Cleric, or Paladin. You can even have a Necromancer summon corpses!\n\n")
+                ImGui.Text("This is a simple script I threw together to help out a few friends.\n" ..
+                    "It will loot anything set in the EZLoot.ini,\n")
                 ImGui.Separator();
 
                 ImGui.Text("FEATURES:");
@@ -92,7 +114,9 @@ function gui.FableLooterGUI()
                 ImGui.Separator();
 
                 ImGui.Text("COMMANDS:");
-                ImGui.BulletText("");
+                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' bank');
+                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' cash');
+                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' quit');
                 ImGui.Separator();
 
                 ImGui.Text("CREDIT:");
@@ -127,6 +151,26 @@ function gui.FableLooterGUI()
                 end
                 ImGui.Separator();
 
+                FableLooter.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', FableLooter.Settings
+                    .sellCash)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Sells items for Cash when enabled.')
+                if gui.SELLCASH ~= FableLooter.Settings.sellCash then
+                    gui.SELLCASH = FableLooter.Settings.sellCash
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
+
+                FableLooter.Settings.sellFabled = ImGui.Checkbox('Enable Fabled Item Selling', FableLooter.Settings
+                    .sellFabled)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Sells items fabled items for currency when enabled.')
+                if gui.SELLFABLED ~= FableLooter.Settings.sellFabled then
+                    gui.SELLFABLED = FableLooter.Settings.sellFabled
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
+
                 FableLooter.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
                     FableLooter.Settings.bankAtFreeSlots, 1, 20)
                 ImGui.SameLine()
@@ -148,9 +192,27 @@ function gui.FableLooterGUI()
 
                 FableLooter.Settings.bankNPC = ImGui.InputText('Bank NPC', FableLooter.Settings.bankNPC)
                 ImGui.SameLine()
-                ImGui.HelpMarker('The mount item you would like your buffer to sit on to meditate.')
+                ImGui.HelpMarker('The name of the npc to warp to to bank.')
                 if gui.BANKNPC ~= FableLooter.Settings.bankNPC then
                     gui.BANKNPC = FableLooter.Settings.bankNPC
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
+
+                FableLooter.Settings.cashNPC = ImGui.InputText('Cash NPC', FableLooter.Settings.cashNPC)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The name of the npc to sell cash items to.')
+                if gui.CASHNPC ~= FableLooter.Settings.cashNPC then
+                    gui.CASHNPC = FableLooter.Settings.cashNPC
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
+
+                FableLooter.Settings.fabledNPC = ImGui.InputText('Cash NPC', FableLooter.Settings.fabledNPC)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The name of the npc to sell fabled items to.')
+                if gui.FABLEDNPC ~= FableLooter.Settings.fabledNPC then
+                    gui.FABLEDNPC = FableLooter.Settings.fabledNPC
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                 end
                 ImGui.Separator();
@@ -391,6 +453,16 @@ function gui.FableLooterGUI()
                 ImGui.HelpMarker('Loots empowered fabled items.')
                 if gui.LOOTEMPOWEREDFABLED ~= FableLooter.LootUtils.LootEmpoweredFabled then
                     gui.LOOTEMPOWEREDFABLED = FableLooter.LootUtils.LootEmpoweredFabled
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                FableLooter.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
+                    FableLooter.LootUtils.LootAllFabledAugs)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots all fabled augments.')
+                if gui.LOOTALLFABLEDAUGS ~= FableLooter.LootUtils.LootAllFabledAugs then
+                    gui.LOOTALLFABLEDAUGS = FableLooter.LootUtils.LootAllFabledAugs
                     FableLooter.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
