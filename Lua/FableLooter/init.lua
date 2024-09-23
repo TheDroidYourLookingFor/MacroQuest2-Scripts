@@ -24,7 +24,7 @@ FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
 
 FableLooter.Settings = {
-    version = "1.0.9",
+    version = "1.0.10",
     debug = false,
     pauseMacro = false,
     bankDeposit = false,
@@ -38,7 +38,7 @@ FableLooter.Settings = {
     SellFabledFor = 'Papers', -- Doublons, Papers, Cash
     corpseCleanup = true,
     corpseCleanupCommand = '/say #deletecorpse',
-    corpseLimit = 100,
+    corpseLimit = 500,
     scan_Radius = 10000,
     scan_zRadius = 250,
     returnToCampDistance = 200,
@@ -52,11 +52,11 @@ FableLooter.Settings = {
     potionName = 'Potion of Adventure II',
     potionBuff = 'Potion of Adventure II',
     staticHunt = false,
-    staticZoneID = 173,
+    staticZoneID = '173',
     staticZoneName = 'maiden',
-    staticX = 0,
-    staticY = 0,
-    staticZ = 0,
+    staticX = '1905',
+    staticY = '940',
+    staticZ = '-151.74',
     targetName = 'treasure',
     spawnSearch = '%s radius %d zradius %d',
 }
@@ -325,7 +325,7 @@ function FableLooter.CorpseCleanup()
     if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 then return end
     if mq.TLO.SpawnCount('npccorpse')() > FableLooter.Settings.corpseLimit then
         mq.cmdf('%s', FableLooter.Settings.corpseCleanupCommand)
-        mq.delay(50)
+        mq.delay(250)
     end
 end
 

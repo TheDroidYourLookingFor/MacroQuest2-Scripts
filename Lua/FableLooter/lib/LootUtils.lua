@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.9",
+    Version = "1.0.10",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
