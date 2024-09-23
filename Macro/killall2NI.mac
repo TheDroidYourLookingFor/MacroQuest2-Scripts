@@ -286,7 +286,7 @@ sub CheckBuffs
     /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
         /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Circle of Fireskin].ID}) /itemnotify charm rightmouseup
     } else {
-        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk.III].ID}) /itemnotify charm rightmouseup
+        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk. III].ID}) /itemnotify charm rightmouseup
     }
 /return
 
