@@ -329,7 +329,7 @@ sub CheckAggro
     /declare x int local
     /declare y int local 0
     /for x 1 to 13
-        /if ( ${Me.XTarget[${x}].ID} > 0 && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.NotEqual[Untargetable]} && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.Equal[NPC]}) {
+        /if ( ${Me.XTarget[${x}].ID} > 0 && ${Me.XTarget[${x}].TargetOfTarget.ID} == ${Me.ID} &&  ${Spawn[id ${Me.XTarget[${x}].ID}].Type.NotEqual[Untargetable]} && ${Spawn[id ${Me.XTarget[${x}].ID}].Type.Equal[NPC]}) {
             /varcalc y ${y}+1
         }
     /next x 
