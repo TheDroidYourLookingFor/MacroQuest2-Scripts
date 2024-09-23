@@ -48,6 +48,12 @@ FableLooter.Settings = {
     returnHomeAfterLoot = false,
     doStand = true,
     lootAll = false,
+    staticHunt = false,
+    staticZone = 173,
+    staticZoneName = 'maiden',
+    staticX = 0,
+    staticY = 0,
+    staticZ = 0,
     targetName = 'treasure',
     spawnSearch = '%s radius %d zradius %d',
 }
@@ -89,11 +95,19 @@ function FableLooter.CheckZone()
 end
 
 function FableLooter.CheckDistanceToXYZ()
-    local deltaX = FableLooter.camp_X - mq.TLO.Me.X()
-    local deltaY = FableLooter.camp_Y - mq.TLO.Me.Y()
-    local deltaZ = FableLooter.camp_Z - mq.TLO.Me.Z()
-    local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
-    return distance
+    if FableLooter.Settings.staticHunt then
+        local deltaX = FableLooter.Settings.staticX - mq.TLO.Me.X()
+        local deltaY = FableLooter.Settings.staticY - mq.TLO.Me.Y()
+        local deltaZ = FableLooter.Settings.staticZ - mq.TLO.Me.Z()
+        local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
+        return distance
+    else
+        local deltaX = FableLooter.camp_X - mq.TLO.Me.X()
+        local deltaY = FableLooter.camp_Y - mq.TLO.Me.Y()
+        local deltaZ = FableLooter.camp_Z - mq.TLO.Me.Z()
+        local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
+        return distance
+    end
 end
 
 function FableLooter.MoveToCamp()
@@ -107,7 +121,7 @@ function FableLooter.MoveToCamp()
 end
 
 function FableLooter.GroundSpawns()
-    if mq.TLO.GroundItemCount('Generic')() > 0 then
+    if mq.TLO.GroundItemCount('Generic')() > 0 and FableLooter.Settings.lootGroundSpawns then
         if FableLooter.Settings.pauseMacro then
             if mq.TLO.Macro() then
                 mq.cmd('/mqpause on')

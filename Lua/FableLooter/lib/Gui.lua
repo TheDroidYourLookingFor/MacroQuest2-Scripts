@@ -614,21 +614,6 @@ function gui.FableLooterGUI()
                 ImGui.EndChild()
                 ImGui.Unindent()
             end
-            if ImGui.CollapsingHeader('test') then
-                -- Function to load the INI content into the string
-                local function loadINIFile()
-                    local file = io.open(iniFilePath, 'r')
-                    if file then
-                        iniContent = file:read("*all")
-                        file:close()
-                    else
-                        print("Error loading INI file.")
-                    end
-                end
-                local editorWidth, editorHeight = 600, 400
-                local editorImVec = ImVec2(editorWidth, editorHeight)
-                gui.TEXTEDITORCONTENT, changed = ImGui.InputTextMultiline("Multiline with ImVec2", gui.TEXTEDITORCONTENT, editorImVec)
-            end
         end
         ImGui.End()
     end
