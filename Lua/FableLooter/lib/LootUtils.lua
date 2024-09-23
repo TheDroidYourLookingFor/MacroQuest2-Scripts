@@ -446,7 +446,7 @@ local function setupEvents()
     mq.event('OutOfRange2', "#*#Corpse too far away.#*#", event_CantLoot_handler)
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("CantLoot2", "#*#You may not loot this corpse at this time.", eventCantLoot)
-    mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
+    mq.event("Sell", "#*#You receive#*# for the #1##*#", eventSell)
     if LootUtils.LootForage then
         mq.event("ForageExtras", "Your forage mastery has enabled you to find something else!", eventForage)
         mq.event("Forage", "You have scrounged up #*#", eventForage)
@@ -798,21 +798,20 @@ end
 
 local function sellCashItemsToVendor(itemToSell)
     if NEVER_SELL[itemToSell] then return end
-        if mq.TLO.Window('NewPointMerchantWnd').Open() then
-            if mq.TLO.SelectedItem() ~= nil and mq.TLO.SelectedItem.Name() == itemToSell then
-                LootUtils.Settings.logger.Info('Selling ' .. mq.TLO.SelectedItem.ItemLink('CLICKABLE')())
-                FableLooter.GUI.addToConsole('Selling ' .. mq.TLO.SelectedItem.Name())
-                mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == itemToSell end)
-                mq.delay(500)
-                mq.cmd('/nomodkey /shiftkey /notify NewPointMerchantWnd NewPointMerchant_SellButton leftmouseup')
-                mq.doevents('eventNovalue')
-                if cashItemNoValue == itemToSell then
-                    -- addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
-                    cashItemNoValue = nil
-                end
-                -- TODO: handle vendor not wanting item / item can't be sold
-                mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == '' end)
+    if mq.TLO.Window('NewPointMerchantWnd').Open() then
+        if mq.TLO.SelectedItem() ~= nil and mq.TLO.SelectedItem.Name() == itemToSell then
+            LootUtils.Settings.logger.Info('Selling ' .. mq.TLO.SelectedItem.ItemLink('CLICKABLE')())
+            FableLooter.GUI.addToConsole('Selling ' .. mq.TLO.SelectedItem.Name())
+            mq.delay(100)
+            mq.cmd('/nomodkey /shiftkey /notify NewPointMerchantWnd NewPointMerchant_SellButton leftmouseup')
+            mq.doevents('eventNovalue')
+            if cashItemNoValue == itemToSell then
+                -- addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
+                cashItemNoValue = nil
             end
+            -- TODO: handle vendor not wanting item / item can't be sold
+            mq.delay(1000, function() return not mq.TLO.SelectedItem.Name() end)
+        end
     end
 end
 
@@ -821,7 +820,6 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
         if not goToVendor() then return end
         if not openVendor('NewPointMerchantWnd') then return end
     end
-
     local totalCash = mq.TLO.Me.AltCurrency('Cash')()
     -- sell any top level inventory items that are marked as well, which aren't bags
     for i = 1, 10 do
@@ -831,8 +829,9 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
                 local itemToSell = bagSlot.Name()
                 local sellRule = getRule(bagSlot)
                 if sellRule == 'Cash' then
+                    mq.cmdf('/nomodkey /itemnotify pack%s leftmouseup', i)
+                    mq.delay(500, function() return mq.TLO.SelectedItem.Name() ~= nil end)
                     sellCashItemsToVendor(itemToSell)
-                    mq.delay(250)
                 end
             end
         end
@@ -848,17 +847,16 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
                     local sellRule = getRule(bagSlot.Item(j))
                     if sellRule == 'Cash' then
                         mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', i, j)
+                        mq.delay(500, function() return mq.TLO.SelectedItem.Name() ~= nil end)
                         sellCashItemsToVendor(itemToSell)
-                        mq.delay(50)
                     end
                 end
             end
         end
     end
     mq.flushevents('Sell')
-    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then
-        mq.cmd(
-            '/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup')
+    if mq.TLO.Window('NewPointMerchantWnd').Open() and closeWindowWhenDone then
+        mq.cmd('/nomodkey /notify NewPointMerchantWnd NewPointMerchant_DoneButton leftmouseup')
     end
     local newTotalCash = mq.TLO.Me.AltCurrency('Cash')() - totalCash
     LootUtils.Settings.logger.Info(string.format('Total cash value sold: \ag%s\ax', newTotalCash))
