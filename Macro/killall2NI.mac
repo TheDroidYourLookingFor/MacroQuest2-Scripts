@@ -370,7 +370,7 @@ sub RespawnZone
     /useitem "${respawnItem}"
     /if (${MaxMobs}==-1) {
         /delay 2s 
-        /varset MaxMobs $ {SpawnCount[${mobsSearch}]}
+        /varset MaxMobs ${SpawnCount[${mobsSearch}]}
     } else {
         /delay 1s ${SpawnCount[${mobsSearch}]} == ${MaxMobs}
     }
