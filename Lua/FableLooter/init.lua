@@ -24,7 +24,7 @@ FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
 
 FableLooter.Settings = {
-    version = "1.0.6",
+    version = "1.0.8",
     debug = false,
     pauseMacro = false,
     bankDeposit = false,
@@ -36,6 +36,9 @@ FableLooter.Settings = {
     cashNPC = 'Silent Bob',
     fabledNPC = 'The Fabled Jim Carrey',
     SellFabledFor = 'Papers', -- Doublons, Papers, Cash
+    corpseCleanup = true,
+    corpseCleanupCommand = '/say #deletecorpse',
+    corpseLimit = 100,
     scan_Radius = 10000,
     scan_zRadius = 250,
     returnToCampDistance = 200,
@@ -98,7 +101,7 @@ function FableLooter.MoveToCamp()
         if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
             mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
                 FableLooter.camp_Z)
-            mq.delay(500)
+            mq.delay(50)
         end
     end
 end
@@ -124,7 +127,7 @@ function FableLooter.GroundSpawns()
         if FableLooter.Settings.returnHomeAfterLoot then
             mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
                 FableLooter.camp_Z)
-            mq.delay(250)
+            mq.delay(50)
         end
         if FableLooter.Settings.pauseMacro then
             if mq.TLO.Macro() then
@@ -268,12 +271,13 @@ local function setupBinds()
     mq.bind('/' .. FableLooter.command_LongName, binds)
 end
 
-local function event_CantLoot_handler(line)
-    FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
-    mq.cmdf('%s', '/say #corpsefix')
+function FableLooter.CorpseCleanup()
+    if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 then return end
+    if mq.TLO.SpawnCount('npccorpse')() > FableLooter.Settings.corpseLimit then
+        mq.cmdf('%s', FableLooter.Settings.corpseCleanupCommand)
+        mq.delay(500)
+    end
 end
-mq.event('OutOfRange1', "#*#You are too far away to loot that corpse#*#", event_CantLoot_handler)
-mq.event('OutOfRange2', "#*#Corpse too far away.#*#", event_CantLoot_handler)
 
 function FableLooter.Main()
     setupBinds()
@@ -297,7 +301,11 @@ function FableLooter.Main()
         end
         if FableLooter.Settings.zone_Check then FableLooter.CheckZone() end
         if FableLooter.Settings.camp_Check then FableLooter.MoveToCamp() end
-        if FableLooter.doStand and not mq.TLO.Me.Standing() then mq.cmd('/stand') end
+        if FableLooter.doStand and not mq.TLO.Me.Standing() then
+            mq.cmd('/stand')
+            mq.delay(50)
+        end
+        if FableLooter.Settings.corpseCleanup then FableLooter.CorpseCleanup() end
         if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 or (FableLooter.Settings.lootAll and mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse', FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0) then
             if FableLooter.Settings.pauseMacro then
                 if mq.TLO.Macro() then
@@ -320,7 +328,7 @@ function FableLooter.Main()
                 mq.delay(100)
                 if FableLooter.doStand and not mq.TLO.Me.Standing() then
                     mq.cmd('/stand')
-                    mq.delay(250)
+                    mq.delay(50)
                 end
                 FableLooter.LootUtils.lootCorpse(mq.TLO.Target.ID())
                 mq.delay(100)
@@ -329,7 +337,7 @@ function FableLooter.Main()
                 if FableLooter.Settings.returnHomeAfterLoot then
                     mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
                         FableLooter.camp_Z)
-                    mq.delay(100)
+                    mq.delay(50)
                 end
             end
             if FableLooter.Settings.pauseMacro then

@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.6",
+    Version = "1.0.8",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
@@ -138,7 +138,6 @@ local LootUtils = {
     EmpoweredFabledName = 'Empowered',
     EmpoweredFabledMinHP = 700,
     StackPlatValue = 0,
-    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
@@ -150,6 +149,7 @@ local LootUtils = {
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
+    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
     LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
@@ -273,7 +273,8 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Defaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults',
+            LootUtils.Settings.Defaults)
     end
 end
 
@@ -401,9 +402,9 @@ local function getRule(item)
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
-            if LootUtils.LootAllFabledAugs and item.AugType() ~= nil and item.AugType() > 0 then
-                lootDecision = 'Bank'
-            end
+        end
+        if LootUtils.LootAllFabledAugs and item.AugType() ~= nil and item.AugType() > 0 then
+            lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then lootDecision = 'Sell' end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then lootDecision = 'Bank' end
@@ -423,7 +424,24 @@ local function eventCashNovalue(line, item)
     cashItemNoValue = item
 end
 
+LootUtils.CorpseFixCounter = 0
+LootUtils.LastCorpseFixID = 0
+local function event_CantLoot_handler(line)
+    FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
+    mq.cmdf('%s', '/say #corpsefix')
+    mq.delay(50)
+    LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
+    if LootUtils.CorpseFixCounter >= 3 then
+        if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then cantLootID = mq.TLO.Target.ID() end
+        LootUtils.LastCorpseFixID = mq.TLO.Target.ID()
+        LootUtils.CorpseFixCounter = 0
+    end
+end
+
+
 local function setupEvents()
+    mq.event('OutOfRange1', "#*#You are too far away to loot that corpse#*#", event_CantLoot_handler)
+    mq.event('OutOfRange2', "#*#Corpse too far away.#*#", event_CantLoot_handler)
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
     if LootUtils.LootForage then
@@ -525,7 +543,8 @@ local function lootItem(index, doWhat, button)
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
     LootUtils.report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
-    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name())
+    -- FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name())
+    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.ItemLink('CLICKABLE')())
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -543,6 +562,8 @@ function LootUtils.lootCorpse(corpseID)
         if mq.TLO.Window('LootWnd').Open() then break end
     end
     mq.doevents('CantLoot')
+    mq.doevents('OutOfRange1')
+    mq.doevents('OutOfRange2')
     mq.delay(3000, function() return cantLootID > 0 or mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.Settings.logger.Warn(('Can\'t loot %s right now'):format(mq.TLO.Target.CleanName()))
