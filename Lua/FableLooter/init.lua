@@ -24,7 +24,7 @@ FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
 
 FableLooter.Settings = {
-    version = "1.0.8",
+    version = "1.0.9",
     debug = false,
     pauseMacro = false,
     bankDeposit = false,
@@ -257,7 +257,6 @@ function FableLooter.FabledSell()
 end
 
 local function event_fabledSell_handler(line)
-    print('Inside sell event ' .. FableLooter.Settings.SellFabledFor)
     local links = mq.ExtractLinks(line)
     for _, link in ipairs(links) do
         local linkText = link.text or tostring(link)
@@ -286,11 +285,16 @@ local function binds(...)
             FableLooter.FabledSell()
         elseif args[1] == 'quit' then
             FableLooter.terminate = true
+            mq.cmdf('/lua stop %s', FableLooter.script_ShortName)
         else
             FableLooter.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
             FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI',
                 FableLooter.command_ShortName)
             FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items',
+                FableLooter.command_ShortName)
+            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agfabled\aw - Send your character to sell fabled items',
+                FableLooter.command_ShortName)
+            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agcash\aw - Send your character to sell cash items',
                 FableLooter.command_ShortName)
             FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.',
                 FableLooter.command_ShortName)
@@ -300,6 +304,10 @@ local function binds(...)
         FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI',
             FableLooter.command_ShortName)
         FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items',
+            FableLooter.command_ShortName)
+        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agfabled\aw - Send your character to sell fabled items',
+            FableLooter.command_ShortName)
+        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agcash\aw - Send your character to sell cash items',
             FableLooter.command_ShortName)
         FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableLooter
             .command_ShortName)

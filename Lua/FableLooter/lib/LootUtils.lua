@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.8",
+    Version = "1.0.9",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
@@ -403,7 +403,7 @@ local function getRule(item)
                 lootDecision = 'Bank'
             end
         end
-        if LootUtils.LootAllFabledAugs and item.AugType() ~= nil and item.AugType() > 0 then
+        if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then lootDecision = 'Sell' end
