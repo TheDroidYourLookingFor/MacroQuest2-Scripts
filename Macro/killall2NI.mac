@@ -348,8 +348,8 @@ Sub CheckPetAoE
 
  Sub CheckPetButton(numButton,buttonText,stateWanted)
     /if (${Window[PetInfoWindow].Child[Pet${numButton}_Button].Text.Equal[${buttonText}]}) {
-        /if (${Window[PetInfoWindow].Child[Pet${numButton} _Button].Checked} != ${stateWanted}) {
-            /notify PetInfoWindow Pet${numButton} _Button leftmouseup
+        /if (${Window[PetInfoWindow].Child[Pet${numButton}_Button].Checked} != ${stateWanted}) {
+            /notify PetInfoWindow Pet${numButton}_Button leftmouseup
         } 
     }
 /return
