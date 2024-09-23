@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.4",
+    Version = "1.0.8",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
@@ -134,10 +134,10 @@ local LootUtils = {
     LootPlatinumBags = true,
     LootTokensOfAdvancement = true,
     LootEmpoweredFabled = true,
+    LootAllFabledAugs = true,
     EmpoweredFabledName = 'Empowered',
-    EmpoweredFabledMinHP = 100,
+    EmpoweredFabledMinHP = 700,
     StackPlatValue = 0,
-    NoDropDefaults = "Quest|Keep|Ignore|Announce",
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
@@ -149,6 +149,7 @@ local LootUtils = {
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
+    Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
     LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
@@ -225,6 +226,7 @@ SetINIType()
 -- Internal settings
 local lootData = {}
 local doSell = false
+local doCashSell = false
 local cantLootList = {}
 local cantLootID = 0
 
@@ -236,6 +238,8 @@ local shouldLootActions = {
     Keep = true,
     Bank = true,
     Sell = true,
+    Cash = true,
+    Fabled = true,
     Destroy = false,
     Ignore = false,
     Quest = false,
@@ -245,6 +249,8 @@ local validActions = {
     keep = 'Keep',
     bank = 'Bank',
     sell = 'Sell',
+    fabled = 'Fabled',
+    cash = 'Cash',
     ignore = 'Ignore',
     destroy = 'Destroy',
     quest = 'Quest',
@@ -267,7 +273,8 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.NoDropDefaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults',
+            LootUtils.Settings.Defaults)
     end
 end
 
@@ -390,14 +397,14 @@ local function getRule(item)
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then lootDecision = 'Sell' end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
-                lootDecision = 'Bank'
+                lootDecision = 'Fabled'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
-            if item.AugType() ~= nil and item.AugType() > 0 then
-                lootDecision = 'Bank'
-            end
+        end
+        if LootUtils.LootAllFabledAugs and item.AugType() ~= nil and item.AugType() > 0 then
+            lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then lootDecision = 'Sell' end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then lootDecision = 'Bank' end
@@ -412,8 +419,29 @@ local itemNoValue = nil
 local function eventNovalue(line, item)
     itemNoValue = item
 end
+local cashItemNoValue = nil
+local function eventCashNovalue(line, item)
+    cashItemNoValue = item
+end
+
+LootUtils.CorpseFixCounter = 0
+LootUtils.LastCorpseFixID = 0
+local function event_CantLoot_handler(line)
+    FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
+    mq.cmdf('%s', '/say #corpsefix')
+    mq.delay(50)
+    LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
+    if LootUtils.CorpseFixCounter >= 3 then
+        if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then cantLootID = mq.TLO.Target.ID() end
+        LootUtils.LastCorpseFixID = mq.TLO.Target.ID()
+        LootUtils.CorpseFixCounter = 0
+    end
+end
+
 
 local function setupEvents()
+    mq.event('OutOfRange1', "#*#You are too far away to loot that corpse#*#", event_CantLoot_handler)
+    mq.event('OutOfRange2', "#*#Corpse too far away.#*#", event_CantLoot_handler)
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
     if LootUtils.LootForage then
@@ -421,6 +449,7 @@ local function setupEvents()
         mq.event("Forage", "You have scrounged up #*#", eventForage)
     end
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
+    mq.event("CashNovalue", "#*#I will not give you any #*# for the #1#.", eventCashNovalue)
 end
 
 -- BINDS
@@ -430,6 +459,8 @@ local function commandHandler(...)
     if #args == 1 then
         if args[1] == 'sell' and not LootUtils.Settings.Terminate then
             doSell = true
+        elseif args[1] == 'cash' and not LootUtils.Settings.Terminate then
+            doCashSell = true
         elseif args[1] == 'reload' then
             lootData = {}
             LootUtils.Settings.logger.Info("Reloaded Loot File")
@@ -512,6 +543,8 @@ local function lootItem(index, doWhat, button)
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
     LootUtils.report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
+    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name())
+    -- FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.ItemLink('CLICKABLE')())
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -521,6 +554,7 @@ function LootUtils.lootCorpse(corpseID)
     if mq.TLO.Cursor() then checkCursor() end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
         LootUtils.report('My bags are full, I can\'t loot anymore!')
+        FableLooter.GUI.addToConsole('My bags are full, I can\'t loot anymore!')
     end
     for i = 1, 3 do
         mq.cmd('/loot')
@@ -528,9 +562,13 @@ function LootUtils.lootCorpse(corpseID)
         if mq.TLO.Window('LootWnd').Open() then break end
     end
     mq.doevents('CantLoot')
+    mq.doevents('OutOfRange1')
+    mq.doevents('OutOfRange2')
     mq.delay(3000, function() return cantLootID > 0 or mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.Settings.logger.Warn(('Can\'t loot %s right now'):format(mq.TLO.Target.CleanName()))
+        FableLooter.GUI.addToConsole(('Can\'t loot %s right now'):format(mq.TLO.Target.CleanName()) ..
+            ' ID: ' .. mq.TLO.Target.ID())
         cantLootList[corpseID] = os.time()
         return
     end
@@ -573,6 +611,7 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
+            FableLooter.GUI.addToConsole(skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -636,6 +675,7 @@ function eventSell(line, itemName)
     end
     if LootUtils.AddNewSales then
         LootUtils.Settings.logger.Info(string.format('Setting %s to Sell', itemName))
+        FableLooter.GUI.addToConsole(string.format('Setting %s to Sell', itemName))
         if not lootData[firstLetter] then lootData[firstLetter] = {} end
         lootData[firstLetter][itemName] = 'Sell'
         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, firstLetter, itemName, 'Sell')
@@ -656,12 +696,12 @@ local function goToVendor()
     return true
 end
 
-local function openVendor()
+local function openVendor(vendorType)
     LootUtils.Settings.logger.Debug('Opening merchant window')
     mq.cmd('/nomodkey /click right target')
     LootUtils.Settings.logger.Debug('Waiting for merchant window to populate')
-    mq.delay(1000, function() return mq.TLO.Window('MerchantWnd').Open() end)
-    if not mq.TLO.Window('MerchantWnd').Open() then return false end
+    mq.delay(1000, function() return mq.TLO.Window(vendorType).Open() end)
+    if not mq.TLO.Window(vendorType).Open() then return false end
     mq.delay(5000, function() return mq.TLO.Merchant.ItemsReceived() end)
     return mq.TLO.Merchant.ItemsReceived()
 end
@@ -685,6 +725,7 @@ local function sellToVendor(itemToSell)
     while mq.TLO.FindItemCount('=' .. itemToSell)() > 0 do
         if mq.TLO.Window('MerchantWnd').Open() then
             LootUtils.Settings.logger.Info('Selling ' .. itemToSell)
+            FableLooter.GUI.addToConsole('Selling ' .. itemToSell)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
             mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
             mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
@@ -703,7 +744,7 @@ end
 function LootUtils.sellStuff(closeWindowWhenDone)
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then return end
-        if not openVendor() then return end
+        if not openVendor('MerchantWnd') then return end
     end
 
     local totalPlat = mq.TLO.Me.Platinum()
@@ -748,6 +789,77 @@ function LootUtils.sellStuff(closeWindowWhenDone)
     end
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
     LootUtils.Settings.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
+    FableLooter.GUI.addToConsole(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
+end
+
+local function sellCashItemsToVendor(itemToSell)
+    if NEVER_SELL[itemToSell] then return end
+    while mq.TLO.FindItemCount('=' .. itemToSell)() > 0 do
+        if mq.TLO.Window('NewPointMerchantWnd').Open() then
+            mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
+            LootUtils.Settings.logger.Info('Selling ' .. mq.TLO.SelectedItem.ItemLink('CLICKABLE')())
+            FableLooter.GUI.addToConsole('Selling ' .. mq.TLO.SelectedItem.Name())
+            mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == itemToSell end)
+            mq.delay(500)
+            mq.cmd('/nomodkey /shiftkey /notify NewPointMerchantWnd NewPointMerchant_SellButton leftmouseup')
+            mq.doevents('eventNovalue')
+            if cashItemNoValue == itemToSell then
+                -- addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
+                cashItemNoValue = nil
+                break
+            end
+            -- TODO: handle vendor not wanting item / item can't be sold
+            mq.delay(1000, function() return mq.TLO.SelectedItem.Name() == '' end)
+        end
+    end
+end
+
+function LootUtils.sellCashItems(closeWindowWhenDone)
+    if not mq.TLO.Window('NewPointMerchantWnd').Open() then
+        if not goToVendor() then return end
+        if not openVendor('NewPointMerchantWnd') then return end
+    end
+
+    local totalCash = mq.TLO.Me.AltCurrency('Cash')()
+    -- sell any top level inventory items that are marked as well, which aren't bags
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        if bagSlot.Container() == 0 then
+            if bagSlot.ID() then
+                local itemToSell = bagSlot.Name()
+                local sellRule = getRule(bagSlot)
+                if sellRule == 'Cash' then
+                    sellCashItemsToVendor(itemToSell)
+                    mq.delay(250)
+                end
+            end
+        end
+    end
+    -- sell any items in bags which are marked as sell
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        local containerSize = bagSlot.Container()
+        if containerSize and containerSize > 0 then
+            for j = 1, containerSize do
+                local itemToSell = bagSlot.Item(j).Name()
+                if itemToSell then
+                    local sellRule = getRule(bagSlot.Item(j))
+                    if sellRule == 'Cash' then
+                        sellCashItemsToVendor(itemToSell)
+                        mq.delay(250)
+                    end
+                end
+            end
+        end
+    end
+    mq.flushevents('Sell')
+    if mq.TLO.Window('MerchantWnd').Open() and closeWindowWhenDone then
+        mq.cmd(
+            '/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup')
+    end
+    local newTotalCash = mq.TLO.Me.AltCurrency('Cash')() - totalCash
+    LootUtils.Settings.logger.Info(string.format('Total cash value sold: \ag%s\ax', newTotalCash))
+    FableLooter.GUI.addToConsole(string.format('Total cash value sold: \ag%s\ax', newTotalCash))
 end
 
 -- BANKING
@@ -835,17 +947,26 @@ function eventForage()
         -- >= because .. does finditemcount not count the item on the cursor?
         if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
             if mq.TLO.Cursor.Name() == foragedItem then
-                if LootUtils.LootForageSpam then LootUtils.Settings.logger.Info('Destroying foraged item ' .. foragedItem) end
+                if LootUtils.LootForageSpam then
+                    LootUtils.Settings.logger.Info('Destroying foraged item ' .. foragedItem)
+                    FableLooter.GUI.addToConsole('Destroying foraged item ' .. foragedItem)
+                end
                 mq.cmd('/destroy')
                 mq.delay(500)
             end
             -- will a lore item we already have even show up on cursor?
             -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
         elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
-            if LootUtils.LootForageSpam then LootUtils.Settings.logger.Info('Keeping foraged item ' .. foragedItem) end
+            if LootUtils.LootForageSpam then
+                LootUtils.Settings.logger.Info('Keeping foraged item ' .. foragedItem)
+                FableLooter.GUI.addToConsole('Keeping foraged item ' .. foragedItem)
+            end
             mq.cmd('/autoinv')
         else
-            if LootUtils.LootForageSpam then LootUtils.Settings.logger.Warn('Unable to process item ' .. foragedItem) end
+            if LootUtils.LootForageSpam then
+                LootUtils.Settings.logger.Warn('Unable to process item ' .. foragedItem)
+                FableLooter.GUI.addToConsole('Unable to process item ' .. foragedItem)
+            end
             break
         end
         mq.delay(50)
@@ -858,6 +979,10 @@ local function processArgs(args)
     if #args == 1 then
         if args[1] == 'Sell' then
             LootUtils.sellStuff(false)
+        elseif args[1] == 'fabled' then
+            -- LootUtils.sellCashItems(false)
+        elseif args[1] == 'cash' then
+            LootUtils.sellCashItems(false)
         elseif args[1] == 'once' then
             LootUtils.lootMobs()
         elseif args[1] == 'standalone' then
@@ -886,6 +1011,10 @@ while not LootUtils.Settings.Terminate do
     if doSell then
         LootUtils.sellStuff(false)
         doSell = false
+    end
+    if doCashSell then
+        LootUtils.sellCashItems(false)
+        doCashSell = false
     end
     mq.delay(1000)
 end
