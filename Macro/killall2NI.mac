@@ -413,7 +413,7 @@ sub LootMobs
            
     /if (${SpawnCount[${corpseSearch}]}) /goto :lootLoop
     /call  ClearCorpses
-    /alert clear 25
+    /squelch /alert clear 25
 /return
 
 Sub ScanCorpse
@@ -423,19 +423,21 @@ Sub ScanCorpse
     /delay CorpseOpenDelay ${Corpse.Items}
     /declare itemAction string local
     /declare lootItem string local
+    /declare lootItemLink string local
     :reScan
     /for x 0 to 30
         /if (${Corpse.Item[${x}].ID}) {
             /varset lootItem ${Corpse.Item[${x}].Name}
+            /varset lootItemLink ${Corpse.Item[${x}].ItemLink[CLICKABLE]}
             /varset itemAction ${Ini[${lootINIFile},${lootItem.Left[1]},${lootItem}]}
             /if (${itemAction.Equal[Keep]} || ${itemAction.Equal[Sell]} || ${itemAction.Equal[Fabled]} || ${itemAction.Equal[Cash]}) {
                 /call LootItem ${x}
-                /call PRINTMETHOD "Looting<${lootItem}> to ${itemAction}"
+                /call PRINTMETHOD "Looting<${lootItemLink}> to ${itemAction}"
             } else /if (${itemAction.Equal[Ignore]}) {
-                /call PRINTMETHOD "Skipping<${lootItem}>"
+                /call PRINTMETHOD "Skipping<${lootItemLink}>"
             } else /if (${lootItem.Find[${fabledCheck}]} > 0 && ${LootFabledItems}) {
                 /call LootItem ${x}
-                /call PRINTMETHOD "Looting<${lootItem}>"
+                /call PRINTMETHOD "Looting<${lootItemLink}>"
             }
         }
         /varset lootItem ""
