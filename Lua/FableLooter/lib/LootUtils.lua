@@ -820,6 +820,7 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
         if not goToVendor() then return end
         if not openVendor('NewPointMerchantWnd') then return end
     end
+
     local totalCash = mq.TLO.Me.AltCurrency('Cash')()
     -- sell any top level inventory items that are marked as well, which aren't bags
     for i = 1, 10 do
@@ -828,12 +829,16 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
             if bagSlot.ID() then
                 local itemToSell = bagSlot.Name()
                 local sellRule = getRule(bagSlot)
-                if sellRule == 'Cash' then
-                    mq.cmdf('/nomodkey /itemnotify pack%s leftmouseup', i)
-                    mq.delay(500, function() return mq.TLO.SelectedItem.Name() ~= nil end)
-                    sellCashItemsToVendor(itemToSell)
-                end
+                if sellRule == 'Cash' then sellCashItemsToVendor(itemToSell) end
             end
+        end
+    end
+    -- sell any top level inventory items that are marked as well, which aren't bags
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        if bagSlot.Container() > 0 then
+            mq.cmdf('/nomodkey /itemnotify pack%s rightmouseup', i)
+            mq.delay(50)
         end
     end
     -- sell any items in bags which are marked as sell
