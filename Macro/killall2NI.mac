@@ -126,6 +126,7 @@ sub Main
 
     /call PRINTMETHOD "Starting the slaughter!"
     :KillLoop
+    /call HandleDisconnect
     /if (${Zone.ID} != ${startZone}) {
          /call PRINTMETHOD "We left zone !!!"
         /if (${DynamicZone.Name.NotEqual[NULL]}) {
@@ -243,6 +244,14 @@ sub Main
     /call AggroZone
 
     /goto :KillLoop
+/return
+
+sub HandleDisconnect()
+    /if (${EverQuest.GameState.Equal[CHARSELECT]}) {
+        /notify CharacterListWnd CLW_Play_Button leftmouseup
+        /delay 50
+        /delay 10000 ${EverQuest.GameState.Equal[INGAME]}
+    }
 /return
 
 sub CheckPet
