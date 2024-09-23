@@ -58,13 +58,13 @@ sub Main
     | Name of the FableLooter character
     /declare AltLooterName string outer Binli
     | Do you want to loot items?
-    /declare DoLoot bool outer false
+    /declare DoLoot bool outer true
     | | Change LootFabledItems to false to skip looting fableds that you have not maked as loot
     /declare LootFabledItems bool outer false
     | Should we pickup things goblins are dropping when running?
     /declare LootGroundSpawns bool outer false
     | Which INI file should we read for looting?
-    /declare lootINIFile string outer wtloot.ini
+    /declare lootINIFile string outer EZLoot\\EZLoot.ini
     | Should we use Experience Potions?
     /declare UseExpPotions bool outer true
     | Make sure we don't delevel below 80?
@@ -119,6 +119,7 @@ sub Main
     /call PRINTMETHOD "Initialized"
     /call PRINTMETHOD "Camp set in zone ${startZoneName}"
     /call PRINTMETHOD "Location: X(${startX}) Y(${startY}) Z(${startZ})"
+    /call PRINTMETHOD "Loot INI File: ${lootINIFile}"
 
     /if (${Pet.ID}) /call CheckPetAoE
     /call CheckBuffs
@@ -181,11 +182,12 @@ sub Main
             /target id ${Spawn[npc alert 2].ID}
             /delay 1 ${Target.ID}
             /if (${Target.Distance} > 5 && ${Target.CleanName.NotEqual[Raging Treasure Goblin]}) /squelch /warp t 
-            /call killThis 
-            /if (${DoLoot} && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory} && !${Me.CombatState.Equal[COMBAT]}) /call LootMobs 
-            /call CheckGroundSpawns
+            /call killThis  
         }
 	}
+
+    /if (${DoLoot} && ${SpawnCount[${corpseSearch}]} && ${Me.FreeInventory}) /call LootMobs
+    /call CheckGroundSpawns
 
     /if (${ClickAATokens} && ${FindItemCount[Token of Advancement]} && !${tokenTimer}) {
 		/useitem "${FindItem[Token of Advancement].Name}"
@@ -275,7 +277,7 @@ sub CheckBuffs
     /call CheckAggro
     /if (!${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
         /alt act 39902
-        /delay 10000 !${Me.Casting.ID}
+        /delay 5000 !${Me.Casting.ID}
     }
     /if (${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
         /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
@@ -424,11 +426,12 @@ Sub ScanCorpse
     :reScan
     /for x 0 to 30
         /if (${Corpse.Item[${x}].ID}) {
-            /varset lootItem ${Corpse.Item[${x}].Name} /varset itemAction ${Ini[${lootINIFile}, ${lootItem.Left[1]}, ${lootItem}]}
-            /if (${itemAction.Equal[keep]} || ${itemAction.Equal[sell]}) {
+            /varset lootItem ${Corpse.Item[${x}].Name}
+            /varset itemAction ${Ini[${lootINIFile},${lootItem.Left[1]},${lootItem}]}
+            /if (${itemAction.Equal[Keep]} || ${itemAction.Equal[Sell]} || ${itemAction.Equal[Fabled]} || ${itemAction.Equal[Cash]}) {
                 /call LootItem ${x}
                 /call PRINTMETHOD "Looting<${lootItem}> to ${itemAction}"
-            } else /if (${itemAction.Equal[ignore]}) {
+            } else /if (${itemAction.Equal[Ignore]}) {
                 /call PRINTMETHOD "Skipping<${lootItem}>"
             } else /if (${lootItem.Find[${fabledCheck}]} > 0 && ${LootFabledItems}) {
                 /call LootItem ${x}
