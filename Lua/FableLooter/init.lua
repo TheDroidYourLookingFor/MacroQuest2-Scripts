@@ -113,9 +113,13 @@ end
 function FableLooter.MoveToCamp()
     if mq.TLO.Zone.ID() == FableLooter.huntZoneID then
         if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
-            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
-                FableLooter.camp_Z)
-            mq.delay(50)
+            if FableLooter.Settings.staticHunt then
+                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings.staticX, FableLooter.Settings.staticZ)
+                mq.delay(50)
+            else
+                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+                mq.delay(50)
+            end
         end
     end
 end
@@ -139,9 +143,13 @@ function FableLooter.GroundSpawns()
             mq.delay(5000, function() return mq.TLO.Cursor() == nil end)
         end
         if FableLooter.Settings.returnHomeAfterLoot then
-            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
-                FableLooter.camp_Z)
-            mq.delay(50)
+            if FableLooter.Settings.staticHunt then
+                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings.staticX, FableLooter.Settings.staticZ)
+                mq.delay(50)
+            else
+                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+                mq.delay(50)
+            end
         end
         if FableLooter.Settings.pauseMacro then
             if mq.TLO.Macro() then
@@ -349,9 +357,13 @@ function FableLooter.Main()
                 mq.doevents()
                 mq.delay(100)
                 if FableLooter.Settings.returnHomeAfterLoot then
-                    mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X,
-                        FableLooter.camp_Z)
-                    mq.delay(50)
+                    if FableLooter.Settings.staticHunt then
+                        mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings.staticX, FableLooter.Settings.staticZ)
+                        mq.delay(50)
+                    else
+                        mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+                        mq.delay(50)
+                    end
                 end
             end
             if FableLooter.Settings.pauseMacro then
