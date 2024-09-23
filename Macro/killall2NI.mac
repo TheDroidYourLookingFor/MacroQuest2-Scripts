@@ -92,6 +92,7 @@ sub Main
     /squelch /alert add 1 "a guardian spirit"
     /squelch /alert add 1 "Swarmcontroller"
     /squelch /alert add 1 "SwarmSpawnB"
+    /squelch /alert add 1 "The ground"
 
     /call PRINTMETHOD "Loading Priority Alert List"
     | comment out any goblin you don't prioritize 
