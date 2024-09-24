@@ -24,7 +24,7 @@ FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
 
 FableLooter.Settings = {
-    version = "1.0.10",
+    version = "1.0.11",
     debug = false,
     pauseMacro = false,
     bankDeposit = false,

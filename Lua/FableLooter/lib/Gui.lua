@@ -2,7 +2,7 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.10'
+gui.version = '1.0.11'
 
 -- FableLooter
 gui.DEBUG = false
@@ -415,7 +415,58 @@ function gui.FableLooterGUI()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
-                    ImGui.Unindent()
+                    ImGui.Unindent();
+                end
+                if ImGui.CollapsingHeader("Corpse Targetting") then
+                    ImGui.Indent();
+                    FableLooter.Settings.lootAll = ImGui.Checkbox('Enable Loot all', FableLooter.Settings.lootAll)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Should we just loot all corpses ignoring corpse filter?')
+                    if gui.LOOTALL ~= FableLooter.Settings.lootAll then
+                        gui.LOOTALL = FableLooter.Settings.lootAll
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.targetName = ImGui.InputText('Corpse Target Name',
+                        FableLooter.Settings.targetName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Look for this name on corpses when looting.')
+                    if gui.TARGETNAME ~= FableLooter.Settings.targetName then
+                        gui.TARGETNAME = FableLooter.Settings.targetName
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.spawnSearch = ImGui.InputText('Corpse Search', FableLooter.Settings.spawnSearch)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('How we should filter corpses')
+                    if gui.SPAWNSEARCH ~= FableLooter.Settings.spawnSearch then
+                        gui.SPAWNSEARCH = FableLooter.Settings.spawnSearch
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_Radius, 1,
+                        100000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The radius we should look for corpses.')
+                    if gui.SCANRADIUS ~= FableLooter.Settings.scan_Radius then
+                        gui.SCANRADIUS = FableLooter.Settings.scan_Radius
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.scan_zRadius = ImGui.SliderInt("Scan zRadius", FableLooter.Settings
+                        .scan_zRadius, 1,
+                        10000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The z radius we should look for corpses.')
+                    if gui.SCANZRADIUS ~= FableLooter.Settings.scan_zRadius then
+                        gui.SCANZRADIUS = FableLooter.Settings.scan_zRadius
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Unindent();
                 end
                 ImGui.Columns(2)
                 local start_y_Options = ImGui.GetCursorPosY()
@@ -435,7 +486,6 @@ function gui.FableLooterGUI()
                     gui.PAUSEMACRO = FableLooter.Settings.pauseMacro
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                 end
-                ImGui.Separator();
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y_Options)
@@ -446,55 +496,7 @@ function gui.FableLooterGUI()
                     gui.DOSTAND = FableLooter.Settings.doStand
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                 end
-                ImGui.Separator();
-
-                FableLooter.Settings.lootAll = ImGui.Checkbox('Enable Loot all', FableLooter.Settings.lootAll)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Should we just loot all corpses ignoring corpse filter?')
-                if gui.LOOTALL ~= FableLooter.Settings.lootAll then
-                    gui.LOOTALL = FableLooter.Settings.lootAll
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
-                end
-                ImGui.Separator();
                 ImGui.Columns(1);
-
-                FableLooter.Settings.targetName = ImGui.InputText('Corpse Target Name', FableLooter.Settings.targetName)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Look for this name on corpses when looting.')
-                if gui.TARGETNAME ~= FableLooter.Settings.targetName then
-                    gui.TARGETNAME = FableLooter.Settings.targetName
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
-                end
-                ImGui.Separator();
-
-                FableLooter.Settings.spawnSearch = ImGui.InputText('Corpse Search', FableLooter.Settings.spawnSearch)
-                ImGui.SameLine()
-                ImGui.HelpMarker('How we should filter corpses')
-                if gui.SPAWNSEARCH ~= FableLooter.Settings.spawnSearch then
-                    gui.SPAWNSEARCH = FableLooter.Settings.spawnSearch
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
-                end
-                ImGui.Separator();
-
-                FableLooter.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_Radius, 1,
-                    100000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The radius we should look for corpses.')
-                if gui.SCANRADIUS ~= FableLooter.Settings.scan_Radius then
-                    gui.SCANRADIUS = FableLooter.Settings.scan_Radius
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
-                end
-                ImGui.Separator();
-
-                FableLooter.Settings.scan_zRadius = ImGui.SliderInt("Scan zRadius", FableLooter.Settings.scan_zRadius, 1,
-                    10000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The z radius we should look for corpses.')
-                if gui.SCANZRADIUS ~= FableLooter.Settings.scan_zRadius then
-                    gui.SCANZRADIUS = FableLooter.Settings.scan_zRadius
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
-                end
-                ImGui.Separator();
                 ImGui.Unindent()
             end
             if ImGui.CollapsingHeader('EZLoot Options') then

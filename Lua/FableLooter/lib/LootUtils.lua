@@ -115,7 +115,7 @@ end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.10",
+    Version = "1.0.11",
     UseWarp = true,
     AddNewSales = true,
     LootForage = true,
@@ -428,10 +428,10 @@ LootUtils.CorpseFixCounter = 0
 LootUtils.LastCorpseFixID = 0
 local function event_CantLoot_handler(line)
     FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
-    mq.cmdf('%s', '/say #corpsefix')
-    mq.delay(50)
     LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
     if LootUtils.CorpseFixCounter >= 3 then
+        mq.cmdf('%s', '/say #corpsefix')
+        mq.delay(50)
         FableLooter.GUI.addToConsole(('Can\'t loot %s(%s) right now'):format(mq.TLO.Target.CleanName(),
             mq.TLO.Target.ID()))
         if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then cantLootID = mq.TLO.Target.ID() end
