@@ -402,6 +402,9 @@ local function getRule(item)
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 lootDecision = 'Bank'
             end
+            if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP <= LootUtils.EmpoweredFabledMinHP then
+                lootDecision = 'Fabled'
+            end
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             lootDecision = 'Bank'
@@ -430,13 +433,13 @@ local function event_CantLoot_handler(line)
     FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
     LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
     if LootUtils.CorpseFixCounter >= 3 then
+        LootUtils.CorpseFixCounter = 0
         mq.cmdf('%s', '/say #corpsefix')
         mq.delay(50)
         FableLooter.GUI.addToConsole(('Can\'t loot %s(%s) right now'):format(mq.TLO.Target.CleanName(),
             mq.TLO.Target.ID()))
         if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then cantLootID = mq.TLO.Target.ID() end
         LootUtils.LastCorpseFixID = mq.TLO.Target.ID()
-        LootUtils.CorpseFixCounter = 0
     end
 end
 
@@ -545,8 +548,8 @@ local function lootItem(index, doWhat, button)
     mq.delay(1) -- force next frame
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
-    LootUtils.report('Looted: %s', corpseItem.ItemLink('CLICKABLE')())
-    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name())
+    LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     -- FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.ItemLink('CLICKABLE')())
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end

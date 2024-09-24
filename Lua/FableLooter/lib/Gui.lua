@@ -15,6 +15,7 @@ gui.BANKZONE = 451
 gui.BANKNPC = 'Griphook'
 gui.FABLEDNPC = 'The Fabled Jim Carrey'
 gui.CASHNPC = 'Silent Bob'
+gui.SELLFABLEDFOR = 'Papers'
 gui.SCANRADIUS = 10000
 gui.SCANZRADIUS = 250
 gui.RETURNTOCAMPDISTANCE = 200
@@ -89,6 +90,36 @@ function gui.addToConsole(text, ...)
     table.insert(gui.outputLog, logEntry)
 end
 
+gui.CreateComboBox = {
+    flags = 0
+}
+function gui.CreateComboBox:draw(cb_label, buffs, current_idx, width)
+    local combo_buffs = buffs[current_idx]
+
+    ImGui.PushItemWidth(width)
+    if ImGui.BeginCombo(cb_label, combo_buffs, ImGuiComboFlags.None) then
+        for n = 1, #buffs do
+            local is_selected = current_idx == n
+            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
+                current_idx = n
+            end
+
+            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if is_selected then
+                ImGui.SetItemDefaultFocus()
+            end
+        end
+        ImGui.EndCombo()
+    end
+    return current_idx
+end
+
+local SellFabledFor_idx
+gui.SellFabledForType = {
+    'Doubloons',
+    'Papers',
+    'Cash'
+}
 function gui.FableLooterGUI()
     if gui.Open then
         gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui.version, gui.Open)
@@ -305,6 +336,12 @@ function gui.FableLooterGUI()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
+
+                    FableLooter.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, FableLooter.Settings.SellFabledFor_idx);
+                    if SellFabledFor_idx ~= FableLooter.Settings.SellFabledFor_idx then
+                        SellFabledFor_idx = FableLooter.Settings.SellFabledFor_idx
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
 
                     FableLooter.Settings.fabledNPC = ImGui.InputText('Fabled NPC', FableLooter.Settings.fabledNPC)
                     ImGui.SameLine()
@@ -544,7 +581,7 @@ function gui.FableLooterGUI()
                     ImGui.Separator();
 
                     FableLooter.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
-                        FableLooter.LootUtils.EmpoweredFabledMinHP, 1, 10000)
+                        FableLooter.LootUtils.EmpoweredFabledMinHP, 0, 1000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
                     if gui.EMPOWEREDFABLEDMINHP ~= FableLooter.LootUtils.EmpoweredFabledMinHP then

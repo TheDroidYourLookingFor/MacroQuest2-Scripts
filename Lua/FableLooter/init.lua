@@ -24,18 +24,19 @@ FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
 
 FableLooter.Settings = {
-    version = "1.0.11",
+    version = "1.0.4",
     debug = false,
     pauseMacro = false,
-    bankDeposit = false,
-    sellFabled = false,
-    sellCash = false,
+    bankDeposit = true,
+    sellFabled = true,
+    sellCash = true,
     bankAtFreeSlots = 5,
     bankZone = 451,
     bankNPC = 'Griphook',
     cashNPC = 'Silent Bob',
     fabledNPC = 'The Fabled Jim Carrey',
-    SellFabledFor = 'Papers', -- Doublons, Papers, Cash
+    SellFabledFor = 'Cash', -- Doublons, Papers, Cash
+    SellFabledFor_idx = 3,
     corpseCleanup = true,
     corpseCleanupCommand = '/say #deletecorpse',
     corpseLimit = 500,
@@ -45,7 +46,7 @@ FableLooter.Settings = {
     camp_Check = false,
     zone_Check = true,
     lootGroundSpawns = true,
-    returnHomeAfterLoot = false,
+    returnHomeAfterLoot = true,
     doStand = true,
     lootAll = false,
     useExpPotions = false,
@@ -195,7 +196,9 @@ function FableLooter.BankDropOff()
             mq.delay(500)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function() return mq.TLO.Window('BigBankWnd').Open() end)
+            mq.delay(50)
             FableLooter.LootUtils.bankStuff()
+            mq.delay(500)
             if FableLooter.Settings.sellFabled then
                 FableLooter.needToFabledSell = true
                 FableLooter.FabledSell()
