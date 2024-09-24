@@ -731,7 +731,12 @@ local function goToVendor()
 
     LootUtils.ConsoleMessage('Info', 'Doing business with %s', vendorName)
     if mq.TLO.Target.Distance() > 15 then
-        navToID(mq.TLO.Target.ID())
+        if LootUtils.UseWarp then
+            mq.cmdf('%s', '/warp t')
+            mq.delay(500)
+        else
+            navToID(mq.TLO.Target.ID())
+        end
     end
     return true
 end

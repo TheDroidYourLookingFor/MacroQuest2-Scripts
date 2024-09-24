@@ -12,6 +12,8 @@ gui.BANKATFREESLOTS = 5
 gui.BANKZONE = 451
 gui.BANKNPC = 'Griphook'
 gui.FABLEDNPC = 'The Fabled Jim Carrey'
+gui.SELLVENDOR = false
+gui.VENDORNPC = 'Kirito'
 gui.CASHNPC = 'Silent Bob'
 gui.SELLFABLEDFOR = 'Papers'
 gui.SCANRADIUS = 10000
@@ -131,18 +133,24 @@ function gui.FableLooterGUI()
         ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
         ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
         if gui.ShowUI then
-            local buttonWidth, buttonHeight = 150, 30
+            local buttonWidth, buttonHeight = 140, 30
             local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
             if ImGui.Button('Bank', buttonImVec2) then
                 FableLooter.needToBank = true
             end
-            ImGui.SameLine(235)
+            ImGui.SameLine(150)
+            ImGui.Spacing()
+            ImGui.SameLine()
+            if ImGui.Button('Plat Sell', buttonImVec2) then
+                FableLooter.needToVendorSell = true
+            end
+            ImGui.SameLine(300)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Cash Sell', buttonImVec2) then
                 FableLooter.needToCashSell = true
             end
-            ImGui.SameLine(455)
+            ImGui.SameLine(450)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Fabled Sell', buttonImVec2) then
@@ -286,12 +294,11 @@ function gui.FableLooterGUI()
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', FableLooter.Settings
-                        .sellCash)
+                    FableLooter.Settings.sellVendor = ImGui.Checkbox('Enable Vendor Selling', FableLooter.Settings.sellVendor)
                     ImGui.SameLine()
-                    ImGui.HelpMarker('Sells items for Cash when enabled.')
-                    if gui.SELLCASH ~= FableLooter.Settings.sellCash then
-                        gui.SELLCASH = FableLooter.Settings.sellCash
+                    ImGui.HelpMarker('Sells items for Platinum when enabled.')
+                    if gui.SELLVENDOR ~= FableLooter.Settings.sellVendor then
+                        gui.SELLVENDOR = FableLooter.Settings.sellVendor
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
@@ -304,6 +311,16 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('Sells items fabled items for currency when enabled.')
                     if gui.SELLFABLED ~= FableLooter.Settings.sellFabled then
                         gui.SELLFABLED = FableLooter.Settings.sellFabled
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', FableLooter.Settings
+                        .sellCash)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Sells items for Cash when enabled.')
+                    if gui.SELLCASH ~= FableLooter.Settings.sellCash then
+                        gui.SELLCASH = FableLooter.Settings.sellCash
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
@@ -320,9 +337,18 @@ function gui.FableLooterGUI()
 
                     FableLooter.Settings.bankNPC = ImGui.InputText('Bank NPC', FableLooter.Settings.bankNPC)
                     ImGui.SameLine()
-                    ImGui.HelpMarker('The name of the npc to warp to to bank.')
+                    ImGui.HelpMarker('The name of the npc to warp to for banking.')
                     if gui.BANKNPC ~= FableLooter.Settings.bankNPC then
                         gui.BANKNPC = FableLooter.Settings.bankNPC
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.vendorNPC = ImGui.InputText('Vendor NPC', FableLooter.Settings.vendorNPC)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
+                    if gui.VENDORNPC ~= FableLooter.Settings.vendorNPC then
+                        gui.VENDORNPC = FableLooter.Settings.vendorNPC
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
