@@ -1,6 +1,7 @@
 local mq = require('mq')
-local messages = {}
+local messages = { _version = '1.0', _author = 'TheDroidUrLookingFor' }
 messages.script_ShortName = 'FableLooter'
+messages.debug = false
 
 local Colors = {
     b = "\ab",  -- black
@@ -51,17 +52,46 @@ function messages.ScriptInfo()
 end
 
 function messages.CONSOLEMETHOD(isDebugMessage, consoleMessage, ...)
+    -- Get the current time in a readable format (HH:MM:SS)
+    local timestamp = os.date("[%H:%M:%S]")
     if isDebugMessage then
-        if FableLooter.debug then
-            printf(Colors.g .. "[%s] " .. Colors.r .. consoleMessage .. Colors.x, ScriptInfo(), ...)
+        if messages.debug then
+            printf("%s" .. Colors.g .. "[%s]" .. Colors.r .. consoleMessage .. Colors.x, timestamp, messages.ScriptInfo(), ...)
         end
     else
-        printf(Colors.g .. "[%s] " .. Colors.w .. consoleMessage .. Colors.x, messages.script_ShortName, ...)
+        printf("%s" .. Colors.w .. consoleMessage .. Colors.x, timestamp, ...)
     end
 end
-
 function messages.POPUPMETHOD(popupMessage, ...)
     mq.cmdf('/popup %s', popupMessage, ...)
+end
+
+function messages.Normal(consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .."]" .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Info(consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .."]" .. Colors.p .. '[INFO] ' .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Warn(consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .."]" .. Colors.y .. '[WARN] ' .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Debug(consoleMessage, ...)
+    messages.CONSOLEMETHOD(true, Colors.r .. '[DEBUG] ' .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Error(consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .."]" .. Colors.Y .. '[ERROR] ' .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Fatal(consoleMessage, ...)
+    messages.CONSOLEMETHOD(true, Colors.R .. '[FATAL] ' .. Colors.w .. consoleMessage, ...)
+end
+
+function messages.Trace(consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .."]" .. Colors.P .. '[TRACE] ' .. Colors.w .. consoleMessage, ...)
 end
 
 return messages

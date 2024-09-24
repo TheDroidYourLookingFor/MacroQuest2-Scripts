@@ -1,30 +1,27 @@
 local mq = require('mq')
 
-FableLooter = {
-    script_ShortName = 'FableLooter',
-    command_ShortName = 'flb',
-    command_LongName = 'fableloot',
-    Terminate = false,
-    needToBank = false,
-    needToCashSell = false,
-    needToFabledSell = false,
-    mob_Wait = 50000,
-    settingsFile = mq.configDir .. '\\FableLooter.' .. mq.TLO.EverQuest.Server() .. '_' ..
-        mq.TLO.Me.CleanName() .. '.ini',
-    huntZoneID = mq.TLO.Zone.ID(),
-    huntZoneName = mq.TLO.Zone.ShortName(),
-    camp_X = mq.TLO.Me.X(),
-    camp_Y = mq.TLO.Me.Y(),
-    camp_Z = mq.TLO.Me.Z()
-}
-
+FableLooter = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
 FableLooter.LootUtils = require('FableLooter.lib.LootUtils')
 FableLooter.Messages = require('FableLooter.lib.Messages')
 FableLooter.GUI = require('FableLooter.lib.Gui')
 FableLooter.Storage = require('FableLooter.lib.Storage')
+FableLooter.script_ShortName = 'FableLooter'
+FableLooter.command_ShortName = 'flb'
+FableLooter.command_LongName = 'fableloot'
+FableLooter.Terminate = false
+FableLooter.needToBank = false
+FableLooter.needToCashSell = false
+FableLooter.needToFabledSell = false
+FableLooter.mob_Wait = 50000
+FableLooter.settingsFile = mq.configDir .. '\\FableLooter.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+FableLooter.huntZoneID = mq.TLO.Zone.ID()
+FableLooter.huntZoneName = mq.TLO.Zone.ShortName()
+FableLooter.camp_X = mq.TLO.Me.X()
+FableLooter.camp_Y = mq.TLO.Me.Y()
+FableLooter.camp_Z = mq.TLO.Me.Z()
 
 FableLooter.Settings = {
-    version = "1.0.4",
+    version = FableLooter._version,
     debug = false,
     pauseMacro = false,
     bankDeposit = true,
@@ -63,13 +60,13 @@ FableLooter.Settings = {
 }
 
 function FableLooter.SaveSettings(iniFile, settingsList)
-    FableLooter.Messages.CONSOLEMETHOD(true, 'function SaveSettings(iniFile, settingsList) Entry')
+    FableLooter.Messages.Debug('function SaveSettings(iniFile, settingsList) Entry')
     ---@diagnostic disable-next-line: undefined-field
     mq.pickle(iniFile, settingsList)
 end
 
 function FableLooter.Setup()
-    FableLooter.Messages.CONSOLEMETHOD(true, 'function Setup() Entry')
+    FableLooter.Messages.Debug('function Setup() Entry')
     local conf
     local configData, err = loadfile(FableLooter.settingsFile)
     if err then
@@ -290,29 +287,29 @@ local function binds(...)
             FableLooter.terminate = true
             mq.cmdf('/lua stop %s', FableLooter.script_ShortName)
         else
-            FableLooter.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI',
+            FableLooter.Messages.Normal('Valid Commands:')
+            FableLooter.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI',
                 FableLooter.command_ShortName)
-            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items',
+            FableLooter.Messages.Normal('/%s \agbank\aw - Send your character to bank items',
                 FableLooter.command_ShortName)
-            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agfabled\aw - Send your character to sell fabled items',
+            FableLooter.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items',
                 FableLooter.command_ShortName)
-            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agcash\aw - Send your character to sell cash items',
+            FableLooter.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items',
                 FableLooter.command_ShortName)
-            FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.',
+            FableLooter.Messages.Normal('/%s \agquit\aw - Quits the lua script.',
                 FableLooter.command_ShortName)
         end
     else
-        FableLooter.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI',
+        FableLooter.Messages.Normal('Valid Commands:')
+        FableLooter.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI',
             FableLooter.command_ShortName)
-        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agbank\aw - Send your character to bank items',
+        FableLooter.Messages.Normal('/%s \agbank\aw - Send your character to bank items',
             FableLooter.command_ShortName)
-        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agfabled\aw - Send your character to sell fabled items',
+        FableLooter.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items',
             FableLooter.command_ShortName)
-        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agcash\aw - Send your character to sell cash items',
+        FableLooter.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items',
             FableLooter.command_ShortName)
-        FableLooter.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableLooter
+        FableLooter.Messages.Normal('/%s \agquit\aw - Quits the lua script.', FableLooter
             .command_ShortName)
     end
 end
@@ -351,8 +348,8 @@ end
 function FableLooter.Main()
     setupBinds()
     mq.cmd('/hidecorpse looted')
-    FableLooter.Messages.CONSOLEMETHOD(false, '++ Initialized ++')
-    FableLooter.Messages.CONSOLEMETHOD(false, 'Main Loop Entry')
+    FableLooter.Messages.Normal('++ Initialized ++')
+    FableLooter.Messages.Normal('Main Loop Entry')
     while not FableLooter.Terminate do
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then MainLoop = false end
         if mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then
@@ -441,7 +438,7 @@ function FableLooter.Main()
         FableLooter.GroundSpawns()
         mq.delay(100)
     end
-    FableLooter.Messages.CONSOLEMETHOD(false, 'Main Loop Exit')
+    FableLooter.Messages.Normal('Main Loop Exit')
 end
 
 FableLooter.Main()

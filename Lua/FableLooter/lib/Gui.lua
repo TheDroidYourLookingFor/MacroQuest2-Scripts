@@ -1,8 +1,6 @@
 ---@type Mq
 local mq = require('mq')
-local gui = {}
-
-gui.version = '1.0.11'
+local gui = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
 
 -- FableLooter
 gui.DEBUG = false
@@ -40,7 +38,8 @@ gui.DOLOOT = true
 gui.EQUIPUSABLE = false
 gui.CORPSERADIUS = 100
 gui.MOBSTOOCLOSE = 40
-gui.REPORTLOOT = true
+gui.REPORTLOOT = false
+gui.ANNOUNCELOOT = true
 gui.REPORTSKIPPED = true
 gui.LOOTCHANNEL = "dgt"
 gui.ANNOUNCECHANNEL = 'dgt'
@@ -122,7 +121,7 @@ gui.SellFabledForType = {
 }
 function gui.FableLooterGUI()
     if gui.Open then
-        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui.version, gui.Open)
+        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui._version, gui.Open)
         ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
         local x_size = 620
         local y_size = 680
@@ -660,9 +659,18 @@ function gui.FableLooterGUI()
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y)
+                FableLooter.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', FableLooter.LootUtils.AnnounceLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports looted items to announce channel.')
+                if gui.ANNOUNCELOOT ~= FableLooter.LootUtils.AnnounceLoot then
+                    gui.ANNOUNCELOOT = FableLooter.LootUtils.AnnounceLoot
+                    FableLooter.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
                 FableLooter.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', FableLooter.LootUtils.ReportLoot)
                 ImGui.SameLine()
-                ImGui.HelpMarker('Reports looted items.')
+                ImGui.HelpMarker('Reports looted items to console.')
                 if gui.REPORTLOOT ~= FableLooter.LootUtils.ReportLoot then
                     gui.REPORTLOOT = FableLooter.LootUtils.ReportLoot
                     FableLooter.LootUtils.writeSettings()
