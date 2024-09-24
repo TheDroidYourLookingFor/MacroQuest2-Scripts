@@ -90,6 +90,10 @@ sub Main
     /declare buffCharmName string outer Amulet of Ultimate Buffing
     | The Buff your Amulet of Buffing gives you want to recast if expires
     /declare buffCharmBuffName string outer Talisman of the Panther Rk. III
+
+    |
+    |   Work in progress stuff
+    |
     | | Should we go to hub to bank when bags are full?
     | /declare bankDeposit bool outer false
     | | What zone has our banker?
@@ -158,6 +162,7 @@ sub Main
     /call PRINTMETHOD "Initialized"
     /call PRINTMETHOD "Camp set in zone ${startZoneName}"
     /call PRINTMETHOD "Location: X(${startX}) Y(${startY}) Z(${startZ})"
+    /call PRINTMETHOD "Looting: ${DoLoot}"
     /call PRINTMETHOD "Loot INI File: ${lootINIFile}"
 
     /if (${Pet.ID}) /call CheckPetAoE
