@@ -14,6 +14,7 @@
 #Event CantLoot "You may not loot this corpse at this time."
 #Event OorLoot "#*#You are too far away to loot that corpse#*#"
 #Event OorLoot "#*#Corpse too far away.#*#"
+| #Event SellFabledItems "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'"
 |------------------------------------------------------------| 
 |          Defines 
 |------------------------------------------------------------| 
@@ -64,11 +65,49 @@ sub Main
     | Should we pickup things goblins are dropping when running?
     /declare LootGroundSpawns bool outer false
     | Which INI file should we read for looting?
-    /declare lootINIFile string outer EZLoot\\EZLoot.ini
+    /declare lootINIFile string outer EZLoot\\EZLoot-WT.ini
     | Should we use Experience Potions?
     /declare UseExpPotions bool outer true
     | Make sure we don't delevel below 80?
     /declare KeepMaxLevel bool outer true
+    | Use Bems Coin Sack on timer?
+    /declare useCoinSack bool outer true
+    | Use Currency Double on timer?
+    /declare useCurrencyCharm bool outer true
+    | Use Paladin Class AA?
+    /declare usePaladinAA bool outer true
+    | Use Cleric Class AA?
+    /declare useClericAA bool outer true
+    | Use Bemvaras's Breatplate to cure?
+    /declare useBemChest bool outer true
+    | Use Bemvaras's Legs for exp buff?
+    /declare useBemLegs bool outer true
+    | Use Bemvaras's Gloves for Talisman buff?
+    /declare useBemGloves bool outer true
+    | Use Amulet of Buffing?
+    /declare useBuffCharm bool outer true
+    | Name of your Amulet of Buffing?
+    /declare buffCharmName string outer Amulet of Ultimate Buffing
+    | The Buff your Amulet of Buffing gives you want to recast if expires
+    /declare buffCharmBuffName string outer Talisman of the Panther Rk. III
+    | | Should we go to hub to bank when bags are full?
+    | /declare bankDeposit bool outer false
+    | | What zone has our banker?
+    | /declare bankZone int outer 451
+    | | How many slots left in our inventory before we bank?
+    | /declare bankAtFreeSlots int outer 5
+    | | Who do we use to bank?
+    | /declare bankNPC string outer Griphook
+    | | Should we sell items marked as Fabled?
+    | /declare sellFabled bool outer false
+    | | Who do we sell items marked as Fabled to?
+    | /declare fabledNPC string outer The Fabled Jim Carrey
+    | | What currency do we want in exchange?  Doublons, Papers, Cash
+    | /declare SellFabledFor string outer Papers
+    | | Should we sell items marked as Cash?
+    | /declare sellCash bool outer false
+    | | Who do we sell items marked as Cash to?
+    | /declare cashNPC string outer Silent Bob
     
     /call PRINTMETHOD "Loading Ignore Alert List"
     | add any spawn you wish to ignore here 
@@ -220,18 +259,11 @@ sub Main
         /call killThis
     }
 
-    /if (${Macro.Return} > 3 && ${SpawnCount[npc alert 2]} == 0 && ${Math.Distance[${Me.Y}, ${Me.X}, ${Me.Z}: ${startY}, ${startX}, ${startZ}]} > 10) /squelch /warp loc ${startY} ${startX} ${startZ}
-    /call CheckAggro
-    /if (${Macro.Return} == 0 && ${SpawnCount[${mobsSearch}]} > MinMobsInZone) {
-        /target id ${Me.ID}
-        /delay 3
-        /useitem "${aggroItem}"
-        /delay 3
-	}
-
-    /delay 2
+    /if (${SpawnCount[npc alert 2]} == 0 && ${Math.Distance[${Me.Y}, ${Me.X}, ${Me.Z}: ${startY}, ${startX}, ${startZ}]} > 10) /squelch /warp loc ${startY} ${startX} ${startZ}
+    /call AggroZone
     /call CheckAggro
     /if (${Macro.Return}==13 && ${Me.Combat} && ${Target.Type.Equal[NPC]}) /goto :KillLoop
+    /call CheckAggro
     /if (${Macro.Return}>0) /goto :KillLoop
     /delay 1s ${SpawnCount[${spawnSearch}]}
     /if (${SpawnCount[${spawnSearch}]}) /goto :KillLoop
@@ -278,31 +310,51 @@ sub CheckGroundSpawns
     }
 /return
 
+| RB.ClassAAs = {
+|     Bard = 39908,
+|     Beastlord = 39915,
+|     Berserker = 39916,
+|     Cleric = 39902,
+|     Druid = 39906,
+|     Enchanter = 39914,
+|     Magician = 39913,
+|     Monk = 39907,
+|     Necromancer = 39911,
+|     Paladin = 39903,
+|     Ranger = 39904,
+|     Rogue = 39909,
+|     Shadowknight = 39905,
+|     Shaman = 39910,
+|     Warrior = 39901,
+|     Wizard = 39912
+| }
+
 sub CheckBuffs
-    /if (${Me.ItemReady[Bemvaras' Coin Sack]}) /useitem "Bemvaras' Coin Sack"
-    /if (${FindItem[Soulriever's Charm of Currency].ID} > 0 && ${Me.ItemReady[Soulriever's Charm of Currency]} && !${Me.Buff[Soulriever's Currency Doubler].ID}) /useitem "Soulriever's Charm of Currency"
-    /if ((${Me.Diseased.ID} || ${Me.Cursed.ID} || ${Me.PctHPs}<70) && ${Me.AltAbilityReady[39903]}) /alt act 39903
-    /if ((${Me.Diseased.ID} || ${Me.Cursed.ID}) && ${FindItem[Bemvaras's Golden Breastplate Rk. I].ID} && ${Me.ItemReady[Bemvaras's Golden Breastplate Rk. I]}) /useitem "Bemvaras's Golden Breastplate Rk. I"
+    /if (${useCoinSack} && ${Me.ItemReady[Bemvaras' Coin Sack]}) /useitem "Bemvaras' Coin Sack"
+    /if (${useCurrencyCharm} && ${FindItem[Soulriever's Charm of Currency].ID} > 0 && ${Me.ItemReady[Soulriever's Charm of Currency]} && !${Me.Buff[Soulriever's Currency Doubler].ID}) /useitem "Soulriever's Charm of Currency"
+    /if (${usePaladinAA} && (${Me.Diseased.ID} || ${Me.Cursed.ID} || ${Me.PctHPs}<70) && ${Me.AltAbilityReady[39903]}) /alt act 39903
+    /if (${useBemChest} && (${Me.Diseased.ID} || ${Me.Cursed.ID}) && ${FindItem[Bemvaras's Golden Breastplate Rk. I].ID} && ${Me.ItemReady[Bemvaras's Golden Breastplate Rk. I]}) /useitem "Bemvaras's Golden Breastplate Rk. I"
     /call CheckAggro
-    /if (!${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
+    /if (${useClericAA} && !${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
         /alt act 39902
         /delay 5000 !${Me.Casting.ID}
     }
-    /if (${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
-        /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras' s Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
+    /if (${useBemBoots} && ${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
+        /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras's Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
     } else {
-        /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50 && !${Me.Buff[Bemvaras' s Enhanced Learning].ID}) /useitem "Potion of Adventure II"
+        /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50 && !${Me.Buff[Bemvaras's Enhanced Learning].ID}) /useitem "Potion of Adventure II"
     }
-    /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Gauntlets]} && !${Me.Buff[Talisman of Guenhwyvar].ID}) /useitem "Bemvaras's Holy Gauntlets"
-    /if (${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
-        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Circle of Fireskin].ID}) /itemnotify charm rightmouseup
+    /if (${useBemGloves} && ${FindItem[Bemvaras's Holy Gauntlets].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Gauntlets]} && !${Me.Buff[Talisman of Guenhwyvar].ID}) /useitem "Bemvaras's Holy Gauntlets"
+    /if (${useBemGloves} && ${FindItem[Bemvaras's Holy Gauntlets].ID} > 0) {
+        /if (${FindItemCount[${buffCharmName}]} && !${Me.Buff[Circle of Fireskin].ID}) /itemnotify charm rightmouseup
     } else {
-        /if (${FindItemCount[Amulet of Ultimate Buffing]} && !${Me.Buff[Talisman of the Panther Rk. III].ID}) /itemnotify charm rightmouseup
+        /if (${useBuffCharm} && ${FindItemCount[${buffCharmName}]} && !${Me.Buff[${buffCharmBuffName}].ID}) /itemnotify charm rightmouseup
     }
 /return
 
 sub CombatSpells
     /call CheckBuffs
+    /if (${FindItem[Ertz's Mage Stone].ID} && ${Me.ItemReady[Ertz's Mage Stone]}) /useitem "Ertz's Mage Stone"
     /if (!${Me.Buff[Shad's Warts].Duration.Ticks} && ${Me.AltAbilityReady[39905]}) /alt act 39905
     /if (!${Me.Buff[Mystereon's Prismatic Rune].Duration.Ticks} && ${Me.AltAbilityReady[39912]}) /alt act 39912
     /if (!${Me.Buff[Monk Mastery of A Thousand Fists].Duration.Ticks} && ${Me.AltAbilityReady[39907]}) /alt act 39907
@@ -386,7 +438,10 @@ sub RespawnZone
 /return
 
 sub AggroZone
+    /call CheckAggro
+    /if (${Macro.Return} > 0) /return
     /if (${SpawnCount[${mobsSearch}]} < MinMobsInZone) /return
+    /if (${SpawnCount[${spawnSearch}]} > 0) /return
     /delay 5
     /target myself
     /delay 3
