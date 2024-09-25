@@ -59,7 +59,7 @@ sub Main
     | Name of the FableLooter character
     /declare AltLooterName string outer Binli
     | Do you want to loot items?
-    /declare DoLoot bool outer true
+    /declare DoLoot bool outer false
     | | Change LootFabledItems to false to skip looting fableds that you have not maked as loot
     /declare LootFabledItems bool outer false
     | Should we pickup things goblins are dropping when running?
@@ -247,14 +247,15 @@ sub Main
             /delay 3
         } 
         /if (${Me.AltAbilityReady[39911]}) {
-            /alt act 39911 /delay 3
+            /alt act 39911
+            /delay 3
         } 
 	}
 
     /if (!${Target.ID}) {
         /if (${SpawnCount[${spawnSearch}]}) {
             /squelch /target id ${Spawn[${spawnSearch}].ID}
-        }
+        }                                    
     }
 
     /call CheckAggro
@@ -288,6 +289,7 @@ sub HandleDisconnect()
         /notify CharacterListWnd CLW_Play_Button leftmouseup
         /delay 50
         /delay 10000 ${EverQuest.GameState.Equal[INGAME]}
+        /delay 3
     }
 /return
 
@@ -295,7 +297,7 @@ sub CheckPet
     /call CheckAggro
     /if (!${Pet.ID} && ${Me.AltAbilityReady[39915]} && ${Macro.Return} == 0) {
         /alt act 39915
-        /delay 1000
+        /delay 2500 ${Pet.ID}
     }
 /return
 sub CheckGroundSpawns
@@ -340,9 +342,9 @@ sub CheckBuffs
     /if (${usePaladinAA} && (${Me.Diseased.ID} || ${Me.Cursed.ID} || ${Me.PctHPs}<70) && ${Me.AltAbilityReady[39903]}) /alt act 39903
     /if (${useBemChest} && (${Me.Diseased.ID} || ${Me.Cursed.ID}) && ${FindItem[Bemvaras's Golden Breastplate Rk. I].ID} && ${Me.ItemReady[Bemvaras's Golden Breastplate Rk. I]}) /useitem "Bemvaras's Golden Breastplate Rk. I"
     /call CheckAggro
-    /if (${useClericAA} && !${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
+    /if (!${Me.Casting} && ${useClericAA} && !${Me.Buff[Cleric Mastery - Divine Health].ID} && ${Me.AltAbilityReady[39902]} && !${Me.Combat} && ${Macro.Return} == 0) {
         /alt act 39902
-        /delay 5000 !${Me.Casting.ID}
+        /delay 3250 ${Me.Buff[Cleric Mastery - Divine Health].ID}
     }
     /if (${useBemBoots} && ${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
         /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras's Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
@@ -435,7 +437,7 @@ sub RespawnZone
     /delay 1s ${Cast.Ready[${respawnItem}]}
     /useitem "${respawnItem}"
     /if (${MaxMobs}==-1) {
-        /delay 2s 
+        /delay 2s ${SpawnCount[${mobsSearch}]} > 0
         /varset MaxMobs ${SpawnCount[${mobsSearch}]}
     } else {
         /delay 1s ${SpawnCount[${mobsSearch}]} == ${MaxMobs}
@@ -540,7 +542,7 @@ Sub LootItem(slot)
     }
 
     /shift /itemnotify loot${slot} rightmouseup
-    /delay 15s !${Corpse.Item[${slot}].ID} || !${Corpse.Open}
+    /delay 5s !${Corpse.Item[${slot}].ID} || !${Corpse.Open}
 /return
 
 sub ClearCorpses

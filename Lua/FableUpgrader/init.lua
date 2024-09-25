@@ -1,8 +1,6 @@
 local mq = require('mq')
-
-local FableUpgrader = {
-    debug = true
-}
+local FableUpgrader = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
+FableUpgrader.debug = false
 FableUpgrader.script_ShortName = 'FableUpgrader'
 
 local Colors = {
