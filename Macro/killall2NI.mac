@@ -346,7 +346,7 @@ sub CheckBuffs
         /alt act 39902
         /delay 3250 ${Me.Buff[Cleric Mastery - Divine Health].ID}
     }
-    /if (${useBemBoots} && ${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
+    /if (${useBemLegs} && ${FindItem[Bemvaras's Holy Greaves].ID} > 0 && ${Me.ItemReady[Bemvaras's Holy Greaves]}) {
         /if (${UseExpPotions} && ${Me.ItemReady[Bemvaras 's Holy Greaves]} && ${Me.Buff[Bemvaras's Enhanced Learning].Duration.Ticks} <= 50) /useitem "Bemvaras's Holy Greaves"
     } else {
         /if (${UseExpPotions} && ${FindItemCount[Potion of Adventure II]} && ${Me.Buff[Potion of Adventure II].Duration.Ticks} <= 50 && !${Me.Buff[Bemvaras's Enhanced Learning].ID}) /useitem "Potion of Adventure II"
