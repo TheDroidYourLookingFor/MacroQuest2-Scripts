@@ -932,6 +932,13 @@ function LootUtils.markTradeSkillAsBank()
     end
 end
 
+local function bankItem(itemName)
+    mq.cmdf('/nomodkey /shiftkey /itemnotify "%s" leftmouseup', itemName)
+    mq.delay(100, function() return mq.TLO.Cursor() end)
+    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+    mq.delay(100, function() return not mq.TLO.Cursor() end)
+end
+
 function LootUtils.bankStuff()
     if not mq.TLO.Window('BigBankWnd').Open() then
         LootUtils.ConsoleMessage('Warn', 'Bank window must be open!')
@@ -943,12 +950,7 @@ function LootUtils.bankStuff()
             if bagSlot.ID() then
                 local itemToBank = bagSlot.Name()
                 local bankRule = getRule(bagSlot)
-                if bankRule == 'Bank' then
-                    mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
-                    mq.delay(100, function() return mq.TLO.Cursor() end)
-                    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                    mq.delay(100, function() return not mq.TLO.Cursor() end)
-                end
+                if bankRule == 'Bank' then bankItem(itemToBank) end
             end
         end
     end
@@ -961,12 +963,7 @@ function LootUtils.bankStuff()
                 local itemToBank = bagSlot.Item(j).Name()
                 if itemToBank then
                     local bankRule = getRule(bagSlot.Item(j))
-                    if bankRule == 'Bank' then
-                        mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
-                        mq.delay(100, function() return mq.TLO.Cursor() end)
-                        mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                        mq.delay(100, function() return not mq.TLO.Cursor() end)
-                    end
+                    if bankRule == 'Bank' then bankItem(itemToBank) end
                 end
             end
         end

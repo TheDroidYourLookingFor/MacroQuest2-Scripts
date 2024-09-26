@@ -259,6 +259,7 @@ function RB.GetNextClass()
     end
 end
 
+mq.TLO.EverQuest.LoginName()
 function RB.CheckClass()
     if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
         if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then

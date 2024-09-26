@@ -285,10 +285,16 @@ sub Main
 /return
 
 sub HandleDisconnect()
+    /if (${EverQuest.GameState.Equal[PRECHARSELECT]}) {
+        /notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup
+        /delay 50
+        /delay 30000 ${EverQuest.GameState.Equal[CHARSELECT]}
+        /delay 3
+    }
     /if (${EverQuest.GameState.Equal[CHARSELECT]}) {
         /notify CharacterListWnd CLW_Play_Button leftmouseup
         /delay 50
-        /delay 10000 ${EverQuest.GameState.Equal[INGAME]}
+        /delay 30000 ${EverQuest.GameState.Equal[INGAME]}
         /delay 3
     }
 /return

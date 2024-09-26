@@ -214,7 +214,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('Always use the same Hunting Zone.')
                     if gui.STATICHUNT ~= FableLooter.Settings.staticHunt then
                         gui.STATICHUNT = FableLooter.Settings.staticHunt
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
@@ -225,7 +224,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('The short name of the Static Hunt Zone.')
                     if gui.STATICZONENAME ~= FableLooter.Settings.staticZoneName then
                         gui.STATICZONENAME = FableLooter.Settings.staticZoneName
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
@@ -235,7 +233,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('The ID of the static Hunting Zone.')
                     if gui.STATICZONEID ~= FableLooter.Settings.staticZoneID then
                         gui.STATICZONEID = FableLooter.Settings.staticZoneID
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
@@ -251,7 +248,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
                     if gui.STATICX ~= FableLooter.Settings.staticX then
                         gui.STATICX = FableLooter.Settings.staticX
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.SameLine();
@@ -266,7 +262,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
                     if gui.STATICY ~= FableLooter.Settings.staticY then
                         gui.STATICY = FableLooter.Settings.staticY
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.SameLine();
@@ -281,7 +276,6 @@ function gui.FableLooterGUI()
                     ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
                     if gui.STATICZ ~= FableLooter.Settings.staticZ then
                         gui.STATICZ = FableLooter.Settings.staticZ
-                        FableLooter.CheckCampInfo()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Unindent();

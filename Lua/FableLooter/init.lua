@@ -1,6 +1,6 @@
 local mq = require('mq')
 
-FableLooter = { _version = '1.0.12', _author = 'TheDroidUrLookingFor' }
+FableLooter = { _version = '1.0.13', _author = 'TheDroidUrLookingFor' }
 FableLooter.LootUtils = require('FableLooter.lib.LootUtils')
 FableLooter.Messages = require('FableLooter.lib.Messages')
 FableLooter.GUI = require('FableLooter.lib.Gui')
@@ -88,63 +88,37 @@ end
 FableLooter.Setup()
 
 function FableLooter.CheckZone()
-    if FableLooter.Settings.staticHunt then
-        if mq.TLO.Zone.ID() ~= FableLooter.Settings.staticZoneID and mq.TLO.DynamicZone() ~= nil then
-            if not FableLooter.needToBank and not FableLooter.needToCashSell and not FableLooter.needToFabledSell then
-                mq.delay(1000)
-                mq.cmd('/say #enter')
-                mq.delay(50000, function() return mq.TLO.Zone.ID()() == FableLooter.Settings.staticZoneID end)
-                mq.delay(1000)
-            end
-        end
-    else
-        if mq.TLO.Zone.ID() ~= FableLooter.huntZoneID and mq.TLO.DynamicZone() ~= nil then
-            if not FableLooter.needToBank and not FableLooter.needToCashSell and not FableLooter.needToFabledSell then
-                mq.delay(1000)
-                mq.cmd('/say #enter')
-                mq.delay(50000, function() return mq.TLO.Zone.ID()() == FableLooter.huntZoneID end)
-                mq.delay(1000)
-            end
+    FableLooter.HandleDisconnect()
+    if mq.TLO.Zone.ID() ~= FableLooter.huntZoneID and mq.TLO.DynamicZone() ~= nil then
+        if not FableLooter.needToBank and not FableLooter.needToCashSell and not FableLooter.needToFabledSell then
+            mq.delay(1000)
+            mq.cmd('/say #enter')
+            mq.delay(50000, function() return mq.TLO.Zone.ID()() == FableLooter.huntZoneID end)
+            mq.delay(1000)
         end
     end
 end
 
 function FableLooter.CheckDistanceToXYZ()
-    if FableLooter.Settings.staticHunt then
-        local deltaX = FableLooter.Settings.staticX - mq.TLO.Me.X()
-        local deltaY = FableLooter.Settings.staticY - mq.TLO.Me.Y()
-        local deltaZ = FableLooter.Settings.staticZ - mq.TLO.Me.Z()
-        local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
-        return distance
-    else
-        local deltaX = FableLooter.camp_X - mq.TLO.Me.X()
-        local deltaY = FableLooter.camp_Y - mq.TLO.Me.Y()
-        local deltaZ = FableLooter.camp_Z - mq.TLO.Me.Z()
-        local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
-        return distance
-    end
+    local deltaX = FableLooter.camp_X - mq.TLO.Me.X()
+    local deltaY = FableLooter.camp_Y - mq.TLO.Me.Y()
+    local deltaZ = FableLooter.camp_Z - mq.TLO.Me.Z()
+    local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
+    return distance
 end
 
 function FableLooter.MoveToCamp()
-    if FableLooter.Settings.staticHunt then
-        if mq.TLO.Zone.ID() == FableLooter.Settings.staticZoneID then
-            if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
-                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings.staticX,
-                    FableLooter.Settings.staticZ)
-                mq.delay(50)
-            end
-        end
-    else
-        if mq.TLO.Zone.ID() == FableLooter.huntZoneID then
-            if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
-                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
-                mq.delay(50)
-            end
+    FableLooter.HandleDisconnect()
+    if mq.TLO.Zone.ID() == FableLooter.huntZoneID then
+        if FableLooter.CheckDistanceToXYZ() > FableLooter.Settings.returnToCampDistance then
+            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+            mq.delay(50)
         end
     end
 end
 
 function FableLooter.GroundSpawns()
+    FableLooter.HandleDisconnect()
     if mq.TLO.GroundItemCount('Generic')() > 0 and FableLooter.Settings.lootGroundSpawns then
         if FableLooter.Settings.pauseMacro then
             if mq.TLO.Macro() then
@@ -163,14 +137,8 @@ function FableLooter.GroundSpawns()
             mq.delay(5000, function() return mq.TLO.Cursor() == nil end)
         end
         if FableLooter.Settings.returnHomeAfterLoot then
-            if FableLooter.Settings.staticHunt then
-                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings.staticX,
-                    FableLooter.Settings.staticZ)
-                mq.delay(50)
-            else
-                mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
-                mq.delay(50)
-            end
+            mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+            mq.delay(50)
         end
         if FableLooter.Settings.pauseMacro then
             if mq.TLO.Macro() then
@@ -182,6 +150,7 @@ function FableLooter.GroundSpawns()
 end
 
 function FableLooter.BankDropOff()
+    FableLooter.HandleDisconnect()
     if mq.TLO.Me.FreeInventory() <= FableLooter.Settings.bankAtFreeSlots or FableLooter.needToBank then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
@@ -220,6 +189,7 @@ function FableLooter.BankDropOff()
 end
 
 function FableLooter.VendorSell()
+    FableLooter.HandleDisconnect()
     if FableLooter.needToVendorSell then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
@@ -242,6 +212,7 @@ function FableLooter.VendorSell()
 end
 
 function FableLooter.CashSell()
+    FableLooter.HandleDisconnect()
     if FableLooter.needToCashSell then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
@@ -264,6 +235,7 @@ function FableLooter.CashSell()
 end
 
 function FableLooter.FabledSell()
+    FableLooter.HandleDisconnect()
     if FableLooter.needToFabledSell then
         if mq.TLO.Zone.ID() ~= FableLooter.Settings.bankZone then
             mq.cmdf('/say #zone %s', FableLooter.Settings.bankZone)
@@ -354,6 +326,7 @@ local function setupBinds()
 end
 
 function FableLooter.CorpseCleanup()
+    FableLooter.HandleDisconnect()
     if mq.TLO.SpawnCount(FableLooter.Settings.spawnSearch:format('corpse ' .. FableLooter.Settings.targetName, FableLooter.Settings.scan_Radius, FableLooter.Settings.scan_zRadius))() > 0 then return end
     if mq.TLO.SpawnCount('npccorpse')() > FableLooter.Settings.corpseLimit then
         mq.cmdf('%s', FableLooter.Settings.corpseCleanupCommand)
@@ -362,6 +335,7 @@ function FableLooter.CorpseCleanup()
 end
 
 function FableLooter.UseExpPotion()
+    FableLooter.HandleDisconnect()
     if FableLooter.Settings.useExpPotions then
         if mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and mq.TLO.Me.ItemReady('Bemvaras\'s Holy Greaves')() then
             if not mq.TLO.Me.Buff('Bemvaras\' s Enhanced Learning').ID() then
@@ -377,13 +351,42 @@ function FableLooter.UseExpPotion()
     end
 end
 
+function FableLooter.HandleDisconnect()
+    -- PRECHARSELECT
+    --${Window[serverselect].Child[SERVERSELECT_PlayLastServerButton]}
+    if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
+        mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
+        mq.delay(50)
+        mq.delay(25000, function() return mq.TLO.EverQuest.GameState() == 'CHARSELECT' end)
+        mq.delay(50)
+    end
+    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+        mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+        mq.delay(50)
+        mq.delay(25000, function() return mq.TLO.EverQuest.GameState() == 'INGAME' end)
+        mq.delay(50)
+    end
+end
+
+function FableLooter.CheckCampInfo()
+    if FableLooter.Settings.staticHunt then
+        FableLooter.huntZoneName = FableLooter.Settings.staticZoneName
+        FableLooter.huntZoneID = tonumber(FableLooter.Settings.staticZoneID)
+        FableLooter.camp_X = tonumber(FableLooter.Settings.staticX)
+        FableLooter.camp_Y = tonumber(FableLooter.Settings.staticY)
+        FableLooter.camp_Z = tonumber(FableLooter.Settings.staticZ)
+    end
+end
+
 function FableLooter.Main()
     setupBinds()
     mq.cmd('/hidecorpse looted')
     FableLooter.Messages.Normal('++ Initialized ++')
     FableLooter.Messages.Normal('Main Loop Entry')
+    FableLooter.CheckCampInfo()
     while not FableLooter.Terminate do
-        if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then MainLoop = false end
+        FableLooter.HandleDisconnect()
+        if not mq.TLO.Me.Standing() or mq.TLO.Me.Ducking() then mq.TLO.Me.Stand() end
         if mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then
             if mq.TLO.Me.BardSongPlaying() then
                 if mq.TLO.Plugin('MQ2Medley').IsLoaded() then
@@ -452,15 +455,8 @@ function FableLooter.Main()
                 mq.doevents()
                 mq.delay(100)
                 if FableLooter.Settings.returnHomeAfterLoot then
-                    if FableLooter.Settings.staticHunt then
-                        mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.Settings.staticY, FableLooter.Settings
-                            .staticX, FableLooter.Settings.staticZ)
-                        mq.delay(50)
-                    else
-                        mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter
-                            .camp_Z)
-                        mq.delay(50)
-                    end
+                    mq.cmdf('/squelch /warp loc %s %s %s', FableLooter.camp_Y, FableLooter.camp_X, FableLooter.camp_Z)
+                    mq.delay(50)
                 end
             end
             if FableLooter.Settings.pauseMacro then
