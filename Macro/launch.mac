@@ -6,9 +6,17 @@ Sub Main
     /declare huntX int outer 1426.87
     /declare huntY int outer 955.12
     /declare huntZ int outer -152.25
+    /declare mainUseLua bool outer true
+    /declare altUseLua bool outer true
+    /declare mainStartCommand string outer campfarmer
+    /declare altStartCommand string outer fablelooter
     /if (${Me.Name.Equal[${MainCharacter}]}) {
         /if (${Zone.ShortName.Equal[${HuntZone}]}) {
-            /mac killall2ni
+            /if (${mainUseLua}) {
+                    /lua run ${mainStartCommand}
+                } else {
+                    /macro ${mainStartCommand}
+                } 
         } else {
             /if (${DynamicZone.Name.NotEqual[NULL]}) {
                 /say #enter
@@ -17,7 +25,11 @@ Sub Main
                 /delay 5
                 /squelch /warp loc ${huntY} ${huntX} ${huntZ}
                 /delay 3
-                /mac killall2ni
+                /if (${mainUseLua}) {
+                    /lua run ${mainStartCommand}
+                } else {
+                    /macro ${mainStartCommand}
+                }  
             } else {
                 /say #create solo ${HuntZone} 
                 /delay 15s ${Zone.ID} == ${HuntZoneID}
@@ -25,16 +37,30 @@ Sub Main
                 /delay 5
                 /squelch /warp loc ${huntY} ${huntX} ${huntZ} 
                 /delay 3
-                /mac killall2ni
+                /if (${mainUseLua}) {
+                    /lua run ${mainStartCommand}
+                } else {
+                    /macro ${mainStartCommand}
+                } 
             } 
         }
     } 
     /if (${Me.Name.Equal[${AltCharacter}]}) {
-        /if (${DynamicZone.Name.NotEqual[NULL]}) {
+        /if (${Zone.ShortName.Equal[${HuntZone}]}) {
+            /if (${altUseLua}) {
+                    /lua run ${altStartCommand}
+                } else {
+                    /macro ${altStartCommand}
+                } 
+        } else {
+            /if (${DynamicZone.Name.Equal[NULL]}) {
                 /dex ${MainCharacter} /dza ${AltCharacter}
-                /lua run fablelooter
-            } else {
-                /lua run fablelooter
-            } 
+                /if (${altUseLua}) {
+                    /lua run ${altStartCommand}
+                } else {
+                    /macro ${altStartCommand}
+                } 
+            }
+        }
     }
 /return

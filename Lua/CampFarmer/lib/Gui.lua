@@ -2,7 +2,7 @@
 local mq = require('mq')
 local gui = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
 
--- FableLooter
+-- CampFarmer
 gui.DEBUG = false
 gui.PAUSEMACRO = false
 gui.BANKDEPOSIT = false
@@ -121,7 +121,7 @@ gui.SellFabledForType = {
     'Papers',
     'Cash'
 }
-function gui.FableLooterGUI()
+function gui.CampFarmerGUI()
     if gui.Open then
         gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui._version, gui.Open)
         ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
@@ -136,25 +136,25 @@ function gui.FableLooterGUI()
             local buttonWidth, buttonHeight = 140, 30
             local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
             if ImGui.Button('Bank', buttonImVec2) then
-                FableLooter.needToBank = true
+                CampFarmer.needToBank = true
             end
             ImGui.SameLine(150)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Plat Sell', buttonImVec2) then
-                FableLooter.needToVendorSell = true
+                CampFarmer.needToVendorSell = true
             end
             ImGui.SameLine(300)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Cash Sell', buttonImVec2) then
-                FableLooter.needToCashSell = true
+                CampFarmer.needToCashSell = true
             end
             ImGui.SameLine(450)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Fabled Sell', buttonImVec2) then
-                FableLooter.needToFabledSell = true
+                CampFarmer.needToFabledSell = true
             end
 
             if ImGui.CollapsingHeader("Fable Loot Bot") then
@@ -164,10 +164,10 @@ function gui.FableLooterGUI()
                 ImGui.Separator();
 
                 ImGui.Text("COMMANDS:");
-                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' bank');
-                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' cash');
-                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' fabled');
-                ImGui.BulletText('/' .. FableLooter.command_ShortName .. ' quit');
+                ImGui.BulletText('/' .. CampFarmer.command_ShortName .. ' bank');
+                ImGui.BulletText('/' .. CampFarmer.command_ShortName .. ' cash');
+                ImGui.BulletText('/' .. CampFarmer.command_ShortName .. ' fabled');
+                ImGui.BulletText('/' .. CampFarmer.command_ShortName .. ' quit');
                 ImGui.Separator();
 
                 ImGui.Text("CREDIT:");
@@ -178,62 +178,62 @@ function gui.FableLooterGUI()
                 ImGui.Indent()
                 if ImGui.CollapsingHeader("Experience Potions") then
                     ImGui.Indent()
-                    FableLooter.Settings.useExpPotions = ImGui.Checkbox('Enable Exp Potions',
-                        FableLooter.Settings.useExpPotions)
+                    CampFarmer.Settings.useExpPotions = ImGui.Checkbox('Enable Exp Potions',
+                        CampFarmer.Settings.useExpPotions)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
-                    if gui.USEEXPPOTIONS ~= FableLooter.Settings.useExpPotions then
-                        gui.USEEXPPOTIONS = FableLooter.Settings.useExpPotions
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.USEEXPPOTIONS ~= CampFarmer.Settings.useExpPotions then
+                        gui.USEEXPPOTIONS = CampFarmer.Settings.useExpPotions
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.potionName = ImGui.InputText('Potion Name', FableLooter.Settings.potionName)
+                    CampFarmer.Settings.potionName = ImGui.InputText('Potion Name', CampFarmer.Settings.potionName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the experience potion.')
-                    if gui.POTIONNAME ~= FableLooter.Settings.potionName then
-                        gui.POTIONNAME = FableLooter.Settings.potionName
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.POTIONNAME ~= CampFarmer.Settings.potionName then
+                        gui.POTIONNAME = CampFarmer.Settings.potionName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.potionBuff = ImGui.InputText('Potion Buff', FableLooter.Settings.potionBuff)
+                    CampFarmer.Settings.potionBuff = ImGui.InputText('Potion Buff', CampFarmer.Settings.potionBuff)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the experience buff.')
-                    if gui.POTIONBUFF ~= FableLooter.Settings.potionBuff then
-                        gui.POTIONBUFF = FableLooter.Settings.potionBuff
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.POTIONBUFF ~= CampFarmer.Settings.potionBuff then
+                        gui.POTIONBUFF = CampFarmer.Settings.potionBuff
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("Hunt Method") then
                     ImGui.Indent()
-                    FableLooter.Settings.staticHunt = ImGui.Checkbox('Enable Static Hunt',
-                        FableLooter.Settings.staticHunt)
+                    CampFarmer.Settings.staticHunt = ImGui.Checkbox('Enable Static Hunt',
+                        CampFarmer.Settings.staticHunt)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Always use the same Hunting Zone.')
-                    if gui.STATICHUNT ~= FableLooter.Settings.staticHunt then
-                        gui.STATICHUNT = FableLooter.Settings.staticHunt
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICHUNT ~= CampFarmer.Settings.staticHunt then
+                        gui.STATICHUNT = CampFarmer.Settings.staticHunt
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.staticZoneName = ImGui.InputText('Zone Name',
-                        FableLooter.Settings.staticZoneName)
+                    CampFarmer.Settings.staticZoneName = ImGui.InputText('Zone Name',
+                        CampFarmer.Settings.staticZoneName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The short name of the Static Hunt Zone.')
-                    if gui.STATICZONENAME ~= FableLooter.Settings.staticZoneName then
-                        gui.STATICZONENAME = FableLooter.Settings.staticZoneName
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICZONENAME ~= CampFarmer.Settings.staticZoneName then
+                        gui.STATICZONENAME = CampFarmer.Settings.staticZoneName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.staticZoneID = ImGui.InputText('Zone ID', FableLooter.Settings.staticZoneID)
+                    CampFarmer.Settings.staticZoneID = ImGui.InputText('Zone ID', CampFarmer.Settings.staticZoneID)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The ID of the static Hunting Zone.')
-                    if gui.STATICZONEID ~= FableLooter.Settings.staticZoneID then
-                        gui.STATICZONEID = FableLooter.Settings.staticZoneID
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICZONEID ~= CampFarmer.Settings.staticZoneID then
+                        gui.STATICZONEID = CampFarmer.Settings.staticZoneID
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
@@ -243,12 +243,12 @@ function gui.FableLooterGUI()
                     ImGui.SameLine()
                     ImGui.SetNextItemWidth(120)
                     ImGui.SetCursorPosY(start_y_Options)
-                    FableLooter.Settings.staticX = ImGui.InputText('##Zone X', FableLooter.Settings.staticX)
+                    CampFarmer.Settings.staticX = ImGui.InputText('##Zone X', CampFarmer.Settings.staticX)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
-                    if gui.STATICX ~= FableLooter.Settings.staticX then
-                        gui.STATICX = FableLooter.Settings.staticX
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICX ~= CampFarmer.Settings.staticX then
+                        gui.STATICX = CampFarmer.Settings.staticX
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.SameLine();
 
@@ -257,12 +257,12 @@ function gui.FableLooterGUI()
                     ImGui.SameLine()
                     ImGui.SetNextItemWidth(120)
                     ImGui.SetCursorPosY(start_y_Options)
-                    FableLooter.Settings.staticY = ImGui.InputText('##Zone Y', FableLooter.Settings.staticY)
+                    CampFarmer.Settings.staticY = ImGui.InputText('##Zone Y', CampFarmer.Settings.staticY)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
-                    if gui.STATICY ~= FableLooter.Settings.staticY then
-                        gui.STATICY = FableLooter.Settings.staticY
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICY ~= CampFarmer.Settings.staticY then
+                        gui.STATICY = CampFarmer.Settings.staticY
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.SameLine();
 
@@ -271,12 +271,12 @@ function gui.FableLooterGUI()
                     ImGui.SameLine()
                     ImGui.SetNextItemWidth(120)
                     ImGui.SetCursorPosY(start_y_Options)
-                    FableLooter.Settings.staticZ = ImGui.InputText('##Zone Z', FableLooter.Settings.staticZ)
+                    CampFarmer.Settings.staticZ = ImGui.InputText('##Zone Z', CampFarmer.Settings.staticZ)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
-                    if gui.STATICZ ~= FableLooter.Settings.staticZ then
-                        gui.STATICZ = FableLooter.Settings.staticZ
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.STATICZ ~= CampFarmer.Settings.staticZ then
+                        gui.STATICZ = CampFarmer.Settings.staticZ
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Unindent();
                 end
@@ -284,106 +284,106 @@ function gui.FableLooterGUI()
                     ImGui.Indent()
                     ImGui.Columns(2)
                     local start_y_Options = ImGui.GetCursorPosY()
-                    FableLooter.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', FableLooter.Settings
+                    CampFarmer.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', CampFarmer.Settings
                         .bankDeposit)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
-                    if gui.BANKDEPOSIT ~= FableLooter.Settings.bankDeposit then
-                        gui.BANKDEPOSIT = FableLooter.Settings.bankDeposit
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.BANKDEPOSIT ~= CampFarmer.Settings.bankDeposit then
+                        gui.BANKDEPOSIT = CampFarmer.Settings.bankDeposit
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.sellVendor = ImGui.Checkbox('Enable Vendor Selling', FableLooter.Settings.sellVendor)
+                    CampFarmer.Settings.sellVendor = ImGui.Checkbox('Enable Vendor Selling', CampFarmer.Settings.sellVendor)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Platinum when enabled.')
-                    if gui.SELLVENDOR ~= FableLooter.Settings.sellVendor then
-                        gui.SELLVENDOR = FableLooter.Settings.sellVendor
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SELLVENDOR ~= CampFarmer.Settings.sellVendor then
+                        gui.SELLVENDOR = CampFarmer.Settings.sellVendor
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
                     ImGui.NextColumn();
                     ImGui.SetCursorPosY(start_y_Options)
-                    FableLooter.Settings.sellFabled = ImGui.Checkbox('Enable Fabled Item Selling', FableLooter.Settings
+                    CampFarmer.Settings.sellFabled = ImGui.Checkbox('Enable Fabled Item Selling', CampFarmer.Settings
                         .sellFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items fabled items for currency when enabled.')
-                    if gui.SELLFABLED ~= FableLooter.Settings.sellFabled then
-                        gui.SELLFABLED = FableLooter.Settings.sellFabled
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SELLFABLED ~= CampFarmer.Settings.sellFabled then
+                        gui.SELLFABLED = CampFarmer.Settings.sellFabled
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', FableLooter.Settings
+                    CampFarmer.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', CampFarmer.Settings
                         .sellCash)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Cash when enabled.')
-                    if gui.SELLCASH ~= FableLooter.Settings.sellCash then
-                        gui.SELLCASH = FableLooter.Settings.sellCash
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SELLCASH ~= CampFarmer.Settings.sellCash then
+                        gui.SELLCASH = CampFarmer.Settings.sellCash
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
                     ImGui.Columns(1)
 
-                    FableLooter.Settings.bankZone = ImGui.InputInt('Bank Zone', FableLooter.Settings.bankZone)
+                    CampFarmer.Settings.bankZone = ImGui.InputInt('Bank Zone', CampFarmer.Settings.bankZone)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Zone where we can access banking services.')
-                    if gui.BANKZONE ~= FableLooter.Settings.bankZone then
-                        gui.BANKZONE = FableLooter.Settings.bankZone
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.BANKZONE ~= CampFarmer.Settings.bankZone then
+                        gui.BANKZONE = CampFarmer.Settings.bankZone
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.bankNPC = ImGui.InputText('Bank NPC', FableLooter.Settings.bankNPC)
+                    CampFarmer.Settings.bankNPC = ImGui.InputText('Bank NPC', CampFarmer.Settings.bankNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to warp to for banking.')
-                    if gui.BANKNPC ~= FableLooter.Settings.bankNPC then
-                        gui.BANKNPC = FableLooter.Settings.bankNPC
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.BANKNPC ~= CampFarmer.Settings.bankNPC then
+                        gui.BANKNPC = CampFarmer.Settings.bankNPC
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.vendorNPC = ImGui.InputText('Vendor NPC', FableLooter.Settings.vendorNPC)
+                    CampFarmer.Settings.vendorNPC = ImGui.InputText('Vendor NPC', CampFarmer.Settings.vendorNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
-                    if gui.VENDORNPC ~= FableLooter.Settings.vendorNPC then
-                        gui.VENDORNPC = FableLooter.Settings.vendorNPC
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.VENDORNPC ~= CampFarmer.Settings.vendorNPC then
+                        gui.VENDORNPC = CampFarmer.Settings.vendorNPC
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.cashNPC = ImGui.InputText('Cash NPC', FableLooter.Settings.cashNPC)
+                    CampFarmer.Settings.cashNPC = ImGui.InputText('Cash NPC', CampFarmer.Settings.cashNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to sell cash items to.')
-                    if gui.CASHNPC ~= FableLooter.Settings.cashNPC then
-                        gui.CASHNPC = FableLooter.Settings.cashNPC
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.CASHNPC ~= CampFarmer.Settings.cashNPC then
+                        gui.CASHNPC = CampFarmer.Settings.cashNPC
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, FableLooter.Settings.SellFabledFor_idx);
-                    if SellFabledFor_idx ~= FableLooter.Settings.SellFabledFor_idx then
-                        SellFabledFor_idx = FableLooter.Settings.SellFabledFor_idx
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    CampFarmer.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, CampFarmer.Settings.SellFabledFor_idx);
+                    if SellFabledFor_idx ~= CampFarmer.Settings.SellFabledFor_idx then
+                        SellFabledFor_idx = CampFarmer.Settings.SellFabledFor_idx
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
 
-                    FableLooter.Settings.fabledNPC = ImGui.InputText('Fabled NPC', FableLooter.Settings.fabledNPC)
+                    CampFarmer.Settings.fabledNPC = ImGui.InputText('Fabled NPC', CampFarmer.Settings.fabledNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to sell fabled items to.')
-                    if gui.FABLEDNPC ~= FableLooter.Settings.fabledNPC then
-                        gui.FABLEDNPC = FableLooter.Settings.fabledNPC
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.FABLEDNPC ~= CampFarmer.Settings.fabledNPC then
+                        gui.FABLEDNPC = CampFarmer.Settings.fabledNPC
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
-                        FableLooter.Settings.bankAtFreeSlots, 1, 20)
+                    CampFarmer.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
+                        CampFarmer.Settings.bankAtFreeSlots, 1, 20)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of free slots before we should bank.')
-                    if gui.BANKATFREESLOTS ~= FableLooter.Settings.bankAtFreeSlots then
-                        gui.BANKATFREESLOTS = FableLooter.Settings.bankAtFreeSlots
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.BANKATFREESLOTS ~= CampFarmer.Settings.bankAtFreeSlots then
+                        gui.BANKATFREESLOTS = CampFarmer.Settings.bankAtFreeSlots
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
                     ImGui.Unindent()
@@ -392,171 +392,171 @@ function gui.FableLooterGUI()
                     ImGui.Indent()
                     ImGui.Columns(2)
                     local start_y_Options = ImGui.GetCursorPosY()
-                    FableLooter.Settings.camp_Check = ImGui.Checkbox('Enable Camp Check', FableLooter.Settings
+                    CampFarmer.Settings.camp_Check = ImGui.Checkbox('Enable Camp Check', CampFarmer.Settings
                         .camp_Check)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Return home if we get too far away?')
-                    if gui.CAMPCHECK ~= FableLooter.Settings.camp_Check then
-                        gui.CAMPCHECK = FableLooter.Settings.camp_Check
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.CAMPCHECK ~= CampFarmer.Settings.camp_Check then
+                        gui.CAMPCHECK = CampFarmer.Settings.camp_Check
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.zone_Check = ImGui.Checkbox('Enable Zone Check', FableLooter.Settings
+                    CampFarmer.Settings.zone_Check = ImGui.Checkbox('Enable Zone Check', CampFarmer.Settings
                         .zone_Check)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Return to start zone if we leave it?')
-                    if gui.ZONECHECK ~= FableLooter.Settings.zone_Check then
-                        gui.ZONECHECK = FableLooter.Settings.zone_Check
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.ZONECHECK ~= CampFarmer.Settings.zone_Check then
+                        gui.ZONECHECK = CampFarmer.Settings.zone_Check
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
                     ImGui.NextColumn();
                     ImGui.SetCursorPosY(start_y_Options)
-                    FableLooter.Settings.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot',
-                        FableLooter.Settings.returnHomeAfterLoot)
+                    CampFarmer.Settings.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot',
+                        CampFarmer.Settings.returnHomeAfterLoot)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Return to start X/Y/Z after looting?')
-                    if gui.RETURNHOMEAFTERLOOT ~= FableLooter.Settings.returnHomeAfterLoot then
-                        gui.RETURNHOMEAFTERLOOT = FableLooter.Settings.returnHomeAfterLoot
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.RETURNHOMEAFTERLOOT ~= CampFarmer.Settings.returnHomeAfterLoot then
+                        gui.RETURNHOMEAFTERLOOT = CampFarmer.Settings.returnHomeAfterLoot
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.lootGroundSpawns = ImGui.Checkbox('Enable Pickup Groundspawns',
-                        FableLooter.Settings.lootGroundSpawns)
+                    CampFarmer.Settings.lootGroundSpawns = ImGui.Checkbox('Enable Pickup Groundspawns',
+                        CampFarmer.Settings.lootGroundSpawns)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Should we pickup groundspawns treasure goblins drops?')
-                    if gui.LOOTGROUNDSPAWNS ~= FableLooter.Settings.lootGroundSpawns then
-                        gui.LOOTGROUNDSPAWNS = FableLooter.Settings.lootGroundSpawns
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.LOOTGROUNDSPAWNS ~= CampFarmer.Settings.lootGroundSpawns then
+                        gui.LOOTGROUNDSPAWNS = CampFarmer.Settings.lootGroundSpawns
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Columns(1)
 
-                    FableLooter.Settings.returnToCampDistance = ImGui.SliderInt("Return To Camp Distance",
-                        FableLooter.Settings.returnToCampDistance, 1, 100000)
+                    CampFarmer.Settings.returnToCampDistance = ImGui.SliderInt("Return To Camp Distance",
+                        CampFarmer.Settings.returnToCampDistance, 1, 100000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The distance we can get before we trigger return to camp.')
-                    if gui.RETURNTOCAMPDISTANCE ~= FableLooter.Settings.returnToCampDistance then
-                        gui.RETURNTOCAMPDISTANCE = FableLooter.Settings.returnToCampDistance
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.RETURNTOCAMPDISTANCE ~= CampFarmer.Settings.returnToCampDistance then
+                        gui.RETURNTOCAMPDISTANCE = CampFarmer.Settings.returnToCampDistance
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
                     ImGui.Unindent()
                 end
                 if ImGui.CollapsingHeader("Corpse Cleanup") then
                     ImGui.Indent()
-                    FableLooter.Settings.corpseCleanup = ImGui.Checkbox('Enable Corpse Cleanup',
-                        FableLooter.Settings.corpseCleanup)
+                    CampFarmer.Settings.corpseCleanup = ImGui.Checkbox('Enable Corpse Cleanup',
+                        CampFarmer.Settings.corpseCleanup)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Should we the amount of corpses the client sees?')
-                    if gui.CORPSECLEANUP ~= FableLooter.Settings.corpseCleanup then
-                        gui.CORPSECLEANUP = FableLooter.Settings.corpseCleanup
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.CORPSECLEANUP ~= CampFarmer.Settings.corpseCleanup then
+                        gui.CORPSECLEANUP = CampFarmer.Settings.corpseCleanup
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.corpseCleanupCommand = ImGui.InputText('Corpse Cleanup Command',
-                        FableLooter.Settings.corpseCleanupCommand)
+                    CampFarmer.Settings.corpseCleanupCommand = ImGui.InputText('Corpse Cleanup Command',
+                        CampFarmer.Settings.corpseCleanupCommand)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Look for this name on corpses when looting.')
-                    if gui.CORPSECLEANUPCOMMAND ~= FableLooter.Settings.corpseCleanupCommand then
-                        gui.CORPSECLEANUPCOMMAND = FableLooter.Settings.corpseCleanupCommand
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.CORPSECLEANUPCOMMAND ~= CampFarmer.Settings.corpseCleanupCommand then
+                        gui.CORPSECLEANUPCOMMAND = CampFarmer.Settings.corpseCleanupCommand
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.corpseLimit = ImGui.SliderInt("Corpse Limit", FableLooter.Settings.corpseLimit,
+                    CampFarmer.Settings.corpseLimit = ImGui.SliderInt("Corpse Limit", CampFarmer.Settings.corpseLimit,
                         1,
                         2500)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of corpses allowed before we clean them for performance.')
-                    if gui.CORPSELIMIT ~= FableLooter.Settings.corpseLimit then
-                        gui.CORPSELIMIT = FableLooter.Settings.corpseLimit
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.CORPSELIMIT ~= CampFarmer.Settings.corpseLimit then
+                        gui.CORPSELIMIT = CampFarmer.Settings.corpseLimit
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
                     ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("Corpse Targetting") then
                     ImGui.Indent();
-                    FableLooter.Settings.lootAll = ImGui.Checkbox('Enable Loot all', FableLooter.Settings.lootAll)
+                    CampFarmer.Settings.lootAll = ImGui.Checkbox('Enable Loot all', CampFarmer.Settings.lootAll)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Should we just loot all corpses ignoring corpse filter?')
-                    if gui.LOOTALL ~= FableLooter.Settings.lootAll then
-                        gui.LOOTALL = FableLooter.Settings.lootAll
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.LOOTALL ~= CampFarmer.Settings.lootAll then
+                        gui.LOOTALL = CampFarmer.Settings.lootAll
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.targetName = ImGui.InputText('Corpse Target Name',
-                        FableLooter.Settings.targetName)
+                    CampFarmer.Settings.targetName = ImGui.InputText('Corpse Target Name',
+                        CampFarmer.Settings.targetName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Look for this name on corpses when looting.')
-                    if gui.TARGETNAME ~= FableLooter.Settings.targetName then
-                        gui.TARGETNAME = FableLooter.Settings.targetName
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.TARGETNAME ~= CampFarmer.Settings.targetName then
+                        gui.TARGETNAME = CampFarmer.Settings.targetName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.spawnSearch = ImGui.InputText('Corpse Search', FableLooter.Settings.spawnSearch)
+                    CampFarmer.Settings.spawnSearch = ImGui.InputText('Corpse Search', CampFarmer.Settings.spawnSearch)
                     ImGui.SameLine()
                     ImGui.HelpMarker('How we should filter corpses')
-                    if gui.SPAWNSEARCH ~= FableLooter.Settings.spawnSearch then
-                        gui.SPAWNSEARCH = FableLooter.Settings.spawnSearch
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SPAWNSEARCH ~= CampFarmer.Settings.spawnSearch then
+                        gui.SPAWNSEARCH = CampFarmer.Settings.spawnSearch
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", FableLooter.Settings.scan_Radius, 1,
+                    CampFarmer.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", CampFarmer.Settings.scan_Radius, 1,
                         100000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The radius we should look for corpses.')
-                    if gui.SCANRADIUS ~= FableLooter.Settings.scan_Radius then
-                        gui.SCANRADIUS = FableLooter.Settings.scan_Radius
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SCANRADIUS ~= CampFarmer.Settings.scan_Radius then
+                        gui.SCANRADIUS = CampFarmer.Settings.scan_Radius
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.scan_zRadius = ImGui.SliderInt("Scan zRadius", FableLooter.Settings
+                    CampFarmer.Settings.scan_zRadius = ImGui.SliderInt("Scan zRadius", CampFarmer.Settings
                         .scan_zRadius, 1,
                         10000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The z radius we should look for corpses.')
-                    if gui.SCANZRADIUS ~= FableLooter.Settings.scan_zRadius then
-                        gui.SCANZRADIUS = FableLooter.Settings.scan_zRadius
-                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    if gui.SCANZRADIUS ~= CampFarmer.Settings.scan_zRadius then
+                        gui.SCANZRADIUS = CampFarmer.Settings.scan_zRadius
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Unindent();
                 end
                 ImGui.Columns(2)
                 local start_y_Options = ImGui.GetCursorPosY()
-                FableLooter.Settings.debug = ImGui.Checkbox('Enable Debug Messages', FableLooter.Settings.debug)
+                CampFarmer.Settings.debug = ImGui.Checkbox('Enable Debug Messages', CampFarmer.Settings.debug)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
-                if gui.DEBUG ~= FableLooter.Settings.debug then
-                    gui.DEBUG = FableLooter.Settings.debug
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                if gui.DEBUG ~= CampFarmer.Settings.debug then
+                    gui.DEBUG = CampFarmer.Settings.debug
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
                 ImGui.Separator();
 
-                FableLooter.Settings.pauseMacro = ImGui.Checkbox('Enable Pause Macro', FableLooter.Settings.pauseMacro)
+                CampFarmer.Settings.pauseMacro = ImGui.Checkbox('Enable Pause Macro', CampFarmer.Settings.pauseMacro)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Pauses the currently running macro to loot.')
-                if gui.PAUSEMACRO ~= FableLooter.Settings.pauseMacro then
-                    gui.PAUSEMACRO = FableLooter.Settings.pauseMacro
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                if gui.PAUSEMACRO ~= CampFarmer.Settings.pauseMacro then
+                    gui.PAUSEMACRO = CampFarmer.Settings.pauseMacro
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y_Options)
-                FableLooter.Settings.doStand = ImGui.Checkbox('Enable Do Stand', FableLooter.Settings.doStand)
+                CampFarmer.Settings.doStand = ImGui.Checkbox('Enable Do Stand', CampFarmer.Settings.doStand)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Should we stand up if we arent?')
-                if gui.DOSTAND ~= FableLooter.Settings.doStand then
-                    gui.DOSTAND = FableLooter.Settings.doStand
-                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                if gui.DOSTAND ~= CampFarmer.Settings.doStand then
+                    gui.DOSTAND = CampFarmer.Settings.doStand
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
                 ImGui.Columns(1);
                 ImGui.Unindent()
@@ -565,250 +565,250 @@ function gui.FableLooterGUI()
                 ImGui.Indent()
                 if ImGui.CollapsingHeader("WastingTime Options") then
                     ImGui.Indent()
-                    FableLooter.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
-                        FableLooter.LootUtils.LootPlatinumBags)
+                    CampFarmer.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
+                        CampFarmer.LootUtils.LootPlatinumBags)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots platinum bags.')
-                    if gui.LOOTPLATINUMBAGS ~= FableLooter.LootUtils.LootPlatinumBags then
-                        gui.LOOTPLATINUMBAGS = FableLooter.LootUtils.LootPlatinumBags
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.LOOTPLATINUMBAGS ~= CampFarmer.LootUtils.LootPlatinumBags then
+                        gui.LOOTPLATINUMBAGS = CampFarmer.LootUtils.LootPlatinumBags
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    FableLooter.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
-                        FableLooter.LootUtils.LootTokensOfAdvancement)
+                    CampFarmer.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
+                        CampFarmer.LootUtils.LootTokensOfAdvancement)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots tokens of advancement.')
-                    if gui.LOOTTOKENSOFADVANCEMENT ~= FableLooter.LootUtils.LootTokensOfAdvancement then
-                        gui.LOOTTOKENSOFADVANCEMENT = FableLooter.LootUtils.LootTokensOfAdvancement
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.LOOTTOKENSOFADVANCEMENT ~= CampFarmer.LootUtils.LootTokensOfAdvancement then
+                        gui.LOOTTOKENSOFADVANCEMENT = CampFarmer.LootUtils.LootTokensOfAdvancement
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    FableLooter.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
-                        FableLooter.LootUtils.LootEmpoweredFabled)
+                    CampFarmer.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
+                        CampFarmer.LootUtils.LootEmpoweredFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots empowered fabled items.')
-                    if gui.LOOTEMPOWEREDFABLED ~= FableLooter.LootUtils.LootEmpoweredFabled then
-                        gui.LOOTEMPOWEREDFABLED = FableLooter.LootUtils.LootEmpoweredFabled
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.LOOTEMPOWEREDFABLED ~= CampFarmer.LootUtils.LootEmpoweredFabled then
+                        gui.LOOTEMPOWEREDFABLED = CampFarmer.LootUtils.LootEmpoweredFabled
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    FableLooter.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
-                        FableLooter.LootUtils.LootAllFabledAugs)
+                    CampFarmer.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
+                        CampFarmer.LootUtils.LootAllFabledAugs)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots all fabled augments.')
-                    if gui.LOOTALLFABLEDAUGS ~= FableLooter.LootUtils.LootAllFabledAugs then
-                        gui.LOOTALLFABLEDAUGS = FableLooter.LootUtils.LootAllFabledAugs
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.LOOTALLFABLEDAUGS ~= CampFarmer.LootUtils.LootAllFabledAugs then
+                        gui.LOOTALLFABLEDAUGS = CampFarmer.LootUtils.LootAllFabledAugs
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    FableLooter.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
-                        FableLooter.LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                    CampFarmer.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
+                        CampFarmer.LootUtils.EmpoweredFabledMinHP, 0, 1000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
-                    if gui.EMPOWEREDFABLEDMINHP ~= FableLooter.LootUtils.EmpoweredFabledMinHP then
-                        gui.EMPOWEREDFABLEDMINHP = FableLooter.LootUtils.EmpoweredFabledMinHP
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.EMPOWEREDFABLEDMINHP ~= CampFarmer.LootUtils.EmpoweredFabledMinHP then
+                        gui.EMPOWEREDFABLEDMINHP = CampFarmer.LootUtils.EmpoweredFabledMinHP
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    FableLooter.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
-                        FableLooter.LootUtils.EmpoweredFabledName)
+                    CampFarmer.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
+                        CampFarmer.LootUtils.EmpoweredFabledName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Name of the empowered fabled item.')
-                    if gui.EMPOWEREDFABLEDNAME ~= FableLooter.LootUtils.EmpoweredFabledName then
-                        gui.EMPOWEREDFABLEDNAME = FableLooter.LootUtils.EmpoweredFabledName
-                        FableLooter.LootUtils.writeSettings()
+                    if gui.EMPOWEREDFABLEDNAME ~= CampFarmer.LootUtils.EmpoweredFabledName then
+                        gui.EMPOWEREDFABLEDNAME = CampFarmer.LootUtils.EmpoweredFabledName
+                        CampFarmer.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
                     ImGui.Unindent()
                 end
                 ImGui.Columns(2)
                 local start_y = ImGui.GetCursorPosY()
-                FableLooter.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', FableLooter.LootUtils.UseWarp)
+                CampFarmer.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', CampFarmer.LootUtils.UseWarp)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Uses warp when enabled.')
-                if gui.USEWARP ~= FableLooter.LootUtils.UseWarp then
-                    gui.USEWARP = FableLooter.LootUtils.UseWarp
-                    FableLooter.LootUtils.writeSettings()
+                if gui.USEWARP ~= CampFarmer.LootUtils.UseWarp then
+                    gui.USEWARP = CampFarmer.LootUtils.UseWarp
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', FableLooter.LootUtils.AddNewSales)
+                CampFarmer.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', CampFarmer.LootUtils.AddNewSales)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Add new sales when enabled.')
-                if gui.ADDNEWSALES ~= FableLooter.LootUtils.AddNewSales then
-                    gui.ADDNEWSALES = FableLooter.LootUtils.AddNewSales
-                    FableLooter.LootUtils.writeSettings()
+                if gui.ADDNEWSALES ~= CampFarmer.LootUtils.AddNewSales then
+                    gui.ADDNEWSALES = CampFarmer.LootUtils.AddNewSales
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', FableLooter.LootUtils.LootForage)
+                CampFarmer.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', CampFarmer.LootUtils.LootForage)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot forage when enabled.')
-                if gui.LOOTFORAGE ~= FableLooter.LootUtils.LootForage then
-                    gui.LOOTFORAGE = FableLooter.LootUtils.LootForage
-                    FableLooter.LootUtils.writeSettings()
+                if gui.LOOTFORAGE ~= CampFarmer.LootUtils.LootForage then
+                    gui.LOOTFORAGE = CampFarmer.LootUtils.LootForage
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
-                    FableLooter.LootUtils.LootTradeSkill)
+                CampFarmer.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
+                    CampFarmer.LootUtils.LootTradeSkill)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot trade skill items when enabled.')
-                if gui.LOOTTRADESKILL ~= FableLooter.LootUtils.LootTradeSkill then
-                    gui.LOOTTRADESKILL = FableLooter.LootUtils.LootTradeSkill
-                    FableLooter.LootUtils.writeSettings()
+                if gui.LOOTTRADESKILL ~= CampFarmer.LootUtils.LootTradeSkill then
+                    gui.LOOTTRADESKILL = CampFarmer.LootUtils.LootTradeSkill
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', FableLooter.LootUtils.DoLoot)
+                CampFarmer.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', CampFarmer.LootUtils.DoLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Enables looting.')
-                if gui.DOLOOT ~= FableLooter.LootUtils.DoLoot then
-                    gui.DOLOOT = FableLooter.LootUtils.DoLoot
-                    FableLooter.LootUtils.writeSettings()
+                if gui.DOLOOT ~= CampFarmer.LootUtils.DoLoot then
+                    gui.DOLOOT = CampFarmer.LootUtils.DoLoot
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
-                    FableLooter.LootUtils.EquipUsable)
+                CampFarmer.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
+                    CampFarmer.LootUtils.EquipUsable)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Equips usable items. Buggy at best.')
-                if gui.EQUIPUSABLE ~= FableLooter.LootUtils.EquipUsable then
-                    gui.EQUIPUSABLE = FableLooter.LootUtils.EquipUsable
-                    FableLooter.LootUtils.writeSettings()
+                if gui.EQUIPUSABLE ~= CampFarmer.LootUtils.EquipUsable then
+                    gui.EQUIPUSABLE = CampFarmer.LootUtils.EquipUsable
+                    CampFarmer.LootUtils.writeSettings()
                 end
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y)
-                FableLooter.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', FableLooter.LootUtils.AnnounceLoot)
+                CampFarmer.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', CampFarmer.LootUtils.AnnounceLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports looted items to announce channel.')
-                if gui.ANNOUNCELOOT ~= FableLooter.LootUtils.AnnounceLoot then
-                    gui.ANNOUNCELOOT = FableLooter.LootUtils.AnnounceLoot
-                    FableLooter.LootUtils.writeSettings()
+                if gui.ANNOUNCELOOT ~= CampFarmer.LootUtils.AnnounceLoot then
+                    gui.ANNOUNCELOOT = CampFarmer.LootUtils.AnnounceLoot
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', FableLooter.LootUtils.ReportLoot)
+                CampFarmer.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', CampFarmer.LootUtils.ReportLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports looted items to console.')
-                if gui.REPORTLOOT ~= FableLooter.LootUtils.ReportLoot then
-                    gui.REPORTLOOT = FableLooter.LootUtils.ReportLoot
-                    FableLooter.LootUtils.writeSettings()
+                if gui.REPORTLOOT ~= CampFarmer.LootUtils.ReportLoot then
+                    gui.REPORTLOOT = CampFarmer.LootUtils.ReportLoot
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
-                    FableLooter.LootUtils.ReportSkipped)
+                CampFarmer.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
+                    CampFarmer.LootUtils.ReportSkipped)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports skipped loots.')
-                if gui.REPORTSKIPPED ~= FableLooter.LootUtils.ReportSkipped then
-                    gui.REPORTSKIPPED = FableLooter.LootUtils.ReportSkipped
-                    FableLooter.LootUtils.writeSettings()
+                if gui.REPORTSKIPPED ~= CampFarmer.LootUtils.ReportSkipped then
+                    gui.REPORTSKIPPED = CampFarmer.LootUtils.ReportSkipped
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
-                    FableLooter.LootUtils.SpamLootInfo)
+                CampFarmer.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
+                    CampFarmer.LootUtils.SpamLootInfo)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot info.')
-                if gui.SPAMLOOTINFO ~= FableLooter.LootUtils.SpamLootInfo then
-                    gui.SPAMLOOTINFO = FableLooter.LootUtils.SpamLootInfo
-                    FableLooter.LootUtils.writeSettings()
+                if gui.SPAMLOOTINFO ~= CampFarmer.LootUtils.SpamLootInfo then
+                    gui.SPAMLOOTINFO = CampFarmer.LootUtils.SpamLootInfo
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
-                    FableLooter.LootUtils.LootForageSpam)
+                CampFarmer.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
+                    CampFarmer.LootUtils.LootForageSpam)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot forage info.')
-                if gui.LOOTFORAGESPAM ~= FableLooter.LootUtils.LootForageSpam then
-                    gui.LOOTFORAGESPAM = FableLooter.LootUtils.LootForageSpam
-                    FableLooter.LootUtils.writeSettings()
+                if gui.LOOTFORAGESPAM ~= CampFarmer.LootUtils.LootForageSpam then
+                    gui.LOOTFORAGESPAM = CampFarmer.LootUtils.LootForageSpam
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
-                    FableLooter.LootUtils.CombatLooting)
+                CampFarmer.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
+                    CampFarmer.LootUtils.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
-                if gui.COMBATLOOTING ~= FableLooter.LootUtils.CombatLooting then
-                    gui.COMBATLOOTING = FableLooter.LootUtils.CombatLooting
-                    FableLooter.LootUtils.writeSettings()
+                if gui.COMBATLOOTING ~= CampFarmer.LootUtils.CombatLooting then
+                    gui.COMBATLOOTING = CampFarmer.LootUtils.CombatLooting
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Columns(1)
 
-                FableLooter.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", FableLooter.LootUtils.CorpseRadius,
+                CampFarmer.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", CampFarmer.LootUtils.CorpseRadius,
                     1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The radius we should scan for corpses.')
-                if gui.CORPSERADIUS ~= FableLooter.LootUtils.CorpseRadius then
-                    gui.CORPSERADIUS = FableLooter.LootUtils.CorpseRadius
-                    FableLooter.LootUtils.writeSettings()
+                if gui.CORPSERADIUS ~= CampFarmer.LootUtils.CorpseRadius then
+                    gui.CORPSERADIUS = CampFarmer.LootUtils.CorpseRadius
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", FableLooter.LootUtils
+                CampFarmer.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", CampFarmer.LootUtils
                     .MobsTooClose, 1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The range to check for nearby mobs.')
-                if gui.MOBSTOOCLOSE ~= FableLooter.LootUtils.MobsTooClose then
-                    gui.MOBSTOOCLOSE = FableLooter.LootUtils.MobsTooClose
-                    FableLooter.LootUtils.writeSettings()
+                if gui.MOBSTOOCLOSE ~= CampFarmer.LootUtils.MobsTooClose then
+                    gui.MOBSTOOCLOSE = CampFarmer.LootUtils.MobsTooClose
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value",
-                    FableLooter.LootUtils.StackPlatValue, 0, 10000)
+                CampFarmer.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value",
+                    CampFarmer.LootUtils.StackPlatValue, 0, 10000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The value of platinum stacks.')
-                if gui.STACKPLATVALUE ~= FableLooter.LootUtils.StackPlatValue then
-                    gui.STACKPLATVALUE = FableLooter.LootUtils.StackPlatValue
-                    FableLooter.LootUtils.writeSettings()
+                if gui.STACKPLATVALUE ~= CampFarmer.LootUtils.StackPlatValue then
+                    gui.STACKPLATVALUE = CampFarmer.LootUtils.StackPlatValue
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", FableLooter.LootUtils
+                CampFarmer.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", CampFarmer.LootUtils
                     .SaveBagSlots, 0, 100)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The number of bag slots to save.')
-                if gui.SAVEBAGSLOTS ~= FableLooter.LootUtils.SaveBagSlots then
-                    gui.SAVEBAGSLOTS = FableLooter.LootUtils.SaveBagSlots
-                    FableLooter.LootUtils.writeSettings()
+                if gui.SAVEBAGSLOTS ~= CampFarmer.LootUtils.SaveBagSlots then
+                    gui.SAVEBAGSLOTS = CampFarmer.LootUtils.SaveBagSlots
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", FableLooter.LootUtils
+                CampFarmer.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", CampFarmer.LootUtils
                     .MinSellPrice, 1, 100000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The minimum price at which items will be sold.')
-                if gui.MINSELLPRICE ~= FableLooter.LootUtils.MinSellPrice then
-                    gui.MINSELLPRICE = FableLooter.LootUtils.MinSellPrice
-                    FableLooter.LootUtils.writeSettings()
+                if gui.MINSELLPRICE ~= CampFarmer.LootUtils.MinSellPrice then
+                    gui.MINSELLPRICE = CampFarmer.LootUtils.MinSellPrice
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.LootChannel = ImGui.InputText('Loot Channel', FableLooter.LootUtils.LootChannel)
+                CampFarmer.LootUtils.LootChannel = ImGui.InputText('Loot Channel', CampFarmer.LootUtils.LootChannel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Channel to report loot to.')
-                if gui.LOOTCHANNEL ~= FableLooter.LootUtils.LootChannel then
-                    gui.LOOTCHANNEL = FableLooter.LootUtils.LootChannel
-                    FableLooter.LootUtils.writeSettings()
+                if gui.LOOTCHANNEL ~= CampFarmer.LootUtils.LootChannel then
+                    gui.LOOTCHANNEL = CampFarmer.LootUtils.LootChannel
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                FableLooter.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
-                    FableLooter.LootUtils.AnnounceChannel)
+                CampFarmer.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
+                    CampFarmer.LootUtils.AnnounceChannel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Channel to announce events.')
-                if gui.ANNOUNCECHANNEL ~= FableLooter.LootUtils.AnnounceChannel then
-                    gui.ANNOUNCECHANNEL = FableLooter.LootUtils.AnnounceChannel
-                    FableLooter.LootUtils.writeSettings()
+                if gui.ANNOUNCECHANNEL ~= CampFarmer.LootUtils.AnnounceChannel then
+                    gui.ANNOUNCECHANNEL = CampFarmer.LootUtils.AnnounceChannel
+                    CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
                 ImGui.Unindent()
@@ -831,7 +831,7 @@ function gui.FableLooterGUI()
 end
 
 function gui.initGUI()
-    mq.imgui.init('FableLooter', gui.FableLooterGUI)
+    mq.imgui.init('CampFarmer', gui.CampFarmerGUI)
     gui.Open = true
 end
 

@@ -1,0 +1,2 @@
+3,1,TFFF,Global_chr,Loading Characters
+1,0,TFFF,oot_chr,Loading Characters

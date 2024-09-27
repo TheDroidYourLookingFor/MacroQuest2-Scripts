@@ -267,24 +267,24 @@ local eventForage, eventSell, eventCantLoot
 function LootUtils.ConsoleMessage(messageType, message, ...)
     if messageType == 'Debug' then
         --LootUtils.Settings.logger.Debug((message):format(...))
-        -- FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Debug(message, ...)
+        -- CampFarmer.GUI.addToConsole((message):format(...))
+        CampFarmer.Messages.Debug(message, ...)
     elseif messageType == 'Info' then
         --LootUtils.Settings.logger.Info((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Info(message, ...)
+        --CampFarmer.GUI.addToConsole((message):format(...))
+        CampFarmer.Messages.Info(message, ...)
     elseif messageType == 'Warn' then
         --LootUtils.Settings.logger.Warn((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Warn(message, ...)
+        --CampFarmer.GUI.addToConsole((message):format(...))
+        CampFarmer.Messages.Warn(message, ...)
     elseif messageType == 'Normal' then
         --LootUtils.Settings.logger.Warn((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Normal(message, ...)
+        --CampFarmer.GUI.addToConsole((message):format(...))
+        CampFarmer.Messages.Normal(message, ...)
     else
         --LootUtils.Settings.logger.Info((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Normal(message, ...)
+        --CampFarmer.GUI.addToConsole((message):format(...))
+        CampFarmer.Messages.Normal(message, ...)
     end
 end
 
@@ -454,14 +454,14 @@ end
 LootUtils.CorpseFixCounter = 0
 LootUtils.LastCorpseFixID = 0
 local function event_CantLoot_handler(line)
-    FableLooter.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
+    CampFarmer.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
     if not mq.TLO.Target() then return end
     LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
     if LootUtils.CorpseFixCounter >= 3 then
         LootUtils.CorpseFixCounter = 0
         mq.cmdf('%s', '/say #corpsefix')
         mq.delay(50)
-        FableLooter.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
+        CampFarmer.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
         if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then
             cantLootList[mq.TLO.Target.ID()] = os.time()
         end
@@ -574,8 +574,8 @@ local function lootItem(index, doWhat, button)
     mq.delay(1) -- force next frame
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
-    if LootUtils.ReportLoot then FableLooter.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat) end
-    FableLooter.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
+    if LootUtils.ReportLoot then CampFarmer.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat) end
+    CampFarmer.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
@@ -651,7 +651,7 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
-            FableLooter.Messages.Warn(skippedItems)
+            CampFarmer.Messages.Warn(skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
