@@ -6,10 +6,6 @@ CampFarmer = {
     _version = '1.0.0',
     _author = 'TheDroidUrLookingFor'
 }
-CampFarmer.LootUtils = require('CampFarmer.lib.LootUtils')
-CampFarmer.Messages = require('CampFarmer.lib.Messages')
-CampFarmer.GUI = require('CampFarmer.lib.Gui')
-CampFarmer.Storage = require('CampFarmer.lib.Storage')
 CampFarmer.script_ShortName = 'CampFarmer'
 CampFarmer.command_ShortName = 'ka'
 CampFarmer.command_LongName = 'CampFarmer'
@@ -54,9 +50,8 @@ CampFarmer.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
 CampFarmer.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
 CampFarmer.Settings.AltLooterName = 'Binli'
 CampFarmer.Settings.lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-MINLI.ini'
-CampFarmer.LootUtils.Settings.LootFile = CampFarmer.Settings.lootINIFile
 CampFarmer.Settings.MinMobsInZone = 10
-CampFarmer.Settings.UberPullMobsInZone = 100
+CampFarmer.Settings.UberPullMobsInZone = 50
 CampFarmer.Settings.ReturnToHomeDistance = 60
 
 CampFarmer.Settings.staticHunt = true
@@ -71,9 +66,14 @@ CampFarmer.Settings.scan_Radius = 10000
 CampFarmer.Settings.scan_zRadius = 250
 CampFarmer.Settings.corpseCleanup = true
 CampFarmer.Settings.corpseCleanupCommand = '/hidecorpse all'
-CampFarmer.Settings.corpseLimit = 500
+CampFarmer.Settings.corpseLimit = 200
 CampFarmer.Settings.doStand = true
 CampFarmer.Settings.lootAll = false
+
+CampFarmer.LootUtils = require('CampFarmer.lib.LootUtils')
+CampFarmer.Messages = require('CampFarmer.lib.Messages')
+CampFarmer.GUI = require('CampFarmer.lib.Gui')
+CampFarmer.Storage = require('CampFarmer.lib.Storage')
 
 CampFarmer.IgnoreList = {"Gillamina Garstobidokis", "an ornate chest", "${Me.CleanName}'s Pet", "${Me.CleanName}",
                          "Cruel Illusion", "lockout ikkinz", "Kilidna", "Pixtt Grand Summoner", "Kevren Nalavat",
@@ -163,8 +163,9 @@ end
 
 function CampFarmer.CheckCorpseCount()
     CampFarmer.HandleDisconnect()
-    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName,
-        CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 then
+    if CampFarmer.Settings.DoLoot and
+        mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName,
+            CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 then
         return
     end
     if mq.TLO.SpawnCount('npccorpse')() > CampFarmer.Settings.corpseLimit then
@@ -366,7 +367,7 @@ end
 
 function CampFarmer.CheckLevel()
     CampFarmer.HandleDisconnect()
-    if mq.TLO.Me.Level() <= 79 then
+    if mq.TLO.Me.Level() <= 79 or (mq.TLO.Me.Level() >= 80 and mq.TLO.Me.PctExp() < 50) then
         mq.cmdf('/alt on %s', 50)
     elseif mq.TLO.Me.Level() >= 80 then
         mq.cmdf('/alt on %s', 100)
@@ -495,7 +496,8 @@ function CampFarmer.CheckTarget()
         mq.TLO.Me.Stand()
     end
     -- print(CampFarmer.CheckDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()))
-    if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) > CampFarmer.Settings.ReturnToHomeDistance then
+    if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) >
+        CampFarmer.Settings.ReturnToHomeDistance then
         if (mq.TLO.Target() and not string.find(mq.TLO.Target.CleanName(), 'Treasure Goblin')) or not mq.TLO.Target() then
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
             mq.delay(100)
@@ -715,6 +717,7 @@ function CampFarmer.Main()
     CampFarmer.Messages.Normal('Setting up Alert Lists')
     CampFarmer.SetupAlertLists()
     CampFarmer.CheckCampInfo()
+    CampFarmer.LootUtils.CheckLootActions()
     mq.cmdf('%s', '/hidecorpse looted')
     CampFarmer.Messages.Normal('Initialized')
     CampFarmer.Messages.Normal('Static Mode: %s', CampFarmer.Settings.staticHunt)
