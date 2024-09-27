@@ -105,23 +105,19 @@ There is also no flag for combat looting. It will only loot if no mobs are withi
 
 ]] ---@type Mq
 local mq = require 'mq'
--- local success, Write = pcall(require, 'lib.Write')
--- if not success then
---     printf('\arERROR: Write.lua could not be loaded\n%s\ax', Write)
---     return
--- end
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.12",
+    Version = "1.0.16",
+    _Macro = CampFarmer,
     UseWarp = true,
     AddNewSales = true,
-    AddIgnoredItems = false,
+    AddIgnoredItems = true,
     LootForage = true,
     LootTradeSkill = false,
     DoLoot = true,
     EquipUsable = false, -- Buggy at best
-    CorpseRadius = 100,
+    CorpseRadius = 5000,
     MobsTooClose = 40,
     ReportLoot = true,
     AnnounceLoot = true,
@@ -133,21 +129,27 @@ local LootUtils = {
     CombatLooting = true,
     LootPlatinumBags = true,
     LootTokensOfAdvancement = true,
-    LootEmpoweredFabled = false,
-    LootAllFabledAugs = false,
+    LootEmpoweredFabled = true,
+    LootAllFabledAugs = true,
     EmpoweredFabledName = 'Empowered',
-    EmpoweredFabledMinHP = 700,
+    EmpoweredFabledMinHP = 0,
     StackPlatValue = 0,
     SaveBagSlots = 3,
     MinSellPrice = 5000,
-    StackableOnly = false
+    StackableOnly = false,
+    UseSingleFileForAllCharacters = true,
+    useZoneLootFile = false,
+    useClassLootFile = false,
+    useArmorTypeLootFile = false,
+    useMacroLootFile = true
 }
-
+local my_Class = mq.TLO.Me.Class() or ''
+local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = CampFarmer.Settings.lootINIFile
+    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
     -- LootLagDelay = 0,
     -- GlobalLootOn = true,
     -- CorpseRotTime = "440s",
@@ -156,6 +158,67 @@ LootUtils.Settings = {
     -- QuestKeep = 10,
 }
 
+-- LootUtils.Settings.logger.prefix = 'EZLoot'
+local function SetINIType()
+    if LootUtils.useMacroLootFile then
+        LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
+        printf('LootFile: %s', LootUtils.Settings.LootFile)
+        return
+    end
+    if LootUtils.UseSingleFileForAllCharacters then
+        LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
+        printf('LootFile: %s', LootUtils.Settings.LootFile)
+        return
+    end
+    local my_ArmorType
+    if LootUtils.useArmorTypeLootFile then
+        if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
+            my_ArmorType = 'Plate'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
+            my_ArmorType = 'Chain'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
+            my_ArmorType = 'Cloth'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
+            my_ArmorType = 'Leather'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+            end
+        end
+    else
+        if LootUtils.useZoneLootFile then
+            if LootUtils.useClassLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+            end
+        else
+            if LootUtils.useClassLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_Class .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_Name .. '.ini'
+            end
+        end
+    end
+    printf('LootFile: %s', LootUtils.Settings.LootFile)
+end
+SetINIType()
 -- Internal settings
 local lootData = {}
 local doSell = false
@@ -209,25 +272,25 @@ local eventForage, eventSell, eventCantLoot
 -- UTILITIES
 function LootUtils.ConsoleMessage(messageType, message, ...)
     if messageType == 'Debug' then
-        -- LootUtils.Settings.logger.Debug((message):format(...))
-        -- CampFarmer.GUI.addToConsole((message):format(...))
-        CampFarmer.Messages.Debug(message, ...)
+        -- LootUtils._Macro.Settings.logger.Debug((message):format(...))
+        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
+        LootUtils._Macro.Messages.Debug(message, ...)
     elseif messageType == 'Info' then
-        -- LootUtils.Settings.logger.Info((message):format(...))
-        -- CampFarmer.GUI.addToConsole((message):format(...))
-        CampFarmer.Messages.Info(message, ...)
+        -- LootUtils._Macro.Settings.logger.Info((message):format(...))
+        LootUtils._Macro.GUI.addToConsole((message):format(...))
+        LootUtils._Macro.Messages.Info(message, ...)
     elseif messageType == 'Warn' then
-        -- LootUtils.Settings.logger.Warn((message):format(...))
-        -- CampFarmer.GUI.addToConsole((message):format(...))
-        CampFarmer.Messages.Warn(message, ...)
+        -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
+        LootUtils._Macro.GUI.addToConsole((message):format(...))
+        LootUtils._Macro.Messages.Warn(message, ...)
     elseif messageType == 'Normal' then
-        -- LootUtils.Settings.logger.Warn((message):format(...))
-        -- CampFarmer.GUI.addToConsole((message):format(...))
-        CampFarmer.Messages.Normal(message, ...)
+        -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
+        LootUtils._Macro.GUI.addToConsole((message):format(...))
+        LootUtils._Macro.Messages.Normal(message, ...)
     else
-        -- LootUtils.Settings.logger.Info((message):format(...))
-        -- CampFarmer.GUI.addToConsole((message):format(...))
-        CampFarmer.Messages.Normal(message, ...)
+        -- LootUtils._Macro.Settings.logger.Info((message):format(...))
+        LootUtils._Macro.GUI.addToConsole((message):format(...))
+        LootUtils._Macro.Messages.Normal(message, ...)
     end
 end
 
@@ -240,8 +303,7 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults',
-            LootUtils.Settings.Defaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
 end
 
@@ -388,8 +450,7 @@ local function getRule(item)
                 lootDecision = 'Fabled'
             end
         end
-        if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~=
-            nil and item.AugType() > 0 then
+        if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then
@@ -417,7 +478,7 @@ end
 LootUtils.CorpseFixCounter = 0
 LootUtils.LastCorpseFixID = 0
 local function event_CantLoot_handler(line)
-    CampFarmer.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
+    LootUtils._Macro.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
     if not mq.TLO.Target() then
         return
     end
@@ -426,7 +487,7 @@ local function event_CantLoot_handler(line)
         LootUtils.CorpseFixCounter = 0
         mq.cmdf('%s', '/say #corpsefix')
         mq.delay(50)
-        CampFarmer.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
+        LootUtils._Macro.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
         if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then
             cantLootList[mq.TLO.Target.ID()] = os.time()
         end
@@ -451,7 +512,9 @@ end
 -- BINDS
 
 local function commandHandler(...)
-    local args = {...}
+    local args = {
+        ...
+    }
     if #args == 1 then
         if args[1] == 'sell' and not LootUtils.Settings.Terminate then
             doSell = true
@@ -519,8 +582,7 @@ local function lootItem(index, doWhat, button)
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         if EZLoot.debug then
-            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction,
-                ruleAmount, currentItemAmount)
+            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
         end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then
             return
@@ -548,9 +610,9 @@ local function lootItem(index, doWhat, button)
         return
     end
     if LootUtils.ReportLoot then
-        CampFarmer.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+        LootUtils._Macro.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
     end
-    CampFarmer.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
+    LootUtils._Macro.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
         mq.cmd('/destroy')
@@ -566,6 +628,9 @@ function LootUtils.lootCorpse(corpseID)
     mq.delay(100)
     if not mq.TLO.Target() then
         LootUtils.ConsoleMessage('Debug', 'Can\'t loot no target was selected.')
+        return
+    end
+    if not mq.TLO.Target.ID() == corpseID then
         return
     end
     if mq.TLO.Cursor() then
@@ -591,7 +656,10 @@ function LootUtils.lootCorpse(corpseID)
     mq.doevents('CantLoot2')
     mq.doevents('OutOfRange1')
     mq.doevents('OutOfRange2')
-    mq.delay(3000, function()
+    if not mq.TLO.Target.ID() == corpseID then
+        return
+    end
+    mq.delay(1000, function()
         return mq.TLO.Window('LootWnd').Open()
     end)
     if not mq.TLO.Window('LootWnd').Open() then
@@ -642,11 +710,11 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
-            CampFarmer.Messages.Warn(skippedItems)
+            LootUtils._Macro.Messages.Warn(skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
-    mq.delay(3000, function()
+    mq.delay(1000, function()
         return not mq.TLO.Window('LootWnd').Open()
     end)
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
@@ -687,8 +755,7 @@ function LootUtils.lootMobs(limit)
     for i = 1, #corpseList do
         local corpse = corpseList[i]
         local corpseID = corpse.ID()
-        if corpseID and corpseID > 0 and not corpseLocked(corpseID) and
-            (mq.TLO.Navigation.PathLength('spawn id ' .. tostring(corpseID))() or 100) < 60 then
+        if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id ' .. tostring(corpseID))() or 100) < 60 then
             LootUtils.ConsoleMessage('Debug', 'Moving to corpse ID=%s', tostring(corpseID))
             navToID(corpseID)
             corpse.DoTarget()
@@ -835,8 +902,7 @@ function LootUtils.sellStuff(closeWindowWhenDone)
                     if sellRule == 'Sell' then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
-                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!',
-                                itemToSell)
+                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!', itemToSell)
                         else
                             sellToVendor(itemToSell)
                         end
@@ -963,17 +1029,6 @@ function LootUtils.markTradeSkillAsBank()
     end
 end
 
-local function bankItem(itemName)
-    mq.cmdf('/nomodkey /shiftkey /itemnotify "%s" leftmouseup', itemName)
-    mq.delay(100, function()
-        return mq.TLO.Cursor()
-    end)
-    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-    mq.delay(100, function()
-        return not mq.TLO.Cursor()
-    end)
-end
-
 function LootUtils.bankStuff()
     if not mq.TLO.Window('BigBankWnd').Open() then
         LootUtils.ConsoleMessage('Warn', 'Bank window must be open!')
@@ -986,7 +1041,14 @@ function LootUtils.bankStuff()
                 local itemToBank = bagSlot.Name()
                 local bankRule = getRule(bagSlot)
                 if bankRule == 'Bank' then
-                    bankItem(itemToBank)
+                    mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
+                    mq.delay(100, function()
+                        return mq.TLO.Cursor()
+                    end)
+                    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+                    mq.delay(100, function()
+                        return not mq.TLO.Cursor()
+                    end)
                 end
             end
         end
@@ -1001,7 +1063,14 @@ function LootUtils.bankStuff()
                 if itemToBank then
                     local bankRule = getRule(bagSlot.Item(j))
                     if bankRule == 'Bank' then
-                        bankItem(itemToBank)
+                        mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
+                        mq.delay(100, function()
+                            return mq.TLO.Cursor()
+                        end)
+                        mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+                        mq.delay(100, function()
+                            return not mq.TLO.Cursor()
+                        end)
                     end
                 end
             end
@@ -1036,9 +1105,7 @@ function eventForage()
             end
             -- will a lore item we already have even show up on cursor?
             -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
-        elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and
-            (not cursorItem.Lore() or currentItemAmount == 0) and
-            (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
+        elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
             if LootUtils.LootForageSpam then
                 LootUtils.ConsoleMessage('Info', 'Keeping foraged item %s', foragedItem)
             end
@@ -1073,7 +1140,11 @@ end
 
 local function init(args)
     local iniFile = mq.TLO.Ini.File(LootUtils.Settings.LootFile)
-    if not (iniFile.Exists() and iniFile.Section('Settings').Exists()) then
+    if not iniFile.Exists() then
+        LootUtils.writeSettings()
+    elseif iniFile.Exists() and not iniFile.Section('Settings').Exists() then
+        LootUtils.writeSettings()
+    elseif iniFile.Exists() and iniFile.Section('Settings').Key('Version').Value() ~= LootUtils.Version then
         LootUtils.writeSettings()
     else
         LootUtils.loadSettings()
@@ -1084,7 +1155,9 @@ local function init(args)
     processArgs(args)
 end
 
-init({...})
+init({
+    ...
+})
 
 while not LootUtils.Settings.Terminate do
     if LootUtils.DoLoot then

@@ -75,13 +75,34 @@ CampFarmer.Messages = require('CampFarmer.lib.Messages')
 CampFarmer.GUI = require('CampFarmer.lib.Gui')
 CampFarmer.Storage = require('CampFarmer.lib.Storage')
 
-CampFarmer.IgnoreList = {"Gillamina Garstobidokis", "an ornate chest", "${Me.CleanName}'s Pet", "${Me.CleanName}",
-                         "Cruel Illusion", "lockout ikkinz", "Kilidna", "Pixtt Grand Summoner", "Kevren Nalavat",
-                         "Kenra Kalekkio", "Pixtt Nemis", "Undari Perunea", "Sentinel of the Altar", "Retharg",
-                         "Siska the Spumed", "a shark", "The ground"}
+CampFarmer.IgnoreList = {
+    "Gillamina Garstobidokis",
+    "an ornate chest",
+    "${Me.CleanName}'s Pet",
+    "${Me.CleanName}",
+    "Cruel Illusion",
+    "lockout ikkinz",
+    "Kilidna",
+    "Pixtt Grand Summoner",
+    "Kevren Nalavat",
+    "Kenra Kalekkio",
+    "Pixtt Nemis",
+    "Undari Perunea",
+    "Sentinel of the Altar",
+    "Retharg",
+    "Siska the Spumed",
+    "a shark",
+    "The ground"
+}
 
-CampFarmer.PriorityList = {"Cash Treasure Goblin", "Platinum Treasure Goblin", "Augment Treasure Goblin",
-                           "Paper Treasure Goblin", "Raging Treasure Goblin", "Treasure Goblin"}
+CampFarmer.PriorityList = {
+    "Cash Treasure Goblin",
+    "Platinum Treasure Goblin",
+    "Augment Treasure Goblin",
+    "Paper Treasure Goblin",
+    "Raging Treasure Goblin",
+    "Treasure Goblin"
+}
 
 CampFarmer.ClassAAs = {
     Bard = 39908,
@@ -143,34 +164,41 @@ function CampFarmer.CheckXTargAggro()
 end
 
 function CampFarmer.HandleDisconnect()
-    if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
-        mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
-        mq.delay(50)
-        mq.delay(25000, function()
-            return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
-        end)
-        mq.delay(50)
-    end
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+    if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
+        mq.TLO.AutoLogin.Profile.ReRun()
         mq.delay(50)
         mq.delay(25000, function()
             return mq.TLO.EverQuest.GameState() == 'INGAME'
         end)
         mq.delay(50)
     end
+    -- if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
+    --     mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
+    --     mq.delay(50)
+    --     mq.delay(25000, function()
+    --         return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
+    --     end)
+    --     mq.delay(50)
+    -- end
+    -- if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+    --     mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+    --     mq.delay(50)
+    --     mq.delay(25000, function()
+    --         return mq.TLO.EverQuest.GameState() == 'INGAME'
+    --     end)
+    --     mq.delay(50)
+    -- end
 end
 
 function CampFarmer.CheckCorpseCount()
     CampFarmer.HandleDisconnect()
-    if CampFarmer.Settings.DoLoot and
-        mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName,
-            CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 then
+    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 then
         return
     end
     if mq.TLO.SpawnCount('npccorpse')() > CampFarmer.Settings.corpseLimit then
         mq.cmdf('%s', CampFarmer.Settings.corpseCleanupCommand)
-        mq.cmdf('%s', '/hidecorpse looted')
+        mq.delay(50)
+        mq.cmd('/hidecorpse looted')
         mq.delay(250)
     end
 end
@@ -202,26 +230,19 @@ function CampFarmer.CheckBuffs()
         end)
         mq.delay(CampFarmer.ItemReuseDelay)
     end
-    if CampFarmer.Settings.useCurrencyCharm and mq.TLO.FindItem('Soulriever\'s Charm of Currency')() and
-        mq.TLO.Me.ItemReady('Soulriever\'s Charm of Currency')() and
-        not mq.TLO.Me.Buff('Soulriever\'s Currency Doubler')() then
+    if CampFarmer.Settings.useCurrencyCharm and mq.TLO.FindItem('Soulriever\'s Charm of Currency')() and mq.TLO.Me.ItemReady('Soulriever\'s Charm of Currency')() and not mq.TLO.Me.Buff('Soulriever\'s Currency Doubler')() then
         mq.cmdf('/useitem %s', 'Soulriever\'s Charm of Currency')
         mq.delay(CampFarmer.ItemReuseDelay)
     end
-    if CampFarmer.Settings.usePaladinAA and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and
-        mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Paladin'])() then
+    if CampFarmer.Settings.usePaladinAA and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Paladin'])() then
         mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Paladin'])
         mq.delay(CampFarmer.ItemReuseDelay)
     end
-    if CampFarmer.Settings.useBemChest and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and
-        mq.TLO.FindItem('Bemvaras\'s Golden Breastplate Rk. I')() and
-        mq.TLO.Me.ItemReady('Bemvaras\'s Golden Breastplate Rk. I')() then
+    if CampFarmer.Settings.useBemChest and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and mq.TLO.FindItem('Bemvaras\'s Golden Breastplate Rk. I')() and mq.TLO.Me.ItemReady('Bemvaras\'s Golden Breastplate Rk. I')() then
         mq.cmdf('/useitem %s', 'Bemvaras\'s Golden Breastplate Rk. I')
         mq.delay(CampFarmer.ItemReuseDelay)
     end
-    if CampFarmer.Settings.useClericAA and not mq.TLO.Me.Buff('Cleric Mastery - Divine Health')() and
-        mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Cleric'])() and
-        mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() == 0 then
+    if CampFarmer.Settings.useClericAA and not mq.TLO.Me.Buff('Cleric Mastery - Divine Health')() and mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Cleric'])() and mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() == 0 then
         if not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() then
             mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Cleric'])
             mq.delay(2500, function()
@@ -230,36 +251,28 @@ function CampFarmer.CheckBuffs()
             mq.delay(CampFarmer.AAReuseDelay)
         end
     end
-    if CampFarmer.Settings.useBemLegs and mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and
-        mq.TLO.Me.ItemReady('Bemvaras\'s Holy Greaves')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
-        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and
-            not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
+    if CampFarmer.Settings.useBemLegs and mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and mq.TLO.Me.ItemReady('Bemvaras\'s Holy Greaves')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
+        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
             mq.cmdf('/useitem %s', 'Bemvaras\'s Holy Greaves')
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     else
-        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem('Potion of Adventure II')() and
-            not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() and not mq.TLO.Me.Buff('Potion of Adventure II')() then
+        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem('Potion of Adventure II')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() and not mq.TLO.Me.Buff('Potion of Adventure II')() then
             mq.cmdf('/useitem %s', 'Potion of Adventure II')
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     end
-    if CampFarmer.Settings.useBemGloves and mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() and
-        mq.TLO.Me.ItemReady('Bemvaras\'s Holy Gauntlets')() and not mq.TLO.Me.Buff('Talisman of Guenhwyvar')() then
+    if CampFarmer.Settings.useBemGloves and mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() and mq.TLO.Me.ItemReady('Bemvaras\'s Holy Gauntlets')() and not mq.TLO.Me.Buff('Talisman of Guenhwyvar')() then
         mq.cmdf('/useitem %s', 'Bemvaras\'s Holy Gauntlets')
         mq.delay(CampFarmer.ItemReuseDelay)
     end
     if CampFarmer.Settings.useBemGloves and mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() then
-        if CampFarmer.Settings.useBuffCharm and mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and
-            mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and not mq.TLO.Me.Buff('Circle of Fireskin')() then
+        if CampFarmer.Settings.useBuffCharm and mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and not mq.TLO.Me.Buff('Circle of Fireskin')() then
             mq.cmdf('/useitem %s', CampFarmer.Settings.buffCharmName)
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     else
-        if not CampFarmer.Settings.useBemGloves and CampFarmer.Settings.useBuffCharm and
-            mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and
-            mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and
-            not mq.TLO.Me.Buff(CampFarmer.Settings.buffCharmBuffName)() then
+        if not CampFarmer.Settings.useBemGloves and CampFarmer.Settings.useBuffCharm and mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and not mq.TLO.Me.Buff(CampFarmer.Settings.buffCharmBuffName)() then
             mq.cmdf('/useitem %s', CampFarmer.Settings.buffCharmName)
             mq.delay(CampFarmer.ItemReuseDelay)
         end
@@ -286,13 +299,11 @@ function CampFarmer.CombatSpells()
         mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Shadowknight'])
         mq.delay(CampFarmer.AAReuseDelay)
     end
-    if not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and
-        mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Wizard'])() then
+    if not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Wizard'])() then
         mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Wizard'])
         mq.delay(CampFarmer.AAReuseDelay)
     end
-    if not mq.TLO.Me.Buff('Monk Mastery of A Thousand Fists').ID() and
-        mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Monk'])() then
+    if not mq.TLO.Me.Buff('Monk Mastery of A Thousand Fists').ID() and mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Monk'])() then
         mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Monk'])
         mq.delay(CampFarmer.AAReuseDelay)
     end
@@ -408,6 +419,7 @@ function CampFarmer.RespawnZone()
     mq.cmdf('/useitem %s', CampFarmer.Settings.respawnItem)
     mq.delay(CampFarmer.RepopDelay)
     allowUberPull = true
+    CampFarmer.CheckPet()
 end
 
 function CampFarmer.Aggro(aggroCharm)
@@ -426,9 +438,7 @@ end
 
 function CampFarmer.AggroZone()
     CampFarmer.HandleDisconnect()
-    if allowUberPull and CampFarmer.Settings.DoUberPull and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() >
-        CampFarmer.Settings.MinMobsInZone and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() <=
-        CampFarmer.Settings.UberPullMobsInZone then
+    if allowUberPull and CampFarmer.Settings.DoUberPull and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() > CampFarmer.Settings.MinMobsInZone and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() <= CampFarmer.Settings.UberPullMobsInZone then
         CampFarmer.Aggro(CampFarmer.Settings.aggroUberItem)
         allowUberPull = false
         return
@@ -448,27 +458,17 @@ function CampFarmer.AggroZone()
     if CampFarmer.CheckXTargAggro() > 0 then
         return
     end
+    CampFarmer.CheckPet()
     CampFarmer.Aggro(CampFarmer.Settings.aggroItem)
 end
 
 function CampFarmer.LootMobs()
     CampFarmer.HandleDisconnect()
-    if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName,
-        CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and
-        mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius,
-            CampFarmer.Settings.scan_zRadius))() > 0) then
+    if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
-            mq.cmdf('/target %s',
-                mq.TLO
-                    .NearestSpawn(
-                    CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius,
-                        CampFarmer.Settings.scan_zRadius))())
+            mq.cmdf('/target %s', mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
         else
-            mq.cmdf('/target %s',
-                mq.TLO
-                    .NearestSpawn(
-                    CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName,
-                        CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
+            mq.cmdf('/target %s', mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
         end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/squelch /warp t')
@@ -496,15 +496,13 @@ function CampFarmer.CheckTarget()
         mq.TLO.Me.Stand()
     end
     -- print(CampFarmer.CheckDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()))
-    if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) >
-        CampFarmer.Settings.ReturnToHomeDistance then
+    if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) > CampFarmer.Settings.ReturnToHomeDistance then
         if (mq.TLO.Target() and not string.find(mq.TLO.Target.CleanName(), 'Treasure Goblin')) or not mq.TLO.Target() then
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
             mq.delay(100)
         end
     end
-    if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() ==
-        'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
+    if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() == 'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
         mq.cmd('/squelch /target clear')
     end
     if mq.TLO.SpawnCount('npc alert 2')() > 0 then
@@ -522,8 +520,7 @@ function CampFarmer.CheckTarget()
         CampFarmer.KillThis()
     end
     CampFarmer.CombatSpells()
-    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and
-        mq.TLO.Me.FreeInventory() then
+    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and mq.TLO.Me.FreeInventory() then
         CampFarmer.LootMobs()
     end
     if not mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() and CampFarmer.CheckXTargAggro() == 0 then
@@ -536,8 +533,7 @@ function CampFarmer.CheckTarget()
             CampFarmer.CheckTarget()
         end
     end
-    if CampFarmer.CheckXTargAggro() == 0 and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() >
-        CampFarmer.Settings.MinMobsInZone then
+    if CampFarmer.CheckXTargAggro() == 0 and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() > CampFarmer.Settings.MinMobsInZone then
         CampFarmer.AggroZone()
     end
     if not mq.TLO.Target() and mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() then
@@ -561,10 +557,10 @@ function CampFarmer.Checks()
     CampFarmer.CheckGroup()
     CampFarmer.CheckCorpseCount()
     CampFarmer.CheckAATokens()
-    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and
-        mq.TLO.Me.FreeInventory() then
+    if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and mq.TLO.Me.FreeInventory() then
         CampFarmer.LootMobs()
     end
+    CampFarmer.CheckPet()
 end
 
 function CampFarmer.BankDropOff()
@@ -698,6 +694,19 @@ function CampFarmer.FabledSell()
     end
 end
 
+function CampFarmer.CheckPet()
+    if mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() ~= 0 then
+        return
+    end
+    if not mq.TLO.Pet.ID() and not mq.TLO.Me.Combat() and mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Beastlord'])() then
+        mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Beastlord'])
+        mq.delay(2500, function()
+            return mq.TLO.Pet.ID() > 0 or mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)()
+        end)
+        CampFarmer.CheckPetAoE()
+    end
+end
+
 local function event_fabledSell_handler(line)
     local links = mq.ExtractLinks(line)
     for _, link in ipairs(links) do
@@ -707,18 +716,16 @@ local function event_fabledSell_handler(line)
         end
     end
 end
-mq.event('SellFabledItems',
-    "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'",
-    event_fabledSell_handler, {
-        keepLinks = true
-    })
+mq.event('SellFabledItems', "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'", event_fabledSell_handler, {
+    keepLinks = true
+})
 
 function CampFarmer.Main()
     CampFarmer.Messages.Normal('Setting up Alert Lists')
     CampFarmer.SetupAlertLists()
     CampFarmer.CheckCampInfo()
     CampFarmer.LootUtils.CheckLootActions()
-    mq.cmdf('%s', '/hidecorpse looted')
+    mq.cmd('/hidecorpse looted')
     CampFarmer.Messages.Normal('Initialized')
     CampFarmer.Messages.Normal('Static Mode: %s', CampFarmer.Settings.staticHunt)
     CampFarmer.Messages.Normal('Camp Zone: %s', CampFarmer.startZoneName)
@@ -727,6 +734,8 @@ function CampFarmer.Main()
     CampFarmer.Messages.Normal('Loot INI File: %s', CampFarmer.Settings.lootINIFile)
     if mq.TLO.Pet.ID() then
         CampFarmer.CheckPetAoE()
+    else
+        CampFarmer.CheckPet()
     end
     CampFarmer.CheckBuffs()
     CampFarmer.Messages.Normal('Starting the slaughter!')
