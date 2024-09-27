@@ -371,6 +371,13 @@ function gui.FableLooterGUI()
                     FableLooter.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, FableLooter.Settings.SellFabledFor_idx);
                     if SellFabledFor_idx ~= FableLooter.Settings.SellFabledFor_idx then
                         SellFabledFor_idx = FableLooter.Settings.SellFabledFor_idx
+                        if SellFabledFor_idx == 1 then
+                            FableLooter.Settings.SellFabledFor = 'Doubloons'
+                        elseif SellFabledFor_idx == 2 then
+                            FableLooter.Settings.SellFabledFor = 'Papers'
+                        else
+                            FableLooter.Settings.SellFabledFor = 'Cash'
+                        end
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
 
