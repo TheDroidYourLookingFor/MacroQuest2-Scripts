@@ -10,6 +10,7 @@ CampFarmer.script_ShortName = 'CampFarmer'
 CampFarmer.command_ShortName = 'ka'
 CampFarmer.command_LongName = 'CampFarmer'
 CampFarmer.loop = true
+CampFarmer.NewDisconnectHandler = true
 CampFarmer.startX = mq.TLO.Me.X()
 CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
@@ -164,30 +165,33 @@ function CampFarmer.CheckXTargAggro()
 end
 
 function CampFarmer.HandleDisconnect()
-    if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
-        mq.TLO.AutoLogin.Profile.ReRun()
-        mq.delay(50)
-        mq.delay(25000, function()
-            return mq.TLO.EverQuest.GameState() == 'INGAME'
-        end)
-        mq.delay(50)
+    if CampFarmer.NewDisconnectHandler then
+        if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
+            mq.TLO.AutoLogin.Profile.ReRun()
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
+    else
+        if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
+            mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
+            end)
+            mq.delay(50)
+        end
+        if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+            mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
     end
-    -- if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
-    --     mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
-    --     mq.delay(50)
-    --     mq.delay(25000, function()
-    --         return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
-    --     end)
-    --     mq.delay(50)
-    -- end
-    -- if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-    --     mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-    --     mq.delay(50)
-    --     mq.delay(25000, function()
-    --         return mq.TLO.EverQuest.GameState() == 'INGAME'
-    --     end)
-    --     mq.delay(50)
-    -- end
 end
 
 function CampFarmer.CheckCorpseCount()
@@ -719,6 +723,31 @@ end
 mq.event('SellFabledItems', "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'", event_fabledSell_handler, {
     keepLinks = true
 })
+
+function CampFarmer.VersionCheck()
+    local requiredVersion = {
+        3,
+        1,
+        1,
+        0
+    }
+    local currentVersionStr = mq.TLO.MacroQuest.Version() -- Get the current version as string
+    local currentVersion = {}
+
+    for v in string.gmatch(currentVersionStr, '([0-9]+)') do
+        table.insert(currentVersion, tonumber(v))
+    end
+
+    for i = 1, #requiredVersion do
+        if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
+            CampFarmer.Messages.Normal('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+            mq.cmdf('/lua stop %s', CampFarmer.script_ShortName)
+            return
+        elseif currentVersion[i] > requiredVersion[i] then
+            return
+        end
+    end
+end
 
 function CampFarmer.Main()
     CampFarmer.Messages.Normal('Setting up Alert Lists')

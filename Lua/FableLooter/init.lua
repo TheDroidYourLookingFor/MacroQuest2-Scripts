@@ -8,6 +8,7 @@ FableLooter.script_ShortName = 'FableLooter'
 FableLooter.command_ShortName = 'flb'
 FableLooter.command_LongName = 'fableloot'
 FableLooter.Terminate = false
+FableLooter.NewDisconnectHandler = true
 FableLooter.needToBank = false
 FableLooter.needToCashSell = false
 FableLooter.needToVendorSell = false
@@ -376,31 +377,35 @@ function FableLooter.UseExpPotion()
 end
 
 function FableLooter.HandleDisconnect()
-    if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
-        mq.TLO.AutoLogin.Profile.ReRun()
-        mq.delay(50)
-        mq.delay(25000, function()
-            return mq.TLO.EverQuest.GameState() == 'INGAME'
-        end)
-        mq.delay(50)
+    if FableLooter.NewDisconnectHandler then
+        if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
+            mq.TLO.AutoLogin.Profile.ReRun()
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
+    else
+        if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
+            mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
+            end)
+            mq.delay(50)
+        end
+        if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+            mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
     end
-    -- if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
-    --     mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
-    --     mq.delay(50)
-    --     mq.delay(25000, function()
-    --         return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
-    --     end)
-    --     mq.delay(50)
-    -- end
-    -- if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-    --     mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-    --     mq.delay(50)
-    --     mq.delay(25000, function()
-    --         return mq.TLO.EverQuest.GameState() == 'INGAME'
-    --     end)
-    --     mq.delay(50)
-    -- end
 end
+
 
 function FableLooter.CheckCampInfo()
     if FableLooter.Settings.staticHunt then
@@ -421,7 +426,39 @@ function FableLooter.CheckLevel()
     end
 end
 
+function FableLooter.VersionCheck()
+    local requiredVersion = {
+        3,
+        1,
+        1,
+        0
+    } -- Required version as {major, minor, patch, build}
+    local currentVersionStr = mq.TLO.MacroQuest.Version() -- Get the current version as string
+    local currentVersion = {}
+
+    -- Split the current version into components
+    for v in string.gmatch(currentVersionStr, '([0-9]+)') do
+        table.insert(currentVersion, tonumber(v))
+    end
+
+    -- Compare version components
+    for i = 1, #requiredVersion do
+        if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
+            FableLooter.Messages.Normal('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+            mq.cmdf('/lua stop %s', FableLooter.script_ShortName)
+            return
+        elseif currentVersion[i] > requiredVersion[i] then
+            -- Version is higher, allow the script to continue
+            return
+        end
+    end
+
+    -- If all version numbers match, it's the required version
+end
+
+
 function FableLooter.Main()
+    FableLooter.VersionCheck()
     setupBinds()
     mq.cmd('/hidecorpse looted')
     FableLooter.LootUtils.CheckLootActions()

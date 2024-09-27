@@ -8,6 +8,7 @@ local RB = {
     script_ShortName = 'RebirthMachine',
     debug = false,
     Terminate = false,
+    NewDisconnectHandler = true,
     CurrentRebirths = 0,
     CurrentAugAmount = 0,
     mob_Wait = 50000,
@@ -29,34 +30,37 @@ local RB = {
 -- Edit these settings
 --
 RB.Settings = {
-    swapClasses = true,                            -- Swap classes when we hit rebirth cap?
-    farmClassAugs = false,                          -- DOESNT WORK CURRENTLY
-    farmClassAugsAmount = 2,                       -- How many of the class augments should we farm?
-    rebirthStopAt = 10,                            -- After how many Rebirths should we stop?
-    staticHuntMode = true,                         -- Should we camp a spot and kill or move around?
-    huntZoneName = 'pofire',                       -- Where should we kill?
-    reset_At_Mob_Count = 10,                       -- How few mobs in the zone should cause a repop?
-    aggro_Radius = 75,                             -- How far around our camp should we look for mobs
-    aggro_zRadius = 25,                            -- Same but Z axis
-    returnHomeDistance = 50,                       -- How far away from camp should we get before returning
-    warpToMobDistance = 25,                        -- How close to warp to a mob?
-    hideCorpses = true,                            -- Should we hide corpses?
-    corpse_Phrase = '/say #deletecorpse',          -- The commands we should use to hide corpses.
-    --corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
-    castSpells = false,                            -- Should we cast spells?
-    spells = { 'Cool Spell 01', 'Cool Spell 02' }, -- Which spells should we cast? Put as many as you want
-    buffItem = 'Amulet of Ultimate Buffing',       -- Name of the item that gives us buff
-    BuffCheckName = 'Hand of Conviction',          -- The name of the buff we should be checking to see if buffItem worked
-    useXP_Potions = false,                         -- Should we consume XP potions?
-    XPPotionName = 'Potion of Adventure II',       -- What is the name of the XP Potion?
-    XPPotionBuff = 'Potion of Adventure II',       -- What is the name of the XP Potion Buff?
-    zoneRefresh = 'Uber Charm of Refreshing',           -- Name of the item we use to refresh the zone
-    moveOnPull = true,                             -- Should we move automatically when we pull away from the mob stack?
-    zonePull = 'Derekthomx\'s Horrorkrunk Hook',   -- Name of the item we use to mass aggro
+    swapClasses = true, -- Swap classes when we hit rebirth cap?
+    farmClassAugs = false, -- DOESNT WORK CURRENTLY
+    farmClassAugsAmount = 2, -- How many of the class augments should we farm?
+    rebirthStopAt = 10, -- After how many Rebirths should we stop?
+    staticHuntMode = true, -- Should we camp a spot and kill or move around?
+    huntZoneName = 'pofire', -- Where should we kill?
+    reset_At_Mob_Count = 10, -- How few mobs in the zone should cause a repop?
+    aggro_Radius = 75, -- How far around our camp should we look for mobs
+    aggro_zRadius = 25, -- Same but Z axis
+    returnHomeDistance = 50, -- How far away from camp should we get before returning
+    warpToMobDistance = 25, -- How close to warp to a mob?
+    hideCorpses = true, -- Should we hide corpses?
+    corpse_Phrase = '/say #deletecorpse', -- The commands we should use to hide corpses.
+    -- corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
+    castSpells = false, -- Should we cast spells?
+    spells = {
+        'Cool Spell 01',
+        'Cool Spell 02'
+    }, -- Which spells should we cast? Put as many as you want
+    buffItem = 'Amulet of Ultimate Buffing', -- Name of the item that gives us buff
+    BuffCheckName = 'Hand of Conviction', -- The name of the buff we should be checking to see if buffItem worked
+    useXP_Potions = false, -- Should we consume XP potions?
+    XPPotionName = 'Potion of Adventure II', -- What is the name of the XP Potion?
+    XPPotionBuff = 'Potion of Adventure II', -- What is the name of the XP Potion Buff?
+    zoneRefresh = 'Uber Charm of Refreshing', -- Name of the item we use to refresh the zone
+    moveOnPull = true, -- Should we move automatically when we pull away from the mob stack?
+    zonePull = 'Derekthomx\'s Horrorkrunk Hook', -- Name of the item we use to mass aggro
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
-    hubZoneID = 451,                               -- Zone ID of our hub zone
-    equip_Macro = '/ma equip',                     -- Line to restore all our gear
-    unequip_Macro = '/ma unequipall'               -- Line to remove all our gear
+    hubZoneID = 451, -- Zone ID of our hub zone
+    equip_Macro = '/ma equip', -- Line to restore all our gear
+    unequip_Macro = '/ma unequipall' -- Line to remove all our gear
 }
 
 RB.AltToons = {
@@ -176,37 +180,37 @@ RB.Classes = {
 }
 
 local Colors = {
-    b = "\ab",  -- black
+    b = "\ab", -- black
     B = "\a-b", -- black (dark)
 
-    g = "\ag",  -- green
+    g = "\ag", -- green
     G = "\a-g", -- green (dark)
 
-    m = "\am",  -- magenta
+    m = "\am", -- magenta
     M = "\a-m", -- magenta (dark)
 
-    o = "\ao",  -- orange
+    o = "\ao", -- orange
     O = "\a-o", -- orange (dark)
 
-    p = "\ap",  -- purple
+    p = "\ap", -- purple
     P = "\a-p", -- purple (dark)
 
-    r = "\ar",  -- red
+    r = "\ar", -- red
     R = "\a-r", -- red (dark)
 
-    t = "\at",  -- cyan
+    t = "\at", -- cyan
     T = "\a-t", -- cyan (dark)
 
-    u = "\au",  -- blue
+    u = "\au", -- blue
     U = "\a-u", -- blue (dark)
 
-    w = "\aw",  -- white
+    w = "\aw", -- white
     W = "\a-w", -- white (dark)
 
-    y = "\ay",  -- yellow
+    y = "\ay", -- yellow
     Y = "\a-y", -- yellow (dark)
 
-    x = "\ax"   -- previous color
+    x = "\ax" -- previous color
 }
 
 function ScriptInfo()
@@ -215,7 +219,9 @@ function ScriptInfo()
     local sLine
     while true do
         local info = debug.getinfo(level, "l")
-        if not info then break end -- a Lua function
+        if not info then
+            break
+        end -- a Lua function
         sName = RB.script_ShortName
         sLine = info.currentline
         level = level + 1
@@ -236,7 +242,7 @@ end
 function RB.UpdateCurrentClass()
     local currentClass = mq.TLO.Me.Class() -- Get the current class
     if RB.Classes[currentClass] ~= nil then
-        RB.Classes[currentClass] = true    -- Mark the class as completed
+        RB.Classes[currentClass] = true -- Mark the class as completed
     end
 end
 
@@ -264,7 +270,9 @@ function RB.CheckClass()
     if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
         if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
             mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+            mq.delay(RB.zone_Wait, function()
+                return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID
+            end)
             mq.delay(10000)
         end
         if mq.TLO.Zone.ID() == RB.Settings.hubZoneID then
@@ -281,7 +289,9 @@ function RB.CheckClass()
             if RB.Settings.swapClasses then
                 if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
                     mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
-                    mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                    mq.delay(RB.zone_Wait, function()
+                        return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID
+                    end)
                     mq.delay(RB.wait_One)
                 end
 
@@ -306,10 +316,14 @@ function RB.CheckClass()
                     mq.delay(1500)
                     mq.doevents()
                     mq.delay(1500)
-                    mq.delay(RB.wait_CharChange, function() return mq.TLO.EverQuest.GameState()() == 'CHARSELECT' end)
+                    mq.delay(RB.wait_CharChange, function()
+                        return mq.TLO.EverQuest.GameState()() == 'CHARSELECT'
+                    end)
                     mq.delay(RB.wait_AtCharSelect)
                     mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-                    mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+                    mq.delay(RB.zone_Wait, function()
+                        return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID
+                    end)
                     mq.delay(RB.wait_One)
                     mq.cmdf('%s', RB.Settings.equip_Macro)
                     mq.delay(RB.wait_Three)
@@ -337,7 +351,9 @@ local function event_classSwap_handler(line)
         end
     end
 end
-mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, { keepLinks = true })
+mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, {
+    keepLinks = true
+})
 
 local function event_rebirth_handler(line, rebirths)
     CONSOLEMETHOD('function event_rebirth_handler(line, rebirths)')
@@ -351,8 +367,12 @@ local function event_instance_handler(line, minutes)
     CONSOLEMETHOD('function event_instance_handler(line, minutes)')
     local minutesLeft = tonumber(minutes)
     if minutesLeft >= RB.reset_Instance_At then
-        if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then mq.cmdf('/say #zone %s', RB.Settings.hubZoneID) end
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID end)
+        if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
+            mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
+        end
+        mq.delay(RB.zone_Wait, function()
+            return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID
+        end)
         mq.delay(RB.wait_One)
         mq.cmd('/dzq')
         if mq.TLO.DynamicZone() ~= nil then
@@ -360,23 +380,47 @@ local function event_instance_handler(line, minutes)
             mq.delay(RB.wait_One)
             mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
             mq.delay(RB.wait_Two)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+            mq.delay(RB.zone_Wait, function()
+                return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
+            end)
         else
             mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
             mq.delay(RB.wait_Two)
-            mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+            mq.delay(RB.zone_Wait, function()
+                return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
+            end)
         end
     end
 end
-mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.",
-    event_instance_handler)
+mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.", event_instance_handler)
 
 function RB.HandleDisconnect()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-        mq.delay(RB.wait_Three)
-        mq.delay(RB.zone_Wait, function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
-        mq.delay(RB.wait_Two)
+    if RB.NewDisconnectHandler then
+        if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
+            mq.TLO.AutoLogin.Profile.ReRun()
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
+    else
+        if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
+            mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
+            end)
+            mq.delay(50)
+        end
+        if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
+            mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
+            mq.delay(50)
+            mq.delay(25000, function()
+                return mq.TLO.EverQuest.GameState() == 'INGAME'
+            end)
+            mq.delay(50)
+        end
     end
 end
 
@@ -480,9 +524,7 @@ end
 function RB.MoveToStaticSpot()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
         if RB.CheckDistanceToXYZ() > RB.Settings.returnHomeDistance then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
-                RB.huntZone[RB.Settings.huntZoneName].X,
-                RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
     end
@@ -501,8 +543,9 @@ function RB.CheckZone()
         if mq.TLO.Zone.ID() ~= RB.huntZone[RB.Settings.huntZoneName].ID then
             if mq.TLO.DynamicZone() ~= nil then
                 mq.cmdf('/say #enter')
-                mq.delay(RB.zone_Wait,
-                    function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+                mq.delay(RB.zone_Wait, function()
+                    return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
+                end)
                 mq.delay(RB.wait_Four)
                 if RB.Settings.hideCorpses then
                     mq.cmdf('%s', RB.Settings.corpse_Phrase)
@@ -512,8 +555,9 @@ function RB.CheckZone()
             else
                 mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
                 mq.delay(RB.wait_One)
-                mq.delay(RB.zone_Wait,
-                    function() return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID end)
+                mq.delay(RB.zone_Wait, function()
+                    return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
+                end)
                 mq.delay(RB.wait_Four)
                 pcall(RB.CheckLocation)
             end
@@ -535,9 +579,7 @@ function RB.AggroAllMobs()
             mq.delay(RB.wait_Four)
         end
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
-                RB.huntZone[RB.Settings.huntZoneName].X,
-                RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
         mq.cmd('/target myself')
@@ -545,12 +587,9 @@ function RB.AggroAllMobs()
         mq.cmdf('/useitem %s', RB.Settings.zonePull)
         mq.delay(RB.wait_Two)
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
-                RB.huntZone[RB.Settings.huntZoneName].X,
-                RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
-            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y,
-                RB.huntZone[RB.Settings.huntZoneName].X)
+            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X)
             mq.delay(RB.wait_One)
             mq.cmd('/target npc')
             mq.delay(RB.wait_One)
@@ -602,7 +641,9 @@ function RB.KillAllMobs()
         if not mq.TLO.Target.ID() or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.Distance() > RB.Settings.returnHomeDistance then
             mq.cmd('/target npc')
             mq.delay(RB.wait_Four)
-            if mq.TLO.Target.Name() == RB.huntZone[RB.Settings.huntZoneName].ignoreTarget then return end
+            if mq.TLO.Target.Name() == RB.huntZone[RB.Settings.huntZoneName].ignoreTarget then
+                return
+            end
             mq.cmd('/squelch /attack on')
         end
         if mq.TLO.Target.Distance() >= RB.Settings.returnHomeDistance then
@@ -615,7 +656,9 @@ function RB.KillAllMobs()
             mq.delay(RB.wait_Four)
             mq.cmd('/squelch /face fast')
             mq.delay(RB.wait_Four)
-            if not RB.Settings.staticHuntMode then RB.MoveTarg() end
+            if not RB.Settings.staticHuntMode then
+                RB.MoveTarg()
+            end
             RB.UseClassCombatAAs()
             if RB.Settings.castSpells then
                 for i, spell in ipairs(RB.Settings.spells) do
@@ -639,7 +682,39 @@ function RB.Checks()
     mq.doevents()
 end
 
+function RB.VersionCheck()
+    local requiredVersion = {
+        3,
+        1,
+        1,
+        0
+    } -- Required version as {major, minor, patch, build}
+    local currentVersionStr = mq.TLO.MacroQuest.Version() -- Get the current version as string
+    local currentVersion = {}
+
+    -- Split the current version into components
+    for v in string.gmatch(currentVersionStr, '([0-9]+)') do
+        table.insert(currentVersion, tonumber(v))
+    end
+
+    -- Compare version components
+    for i = 1, #requiredVersion do
+        if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
+            PRINTMETHOD('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+            mq.cmdf('/lua stop %s', RB.script_ShortName)
+            return
+        elseif currentVersion[i] > requiredVersion[i] then
+            -- Version is higher, allow the script to continue
+            return
+        end
+    end
+
+    -- If all version numbers match, it's the required version
+end
+
+
 function RB.Main()
+    RB.VersionCheck()
     PRINTMETHOD('++ Initialized ++')
     PRINTMETHOD('++ Setting up Ignore List ++')
     mq.cmdf('/squelch /alert clear %s', 1)
