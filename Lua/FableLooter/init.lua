@@ -432,30 +432,24 @@ function FableLooter.VersionCheck()
         1,
         1,
         0
-    } -- Required version as {major, minor, patch, build}
+    }
     local currentVersionStr = mq.TLO.MacroQuest.Version() -- Get the current version as string
     local currentVersion = {}
 
-    -- Split the current version into components
     for v in string.gmatch(currentVersionStr, '([0-9]+)') do
         table.insert(currentVersion, tonumber(v))
     end
 
-    -- Compare version components
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
             FableLooter.Messages.Normal('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', FableLooter.script_ShortName)
             return
         elseif currentVersion[i] > requiredVersion[i] then
-            -- Version is higher, allow the script to continue
             return
         end
     end
-
-    -- If all version numbers match, it's the required version
 end
-
 
 function FableLooter.Main()
     FableLooter.VersionCheck()
