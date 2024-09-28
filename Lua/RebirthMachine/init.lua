@@ -23,42 +23,48 @@ local RB = {
     reset_Instance_At = 5,
     spawnSearch = '%s targetable radius %d zradius %d noalert 1',
     nextClass = '',
-    AllClassesDone = false
+    AllClassesDone = false,
+    AAReuseDelay = 500,
+    ItemReuseDelay = 500,
+    FastDelay = 50,
+    RepopDelay = 1500,
+    AggroDelay = 1500,
 }
 
 --
 -- Edit these settings
 --
 RB.Settings = {
-    swapClasses = true, -- Swap classes when we hit rebirth cap?
-    farmClassAugs = false, -- DOESNT WORK CURRENTLY
-    farmClassAugsAmount = 2, -- How many of the class augments should we farm?
-    rebirthStopAt = 10, -- After how many Rebirths should we stop?
-    staticHuntMode = true, -- Should we camp a spot and kill or move around?
-    huntZoneName = 'pofire', -- Where should we kill?
-    reset_At_Mob_Count = 10, -- How few mobs in the zone should cause a repop?
-    aggro_Radius = 75, -- How far around our camp should we look for mobs
-    aggro_zRadius = 25, -- Same but Z axis
-    returnHomeDistance = 50, -- How far away from camp should we get before returning
-    warpToMobDistance = 25, -- How close to warp to a mob?
-    hideCorpses = true, -- Should we hide corpses?
+    swapClasses = true,                   -- Swap classes when we hit rebirth cap?
+    classType = 'DPS',                    -- Type of classes to rebirth. DPS/TANK
+    farmClassAugs = false,                -- DOESNT WORK CURRENTLY
+    farmClassAugsAmount = 2,              -- How many of the class augments should we farm?
+    rebirthStopAt = 10,                   -- After how many Rebirths should we stop?
+    staticHuntMode = true,                -- Should we camp a spot and kill or move around?
+    huntZoneName = 'pofire',              -- Where should we kill?
+    reset_At_Mob_Count = 65,              -- How few mobs in the zone should cause a repop?
+    aggro_Radius = 75,                    -- How far around our camp should we look for mobs
+    aggro_zRadius = 25,                   -- Same but Z axis
+    returnHomeDistance = 50,              -- How far away from camp should we get before returning
+    warpToMobDistance = 25,               -- How close to warp to a mob?
+    hideCorpses = true,                   -- Should we hide corpses?
     corpse_Phrase = '/say #deletecorpse', -- The commands we should use to hide corpses.
     -- corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
-    castSpells = false, -- Should we cast spells?
+    castSpells = false,                   -- Should we cast spells?
     spells = {
         'Cool Spell 01',
         'Cool Spell 02'
-    }, -- Which spells should we cast? Put as many as you want
-    UseExpPotions = false, -- Should we consume XP potions?
-    potionName = 'Potion of Adventure II', -- What is the name of the XP Potion?
-    potionBuff = 'Potion of Adventure II', -- What is the name of the XP Potion Buff?
-    zoneRefresh = 'Uber Charm of Refreshing', -- Name of the item we use to refresh the zone
-    moveOnPull = true, -- Should we move automatically when we pull away from the mob stack?
+    },                                           -- Which spells should we cast? Put as many as you want
+    UseExpPotions = false,                       -- Should we consume XP potions?
+    potionName = 'Potion of Adventure II',       -- What is the name of the XP Potion?
+    potionBuff = 'Potion of Adventure II',       -- What is the name of the XP Potion Buff?
+    zoneRefresh = 'Uber Charm of Refreshing',    -- Name of the item we use to refresh the zone
+    moveOnPull = true,                           -- Should we move automatically when we pull away from the mob stack?
     zonePull = 'Derekthomx\'s Horrorkrunk Hook', -- Name of the item we use to mass aggro
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
-    hubZoneID = 451, -- Zone ID of our hub zone
-    equip_Macro = '/ma equip', -- Line to restore all our gear
-    unequip_Macro = '/ma unequipall', -- Line to remove all our gear
+    hubZoneID = 451,                             -- Zone ID of our hub zone
+    equip_Macro = '/ma equip',                   -- Line to restore all our gear
+    unequip_Macro = '/ma unequipall',            -- Line to remove all our gear
     usePaladinAA = true,
     useClericAA = true,
     useBemChest = true,
@@ -69,14 +75,8 @@ RB.Settings = {
     useErtzStone = true,
     useCurrencyCharm = false,
     buffCharmName = 'Amulet of Ultimate Buffing',
-    buffCharmBuffName = 'Talisman of the Panther Rk. III'
-}
-
-RB.AltToons = {
-    Binli = {
-        UseRepop = false,
-        UseRefresh = false
-    }
+    buffCharmBuffName = 'Talisman of the Panther Rk. III',
+    spawnSearch = 'npc radius 60 los targetable noalert 1'
 }
 
 RB.huntZone = {
@@ -168,58 +168,78 @@ RB.UseClassAA = {
 -- Stop editing! :D You know unless you really want to and know what you're doing
 --
 
--- Setup for DPS classes atm
-RB.Classes = {
-    Bard = false,
-    Beastlord = false,
-    Berserker = false,
-    Cleric = false,
-    Druid = false,
-    Enchanter = false,
-    Magician = false,
-    Monk = false,
-    Necromancer = false,
-    Paladin = true,
-    Ranger = false,
-    Rogue = false,
-    Shadowknight = true,
-    Shaman = false,
-    Warrior = true,
-    Wizard = false
+RB.RebirthType = {
+    DPS = { 'Bard', 'Beastlord', 'Berserker', 'Cleric', 'Druid', 'Enchanter', 'Magician', 'Monk', 'Necromancer', 'Ranger', 'Rogue', 'Shaman', 'Wizard' },
+    TANK = { 'Paladin', 'Shadowknight', 'Warrior' }
 }
 
+RB.Classes = {
+    Bard = true,
+    Beastlord = true,
+    Berserker = true,
+    Cleric = true,
+    Druid = true,
+    Enchanter = true,
+    Magician = true,
+    Monk = true,
+    Necromancer = true,
+    Paladin = true,
+    Ranger = true,
+    Rogue = true,
+    Shadowknight = true,
+    Shaman = true,
+    Warrior = true,
+    Wizard = true
+}
+
+function RB.CheckRebirthType()
+    local classType = RB.Settings.classType
+    local classesToSet = RB.RebirthType[classType]
+
+    if classesToSet then
+        for className in pairs(RB.Classes) do
+            RB.Classes[className] = true
+        end
+        for _, className in ipairs(classesToSet) do
+            RB.Classes[className] = false
+        end
+    end
+end
+
+RB.CheckRebirthType()
+
 local Colors = {
-    b = "\ab", -- black
+    b = "\ab",  -- black
     B = "\a-b", -- black (dark)
 
-    g = "\ag", -- green
+    g = "\ag",  -- green
     G = "\a-g", -- green (dark)
 
-    m = "\am", -- magenta
+    m = "\am",  -- magenta
     M = "\a-m", -- magenta (dark)
 
-    o = "\ao", -- orange
+    o = "\ao",  -- orange
     O = "\a-o", -- orange (dark)
 
-    p = "\ap", -- purple
+    p = "\ap",  -- purple
     P = "\a-p", -- purple (dark)
 
-    r = "\ar", -- red
+    r = "\ar",  -- red
     R = "\a-r", -- red (dark)
 
-    t = "\at", -- cyan
+    t = "\at",  -- cyan
     T = "\a-t", -- cyan (dark)
 
-    u = "\au", -- blue
+    u = "\au",  -- blue
     U = "\a-u", -- blue (dark)
 
-    w = "\aw", -- white
+    w = "\aw",  -- white
     W = "\a-w", -- white (dark)
 
-    y = "\ay", -- yellow
+    y = "\ay",  -- yellow
     Y = "\a-y", -- yellow (dark)
 
-    x = "\ax" -- previous color
+    x = "\ax"   -- previous color
 }
 
 function ScriptInfo()
@@ -251,7 +271,7 @@ end
 function RB.UpdateCurrentClass()
     local currentClass = mq.TLO.Me.Class() -- Get the current class
     if RB.Classes[currentClass] ~= nil then
-        RB.Classes[currentClass] = true -- Mark the class as completed
+        RB.Classes[currentClass] = true    -- Mark the class as completed
     end
 end
 
@@ -353,14 +373,9 @@ function RB.CheckClass()
     end
 end
 
-local function event_classSwap_handler(line, warriorLink, clericLink, paladinLink, rangerLink, shadowknightLink, druidLink, monkLink, bardLink, rogueLink, shamanLink, necroLink, wizLink, mageLink, enchanterLink, beastlordLink, berserkerLink)
-    -- local links = mq.ExtractLinks(line)
-    -- for _, link in ipairs(links) do
-    --     local linkText = link.text or tostring(link)
-    --     if string.find(linkText, RB.nextClass) then
-    --         mq.ExecuteTextLink(link)
-    --     end
-    -- end
+local function event_classSwap_handler(line, warriorLink, clericLink, paladinLink, rangerLink, shadowknightLink,
+                                       druidLink, monkLink, bardLink, rogueLink, shamanLink, necroLink, wizLink, mageLink,
+                                       enchanterLink, beastlordLink, berserkerLink)
     if RB.nextClass == 'Warrior' then
         local links = mq.ExtractLinks(warriorLink)
         for _, link in ipairs(links) do
@@ -443,17 +458,22 @@ local function event_classSwap_handler(line, warriorLink, clericLink, paladinLin
         end
     end
 end
--- mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, { keepLinks = true })
-mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1# || #2# || #3# || #4# || #5# || #6# || #7# || #8# || #9# || #10# || #11# || #12# || #13# || #14# || #15# || #16#'", event_classSwap_handler, {
-    keepLinks = true
-})
+mq.event('ClassSwap',
+    "Caitlyn Jenner whispers, '#1# || #2# || #3# || #4# || #5# || #6# || #7# || #8# || #9# || #10# || #11# || #12# || #13# || #14# || #15# || #16#'",
+    event_classSwap_handler, {
+        keepLinks = true
+    })
 local function event_classSwap2_handler(line)
     local links = mq.ExtractLinks(line)
     for _, link in ipairs(links) do
         mq.ExecuteTextLink(link)
     end
 end
-mq.event('ClassSwap2', "Caitlyn Jenner whispers, 'You have enough AAs (#*#) to learn all AAs for #*#. Do you wish to proceed?#*#'", event_classSwap2_handler, { keepLinks = true })
+mq.event('ClassSwap2',
+    "Caitlyn Jenner whispers, 'You have enough AAs (#*#) to learn all AAs for #*#. Do you wish to proceed?#*#'",
+    event_classSwap2_handler, {
+        keepLinks = true
+    })
 
 local function event_rebirth_handler(line, rebirths)
     CONSOLEMETHOD('function event_rebirth_handler(line, rebirths)')
@@ -492,7 +512,8 @@ local function event_instance_handler(line, minutes)
         end
     end
 end
-mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.", event_instance_handler)
+mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.",
+    event_instance_handler)
 
 function RB.HandleDisconnect()
     if RB.NewDisconnectHandler then
@@ -684,7 +705,8 @@ end
 function RB.MoveToStaticSpot()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
         if RB.CheckDistanceToXYZ() > RB.Settings.returnHomeDistance then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
+                RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
     end
@@ -700,8 +722,10 @@ end
 
 function RB.CheckZone()
     if RB.CurrentRebirths < RB.Settings.rebirthStopAt then
+        local instanceName = string.format('%s_%s_%s', string.upper(mq.TLO.Me.Name()), 'SOLO',
+            string.upper(RB.Settings.huntZoneName))
         if mq.TLO.Zone.ID() ~= RB.huntZone[RB.Settings.huntZoneName].ID then
-            if mq.TLO.DynamicZone() ~= nil then
+            if mq.TLO.DynamicZone() ~= nil and mq.TLO.DynamicZone() == instanceName then
                 mq.cmdf('/say #enter')
                 mq.delay(RB.zone_Wait, function()
                     return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
@@ -712,7 +736,9 @@ function RB.CheckZone()
                     mq.delay(RB.wait_Four)
                 end
                 pcall(RB.CheckLocation)
-            else
+            elseif mq.TLO.DynamicZone() ~= nil and mq.TLO.DynamicZone() ~= instanceName then
+                mq.cmd('/dzq')
+                mq.delay(RB.wait_One)
                 mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
                 mq.delay(RB.wait_One)
                 mq.delay(RB.zone_Wait, function()
@@ -720,6 +746,22 @@ function RB.CheckZone()
                 end)
                 mq.delay(RB.wait_Four)
                 pcall(RB.CheckLocation)
+            elseif mq.TLO.DynamicZone() == nil then
+                mq.cmdf('/say #create solo %s', RB.Settings.huntZoneName)
+                mq.delay(RB.wait_One)
+                mq.delay(RB.zone_Wait, function()
+                    return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
+                end)
+                mq.delay(RB.wait_Four)
+                pcall(RB.CheckLocation)
+            else
+                if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
+                    mq.cmdf('/say #zone %s', RB.Settings.hubZoneID)
+                    mq.delay(RB.zone_Wait, function()
+                        return mq.TLO.Zone.ID()() == RB.Settings.hubZoneID
+                    end)
+                    mq.delay(10000)
+                end
             end
         end
     else
@@ -731,23 +773,27 @@ function RB.AggroAllMobs()
     RB.HandleDisconnect()
     RB.CheckLevel()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
+        if mq.TLO.SpawnCount(RB.Settings.spawnSearch)() > 0 then return end
         PRINTMETHOD('++ Attempting to Aggro the Zone ++')
         if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
         end
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y,
+                RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
         end
         mq.cmd('/target myself')
-        mq.delay(RB.wait_Two)
+        mq.delay(RB.wait_Three)
         mq.cmdf('/useitem %s', RB.Settings.zonePull)
-        mq.delay(RB.wait_Two)
+        mq.delay(RB.AggroDelay)
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
-            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull, RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
+            mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
+                RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
-            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y, RB.huntZone[RB.Settings.huntZoneName].X)
+            mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y,
+                RB.huntZone[RB.Settings.huntZoneName].X)
             mq.delay(RB.wait_One)
             mq.cmd('/target npc')
             mq.delay(RB.wait_One)
@@ -768,10 +814,11 @@ function RB.RespawnAllMobs()
     RB.CheckLevel()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.Settings.zoneRefresh)() and mq.TLO.SpawnCount('npc noalert 1')() < RB.Settings.reset_At_Mob_Count then
         PRINTMETHOD('++ Attempting to Respawn the Zone ++')
+        mq.delay(RB.wait_Four)
         mq.cmdf('/useitem %s', RB.Settings.zoneRefresh)
-        mq.delay(RB.wait_Two)
+        mq.delay(RB.RepopDelay)
         RB.AggroAllMobs()
-        mq.delay(RB.wait_Two)
+        mq.delay(RB.RepopDelay)
         if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
@@ -788,6 +835,8 @@ function RB.KillAllMobs()
     end
     while mq.TLO.SpawnCount(RB.spawnSearch:format('npc ', RB.Settings.aggro_Radius, RB.Settings.aggro_zRadius))() > 0 do
         RB.Checks()
+        mq.cmd('/squelch /attack on')
+        mq.cmd('/squelch /stick')
         if mq.TLO.Me.XTarget() <= RB.Settings.reset_At_Mob_Count then
             RB.AggroAllMobs()
             return
@@ -799,6 +848,7 @@ function RB.KillAllMobs()
                 return
             end
             mq.cmd('/squelch /attack on')
+            mq.cmd('/squelch /stick')
         end
         if mq.TLO.Target.Distance() >= RB.Settings.returnHomeDistance then
             mq.cmd('/target clear')
@@ -807,6 +857,7 @@ function RB.KillAllMobs()
         while mq.TLO.Target.ID() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() and mq.TLO.Target.Distance() <= RB.Settings.returnHomeDistance and not mq.TLO.Spawn(mq.TLO.Target.ID()).Dead() do
             RB.Checks()
             mq.cmd('/squelch /attack on')
+            mq.cmd('/squelch /stick')
             mq.delay(RB.wait_Four)
             mq.cmd('/squelch /face fast')
             mq.delay(RB.wait_Four)
@@ -852,7 +903,8 @@ function RB.VersionCheck()
 
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
-            RB.Messages.Normal('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+            RB.Messages.Normal(
+                'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', RB.script_ShortName)
             return
         elseif currentVersion[i] > requiredVersion[i] then
