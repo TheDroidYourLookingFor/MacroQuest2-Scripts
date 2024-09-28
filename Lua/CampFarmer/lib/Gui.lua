@@ -1,6 +1,9 @@
 ---@type Mq
 local mq = require('mq')
-local gui = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
+local gui = {
+    _version = '1.0.11',
+    _author = 'TheDroidUrLookingFor'
+}
 
 -- CampFarmer
 gui.DEBUG = false
@@ -31,6 +34,29 @@ gui.CORPSELIMIT = 100
 gui.TARGETNAME = 'treasure'
 gui.SPAWNSEARCH = '%s radius %d zradius %d'
 
+gui.AGGROITEM = 'Charm of Hate'
+gui.AGGROUBERITEM = 'Derekthomx\'s Horrorkrunk Hook'
+gui.UBERPULLMOBSINZONE = 50
+gui.MINMOBSINZONE = 10
+gui.RESPAWNITEM = 'Uber Charm of Refreshing'
+gui.BUFFCHARMNAME = 'Amulet of Ultimate Buffing'
+gui.BUFFCHARMBUFFNAME = 'Talisman of the Panther Rk. III'
+gui.GROUPALT = false
+gui.ALTLOOTERNAME = 'Binli'
+
+gui.USEPALADINAA = true
+gui.USECLERICAA = true
+gui.USEBEMCHEST = true
+gui.USEBEMLEGS = true
+gui.USEERTZSTONE = true
+gui.USEBEMGLOVES = true
+gui.USEBUFFCHARM = true
+gui.KEEPMAXLEVEL = true
+gui.USECOINSACK = true
+gui.USECURRENCYCHARM = true
+gui.LOOTGROUNDSPAWNS = false
+gui.CLICKAATOKENS = true
+
 -- EZLoot
 gui.USEWARP = true
 gui.ADDNEWSALES = true
@@ -45,6 +71,7 @@ gui.ANNOUNCELOOT = true
 gui.REPORTSKIPPED = true
 gui.LOOTCHANNEL = "dgt"
 gui.ANNOUNCECHANNEL = 'dgt'
+gui.LOOTINIFILE = 'EZLoot\\EZloot.ini'
 gui.SPAMLOOTINFO = false
 gui.LOOTFORAGESPAM = false
 gui.COMBATLOOTING = true
@@ -62,7 +89,7 @@ gui.USESINGLEFILEFORALLCHARACTERS = true
 gui.USEZONELOOTFILE = false
 gui.USECLASSLOOTFILE = false
 gui.USEARMORTYPELOOTFILE = false
-gui.USEEXPPOTIONS = false
+gui.USEEXPPOTIONS = true
 gui.POTIONNAME = 'Potion of Adventure II'
 gui.POTIONBUFF = 'Potion of Adventure II'
 gui.STATICHUNT = false
@@ -123,7 +150,7 @@ gui.SellFabledForType = {
 }
 function gui.CampFarmerGUI()
     if gui.Open then
-        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Fable Loot Bot v' .. gui._version, gui.Open)
+        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Camp Farmer v' .. CampFarmer._version, gui.Open)
         ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
         local x_size = 620
         local y_size = 680
@@ -157,10 +184,9 @@ function gui.CampFarmerGUI()
                 CampFarmer.needToFabledSell = true
             end
 
-            if ImGui.CollapsingHeader("Fable Loot Bot") then
+            if ImGui.CollapsingHeader("Camp Farmer") then
                 ImGui.Indent()
-                ImGui.Text("This is a simple script I threw together to help out a few friends.\n" ..
-                    "It will loot anything set in the EZLoot.ini,\n")
+                ImGui.Text("This is a simple script I threw together to help out a few friends.\n" .. "It will loot anything set in the EZLoot.ini,\n")
                 ImGui.Separator();
 
                 ImGui.Text("COMMANDS:");
@@ -176,10 +202,183 @@ function gui.CampFarmerGUI()
             end
             if ImGui.CollapsingHeader("Options") then
                 ImGui.Indent()
+                if ImGui.CollapsingHeader("Items") then
+                    ImGui.Indent()
+                    CampFarmer.Settings.useCoinSack = ImGui.Checkbox('Enable Coin Sack', CampFarmer.Settings.useCoinSack)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use coin sack for free donator coins??')
+                    if gui.USECOINSACK ~= CampFarmer.Settings.useCoinSack then
+                        gui.USECOINSACK = CampFarmer.Settings.useCoinSack
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.aggroItem = ImGui.InputText('Aggro Item', CampFarmer.Settings.aggroItem)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your zone wide aggro item.')
+                    if gui.AGGROITEM ~= CampFarmer.Settings.aggroItem then
+                        gui.AGGROITEM = CampFarmer.Settings.aggroItem
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.aggroUberItem = ImGui.InputText('Uber Aggro Item', CampFarmer.Settings.aggroUberItem)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your uber zone wide aggro item.')
+                    if gui.AGGROUBERITEM ~= CampFarmer.Settings.aggroUberItem then
+                        gui.AGGROUBERITEM = CampFarmer.Settings.aggroUberItem
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.UberPullMobsInZone = ImGui.InputInt("Uber Pull Limit", CampFarmer.Settings.UberPullMobsInZone)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The amount of mobs allowed before we uber pull them.')
+                    if gui.UBERPULLMOBSINZONE ~= CampFarmer.Settings.UberPullMobsInZone then
+                        gui.UBERPULLMOBSINZONE = CampFarmer.Settings.UberPullMobsInZone
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.respawnItem = ImGui.InputText('Respawn Item', CampFarmer.Settings.respawnItem)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your zone respawn item.')
+                    if gui.RESPAWNITEM ~= CampFarmer.Settings.respawnItem then
+                        gui.RESPAWNITEM = CampFarmer.Settings.respawnItem
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit", CampFarmer.Settings.MinMobsInZone)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
+                    if gui.MINMOBSINZONE ~= CampFarmer.Settings.MinMobsInZone then
+                        gui.MINMOBSINZONE = CampFarmer.Settings.MinMobsInZone
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.buffCharmName = ImGui.InputText('Buff Item', CampFarmer.Settings.buffCharmName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your buff item.')
+                    if gui.BUFFCHARMNAME ~= CampFarmer.Settings.buffCharmName then
+                        gui.BUFFCHARMNAME = CampFarmer.Settings.buffCharmName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.buffCharmBuffName = ImGui.InputText('Buff Name', CampFarmer.Settings.buffCharmBuffName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name the buff to check if buff item worked.')
+                    if gui.BUFFCHARMBUFFNAME ~= CampFarmer.Settings.buffCharmBuffName then
+                        gui.BUFFCHARMBUFFNAME = CampFarmer.Settings.buffCharmBuffName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.GroupAlt = ImGui.Checkbox('Enable Grouping Alt', CampFarmer.Settings.GroupAlt)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Should we the amount of corpses the client sees?')
+                    if gui.GROUPALT ~= CampFarmer.Settings.GroupAlt then
+                        gui.GROUPALT = CampFarmer.Settings.GroupAlt
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.AltLooterName = ImGui.InputText('Looter Alt Name', CampFarmer.Settings.AltLooterName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name your alt who is looting.')
+                    if gui.ALTLOOTERNAME ~= CampFarmer.Settings.AltLooterName then
+                        gui.ALTLOOTERNAME = CampFarmer.Settings.AltLooterName
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader("Donor Items") then
+                    ImGui.Indent()
+                    ImGui.Columns(2)
+                    local start_y_Options = ImGui.GetCursorPosY()
+                    CampFarmer.Settings.useBemChest = ImGui.Checkbox('Enable Bems Chest', CampFarmer.Settings.useBemChest)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Breastplate?')
+                    if gui.USEBEMCHEST ~= CampFarmer.Settings.useBemChest then
+                        gui.USEBEMCHEST = CampFarmer.Settings.useBemChest
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.useBemGloves = ImGui.Checkbox('Enable Bems Gloves', CampFarmer.Settings.useBemGloves)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Gloves?')
+                    if gui.USEBEMGLOVES ~= CampFarmer.Settings.useBemGloves then
+                        gui.USEBEMGLOVES = CampFarmer.Settings.useBemGloves
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.useBemLegs = ImGui.Checkbox('Enable Bems Legs', CampFarmer.Settings.useBemLegs)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Leggings?')
+                    if gui.USEBEMLEGS ~= CampFarmer.Settings.useBemLegs then
+                        gui.USEBEMLEGS = CampFarmer.Settings.useBemLegs
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_Options)
+                    CampFarmer.Settings.useErtzStone = ImGui.Checkbox('Enable Ertz\'s Stone', CampFarmer.Settings.useErtzStone)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Ertz\'s Mage Stone in combat?')
+                    if gui.USEERTZSTONE ~= CampFarmer.Settings.useErtzStone then
+                        gui.USEERTZSTONE = CampFarmer.Settings.useErtzStone
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    CampFarmer.Settings.useCurrencyCharm = ImGui.Checkbox('Enable Ertz\'s Stone', CampFarmer.Settings.useCurrencyCharm)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use currency doubler?')
+                    if gui.USECURRENCYCHARM ~= CampFarmer.Settings.useCurrencyCharm then
+                        gui.USECURRENCYCHARM = CampFarmer.Settings.useCurrencyCharm
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.Columns(1);
+                    ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader("AAs") then
+                    ImGui.Indent()
+                    ImGui.Columns(2)
+                    local start_y_Options = ImGui.GetCursorPosY()
+                    CampFarmer.Settings.useClericAA = ImGui.Checkbox('Enable Cleric AA', CampFarmer.Settings.useClericAA)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enable the use of the Cleric Class AA.')
+                    if gui.USECLERICAA ~= CampFarmer.Settings.useClericAA then
+                        gui.USECLERICAA = CampFarmer.Settings.useClericAA
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_Options)
+                    CampFarmer.Settings.usePaladinAA = ImGui.Checkbox('Enable Paladin AA', CampFarmer.Settings.usePaladinAA)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enable the use of the Paladin Class AA.')
+                    if gui.USEPALADINAA ~= CampFarmer.Settings.usePaladinAA then
+                        gui.USEPALADINAA = CampFarmer.Settings.usePaladinAA
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Columns(1);
+                    ImGui.Unindent()
+                end
                 if ImGui.CollapsingHeader("Experience Potions") then
                     ImGui.Indent()
-                    CampFarmer.Settings.useExpPotions = ImGui.Checkbox('Enable Exp Potions',
-                        CampFarmer.Settings.useExpPotions)
+                    CampFarmer.Settings.useExpPotions = ImGui.Checkbox('Enable Exp Potions', CampFarmer.Settings.useExpPotions)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
                     if gui.USEEXPPOTIONS ~= CampFarmer.Settings.useExpPotions then
@@ -208,22 +407,22 @@ function gui.CampFarmerGUI()
                 end
                 if ImGui.CollapsingHeader("Hunt Method") then
                     ImGui.Indent()
-                    CampFarmer.Settings.staticHunt = ImGui.Checkbox('Enable Static Hunt',
-                        CampFarmer.Settings.staticHunt)
+                    CampFarmer.Settings.staticHunt = ImGui.Checkbox('Enable Static Hunt', CampFarmer.Settings.staticHunt)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Always use the same Hunting Zone.')
                     if gui.STATICHUNT ~= CampFarmer.Settings.staticHunt then
                         gui.STATICHUNT = CampFarmer.Settings.staticHunt
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.staticZoneName = ImGui.InputText('Zone Name',
-                        CampFarmer.Settings.staticZoneName)
+                    CampFarmer.Settings.staticZoneName = ImGui.InputText('Zone Name', CampFarmer.Settings.staticZoneName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The short name of the Static Hunt Zone.')
                     if gui.STATICZONENAME ~= CampFarmer.Settings.staticZoneName then
                         gui.STATICZONENAME = CampFarmer.Settings.staticZoneName
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
@@ -233,6 +432,7 @@ function gui.CampFarmerGUI()
                     ImGui.HelpMarker('The ID of the static Hunting Zone.')
                     if gui.STATICZONEID ~= CampFarmer.Settings.staticZoneID then
                         gui.STATICZONEID = CampFarmer.Settings.staticZoneID
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
@@ -248,6 +448,7 @@ function gui.CampFarmerGUI()
                     ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
                     if gui.STATICX ~= CampFarmer.Settings.staticX then
                         gui.STATICX = CampFarmer.Settings.staticX
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.SameLine();
@@ -262,6 +463,7 @@ function gui.CampFarmerGUI()
                     ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
                     if gui.STATICY ~= CampFarmer.Settings.staticY then
                         gui.STATICY = CampFarmer.Settings.staticY
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.SameLine();
@@ -276,6 +478,7 @@ function gui.CampFarmerGUI()
                     ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
                     if gui.STATICZ ~= CampFarmer.Settings.staticZ then
                         gui.STATICZ = CampFarmer.Settings.staticZ
+                        CampFarmer.CheckCampInfo()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Unindent();
@@ -284,8 +487,7 @@ function gui.CampFarmerGUI()
                     ImGui.Indent()
                     ImGui.Columns(2)
                     local start_y_Options = ImGui.GetCursorPosY()
-                    CampFarmer.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', CampFarmer.Settings
-                        .bankDeposit)
+                    CampFarmer.Settings.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', CampFarmer.Settings.bankDeposit)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
                     if gui.BANKDEPOSIT ~= CampFarmer.Settings.bankDeposit then
@@ -305,8 +507,7 @@ function gui.CampFarmerGUI()
 
                     ImGui.NextColumn();
                     ImGui.SetCursorPosY(start_y_Options)
-                    CampFarmer.Settings.sellFabled = ImGui.Checkbox('Enable Fabled Item Selling', CampFarmer.Settings
-                        .sellFabled)
+                    CampFarmer.Settings.sellFabled = ImGui.Checkbox('Enable Fabled Item Selling', CampFarmer.Settings.sellFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items fabled items for currency when enabled.')
                     if gui.SELLFABLED ~= CampFarmer.Settings.sellFabled then
@@ -315,8 +516,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', CampFarmer.Settings
-                        .sellCash)
+                    CampFarmer.Settings.sellCash = ImGui.Checkbox('Enable Cash Item Selling', CampFarmer.Settings.sellCash)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Cash when enabled.')
                     if gui.SELLCASH ~= CampFarmer.Settings.sellCash then
@@ -365,6 +565,13 @@ function gui.CampFarmerGUI()
                     CampFarmer.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, CampFarmer.Settings.SellFabledFor_idx);
                     if SellFabledFor_idx ~= CampFarmer.Settings.SellFabledFor_idx then
                         SellFabledFor_idx = CampFarmer.Settings.SellFabledFor_idx
+                        if SellFabledFor_idx == 1 then
+                            CampFarmer.Settings.SellFabledFor = 'Doubloons'
+                        elseif SellFabledFor_idx == 2 then
+                            CampFarmer.Settings.SellFabledFor = 'Papers'
+                        else
+                            CampFarmer.Settings.SellFabledFor = 'Cash'
+                        end
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
 
@@ -377,8 +584,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
-                        CampFarmer.Settings.bankAtFreeSlots, 1, 20)
+                    CampFarmer.Settings.bankAtFreeSlots = ImGui.InputInt("Inventory Free Slots", CampFarmer.Settings.bankAtFreeSlots, 1, 20)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of free slots before we should bank.')
                     if gui.BANKATFREESLOTS ~= CampFarmer.Settings.bankAtFreeSlots then
@@ -392,30 +598,7 @@ function gui.CampFarmerGUI()
                     ImGui.Indent()
                     ImGui.Columns(2)
                     local start_y_Options = ImGui.GetCursorPosY()
-                    CampFarmer.Settings.camp_Check = ImGui.Checkbox('Enable Camp Check', CampFarmer.Settings
-                        .camp_Check)
-                    ImGui.SameLine()
-                    ImGui.HelpMarker('Return home if we get too far away?')
-                    if gui.CAMPCHECK ~= CampFarmer.Settings.camp_Check then
-                        gui.CAMPCHECK = CampFarmer.Settings.camp_Check
-                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
-                    end
-                    ImGui.Separator();
-
-                    CampFarmer.Settings.zone_Check = ImGui.Checkbox('Enable Zone Check', CampFarmer.Settings
-                        .zone_Check)
-                    ImGui.SameLine()
-                    ImGui.HelpMarker('Return to start zone if we leave it?')
-                    if gui.ZONECHECK ~= CampFarmer.Settings.zone_Check then
-                        gui.ZONECHECK = CampFarmer.Settings.zone_Check
-                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
-                    end
-                    ImGui.Separator();
-
-                    ImGui.NextColumn();
-                    ImGui.SetCursorPosY(start_y_Options)
-                    CampFarmer.Settings.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot',
-                        CampFarmer.Settings.returnHomeAfterLoot)
+                    CampFarmer.Settings.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot', CampFarmer.Settings.returnHomeAfterLoot)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Return to start X/Y/Z after looting?')
                     if gui.RETURNHOMEAFTERLOOT ~= CampFarmer.Settings.returnHomeAfterLoot then
@@ -424,8 +607,9 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.lootGroundSpawns = ImGui.Checkbox('Enable Pickup Groundspawns',
-                        CampFarmer.Settings.lootGroundSpawns)
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_Options)
+                    CampFarmer.Settings.lootGroundSpawns = ImGui.Checkbox('Enable Pickup Groundspawns', CampFarmer.Settings.lootGroundSpawns)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Should we pickup groundspawns treasure goblins drops?')
                     if gui.LOOTGROUNDSPAWNS ~= CampFarmer.Settings.lootGroundSpawns then
@@ -434,12 +618,11 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Columns(1)
 
-                    CampFarmer.Settings.returnToCampDistance = ImGui.SliderInt("Return To Camp Distance",
-                        CampFarmer.Settings.returnToCampDistance, 1, 100000)
+                    CampFarmer.Settings.ReturnToHomeDistance = ImGui.InputInt("Return To Home Distance", CampFarmer.Settings.ReturnToHomeDistance, 1, 100000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The distance we can get before we trigger return to camp.')
-                    if gui.RETURNTOCAMPDISTANCE ~= CampFarmer.Settings.returnToCampDistance then
-                        gui.RETURNTOCAMPDISTANCE = CampFarmer.Settings.returnToCampDistance
+                    if gui.RETURNTOCAMPDISTANCE ~= CampFarmer.Settings.ReturnToHomeDistance then
+                        gui.RETURNTOCAMPDISTANCE = CampFarmer.Settings.ReturnToHomeDistance
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
@@ -447,8 +630,7 @@ function gui.CampFarmerGUI()
                 end
                 if ImGui.CollapsingHeader("Corpse Cleanup") then
                     ImGui.Indent()
-                    CampFarmer.Settings.corpseCleanup = ImGui.Checkbox('Enable Corpse Cleanup',
-                        CampFarmer.Settings.corpseCleanup)
+                    CampFarmer.Settings.corpseCleanup = ImGui.Checkbox('Enable Corpse Cleanup', CampFarmer.Settings.corpseCleanup)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Should we the amount of corpses the client sees?')
                     if gui.CORPSECLEANUP ~= CampFarmer.Settings.corpseCleanup then
@@ -457,8 +639,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.corpseCleanupCommand = ImGui.InputText('Corpse Cleanup Command',
-                        CampFarmer.Settings.corpseCleanupCommand)
+                    CampFarmer.Settings.corpseCleanupCommand = ImGui.InputText('Corpse Cleanup Command', CampFarmer.Settings.corpseCleanupCommand)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Look for this name on corpses when looting.')
                     if gui.CORPSECLEANUPCOMMAND ~= CampFarmer.Settings.corpseCleanupCommand then
@@ -467,9 +648,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.corpseLimit = ImGui.SliderInt("Corpse Limit", CampFarmer.Settings.corpseLimit,
-                        1,
-                        2500)
+                    CampFarmer.Settings.corpseLimit = ImGui.InputInt("Corpse Limit", CampFarmer.Settings.corpseLimit)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of corpses allowed before we clean them for performance.')
                     if gui.CORPSELIMIT ~= CampFarmer.Settings.corpseLimit then
@@ -490,8 +669,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.targetName = ImGui.InputText('Corpse Target Name',
-                        CampFarmer.Settings.targetName)
+                    CampFarmer.Settings.targetName = ImGui.InputText('Corpse Target Name', CampFarmer.Settings.targetName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Look for this name on corpses when looting.')
                     if gui.TARGETNAME ~= CampFarmer.Settings.targetName then
@@ -509,8 +687,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.scan_Radius = ImGui.SliderInt("Scan Radius", CampFarmer.Settings.scan_Radius, 1,
-                        100000)
+                    CampFarmer.Settings.scan_Radius = ImGui.InputInt("Scan Radius", CampFarmer.Settings.scan_Radius, 1, 100000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The radius we should look for corpses.')
                     if gui.SCANRADIUS ~= CampFarmer.Settings.scan_Radius then
@@ -519,9 +696,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.scan_zRadius = ImGui.SliderInt("Scan zRadius", CampFarmer.Settings
-                        .scan_zRadius, 1,
-                        10000)
+                    CampFarmer.Settings.scan_zRadius = ImGui.InputInt("Scan zRadius", CampFarmer.Settings.scan_zRadius, 1, 10000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The z radius we should look for corpses.')
                     if gui.SCANZRADIUS ~= CampFarmer.Settings.scan_zRadius then
@@ -541,13 +716,14 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.Settings.pauseMacro = ImGui.Checkbox('Enable Pause Macro', CampFarmer.Settings.pauseMacro)
+                CampFarmer.Settings.KeepMaxLevel = ImGui.Checkbox('Enable Keep Max Lvl', CampFarmer.Settings.KeepMaxLevel)
                 ImGui.SameLine()
-                ImGui.HelpMarker('Pauses the currently running macro to loot.')
-                if gui.PAUSEMACRO ~= CampFarmer.Settings.pauseMacro then
-                    gui.PAUSEMACRO = CampFarmer.Settings.pauseMacro
+                ImGui.HelpMarker('Should we try to stay level 80 if we die?')
+                if gui.KEEPMAXLEVEL ~= CampFarmer.Settings.KeepMaxLevel then
+                    gui.KEEPMAXLEVEL = CampFarmer.Settings.KeepMaxLevel
                     CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
+                ImGui.Separator();
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y_Options)
@@ -565,8 +741,7 @@ function gui.CampFarmerGUI()
                 ImGui.Indent()
                 if ImGui.CollapsingHeader("WastingTime Options") then
                     ImGui.Indent()
-                    CampFarmer.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
-                        CampFarmer.LootUtils.LootPlatinumBags)
+                    CampFarmer.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', CampFarmer.LootUtils.LootPlatinumBags)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots platinum bags.')
                     if gui.LOOTPLATINUMBAGS ~= CampFarmer.LootUtils.LootPlatinumBags then
@@ -575,8 +750,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
-                        CampFarmer.LootUtils.LootTokensOfAdvancement)
+                    CampFarmer.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement', CampFarmer.LootUtils.LootTokensOfAdvancement)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots tokens of advancement.')
                     if gui.LOOTTOKENSOFADVANCEMENT ~= CampFarmer.LootUtils.LootTokensOfAdvancement then
@@ -585,8 +759,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
-                        CampFarmer.LootUtils.LootEmpoweredFabled)
+                    CampFarmer.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled', CampFarmer.LootUtils.LootEmpoweredFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots empowered fabled items.')
                     if gui.LOOTEMPOWEREDFABLED ~= CampFarmer.LootUtils.LootEmpoweredFabled then
@@ -595,8 +768,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
-                        CampFarmer.LootUtils.LootAllFabledAugs)
+                    CampFarmer.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments', CampFarmer.LootUtils.LootAllFabledAugs)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots all fabled augments.')
                     if gui.LOOTALLFABLEDAUGS ~= CampFarmer.LootUtils.LootAllFabledAugs then
@@ -605,8 +777,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
-                        CampFarmer.LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                    CampFarmer.LootUtils.EmpoweredFabledMinHP = ImGui.InputInt("Empowered Fabled Min HP", CampFarmer.LootUtils.EmpoweredFabledMinHP, 0, 1000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
                     if gui.EMPOWEREDFABLEDMINHP ~= CampFarmer.LootUtils.EmpoweredFabledMinHP then
@@ -615,8 +786,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
-                        CampFarmer.LootUtils.EmpoweredFabledName)
+                    CampFarmer.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name', CampFarmer.LootUtils.EmpoweredFabledName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Name of the empowered fabled item.')
                     if gui.EMPOWEREDFABLEDNAME ~= CampFarmer.LootUtils.EmpoweredFabledName then
@@ -655,8 +825,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
-                    CampFarmer.LootUtils.LootTradeSkill)
+                CampFarmer.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill', CampFarmer.LootUtils.LootTradeSkill)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot trade skill items when enabled.')
                 if gui.LOOTTRADESKILL ~= CampFarmer.LootUtils.LootTradeSkill then
@@ -674,8 +843,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
-                    CampFarmer.LootUtils.EquipUsable)
+                CampFarmer.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable', CampFarmer.LootUtils.EquipUsable)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Equips usable items. Buggy at best.')
                 if gui.EQUIPUSABLE ~= CampFarmer.LootUtils.EquipUsable then
@@ -703,8 +871,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
-                    CampFarmer.LootUtils.ReportSkipped)
+                CampFarmer.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped', CampFarmer.LootUtils.ReportSkipped)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports skipped loots.')
                 if gui.REPORTSKIPPED ~= CampFarmer.LootUtils.ReportSkipped then
@@ -713,8 +880,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
-                    CampFarmer.LootUtils.SpamLootInfo)
+                CampFarmer.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info', CampFarmer.LootUtils.SpamLootInfo)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot info.')
                 if gui.SPAMLOOTINFO ~= CampFarmer.LootUtils.SpamLootInfo then
@@ -723,8 +889,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
-                    CampFarmer.LootUtils.LootForageSpam)
+                CampFarmer.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam', CampFarmer.LootUtils.LootForageSpam)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot forage info.')
                 if gui.LOOTFORAGESPAM ~= CampFarmer.LootUtils.LootForageSpam then
@@ -733,8 +898,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
-                    CampFarmer.LootUtils.CombatLooting)
+                CampFarmer.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting', CampFarmer.LootUtils.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
                 if gui.COMBATLOOTING ~= CampFarmer.LootUtils.CombatLooting then
@@ -743,8 +907,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Columns(1)
 
-                CampFarmer.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", CampFarmer.LootUtils.CorpseRadius,
-                    1, 5000)
+                CampFarmer.LootUtils.CorpseRadius = ImGui.InputInt("Corpse Radius", CampFarmer.LootUtils.CorpseRadius, 1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The radius we should scan for corpses.')
                 if gui.CORPSERADIUS ~= CampFarmer.LootUtils.CorpseRadius then
@@ -753,8 +916,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", CampFarmer.LootUtils
-                    .MobsTooClose, 1, 5000)
+                CampFarmer.LootUtils.MobsTooClose = ImGui.InputInt("Mobs Too Close", CampFarmer.LootUtils.MobsTooClose, 1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The range to check for nearby mobs.')
                 if gui.MOBSTOOCLOSE ~= CampFarmer.LootUtils.MobsTooClose then
@@ -763,8 +925,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value",
-                    CampFarmer.LootUtils.StackPlatValue, 0, 10000)
+                CampFarmer.LootUtils.StackPlatValue = ImGui.InputInt("Stack Platinum Value", CampFarmer.LootUtils.StackPlatValue, 0, 10000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The value of platinum stacks.')
                 if gui.STACKPLATVALUE ~= CampFarmer.LootUtils.StackPlatValue then
@@ -773,8 +934,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", CampFarmer.LootUtils
-                    .SaveBagSlots, 0, 100)
+                CampFarmer.LootUtils.SaveBagSlots = ImGui.InputInt("Save Bag Slots", CampFarmer.LootUtils.SaveBagSlots, 0, 100)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The number of bag slots to save.')
                 if gui.SAVEBAGSLOTS ~= CampFarmer.LootUtils.SaveBagSlots then
@@ -783,8 +943,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", CampFarmer.LootUtils
-                    .MinSellPrice, 1, 100000)
+                CampFarmer.LootUtils.MinSellPrice = ImGui.InputInt("Min Sell Price", CampFarmer.LootUtils.MinSellPrice, 1, 100000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The minimum price at which items will be sold.')
                 if gui.MINSELLPRICE ~= CampFarmer.LootUtils.MinSellPrice then
@@ -802,12 +961,20 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
-                    CampFarmer.LootUtils.AnnounceChannel)
+                CampFarmer.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel', CampFarmer.LootUtils.AnnounceChannel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Channel to announce events.')
                 if gui.ANNOUNCECHANNEL ~= CampFarmer.LootUtils.AnnounceChannel then
                     gui.ANNOUNCECHANNEL = CampFarmer.LootUtils.AnnounceChannel
+                    CampFarmer.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                CampFarmer.Settings.lootINIFile = ImGui.InputText('Loot file', CampFarmer.Settings.lootINIFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot file to use.')
+                if gui.LOOTINIFILE ~= CampFarmer.Settings.lootINIFile then
+                    gui.LOOTINIFILE = CampFarmer.Settings.lootINIFile
                     CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();

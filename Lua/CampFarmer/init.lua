@@ -3,19 +3,24 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.0',
+    _version = '1.0.1',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
-CampFarmer.command_ShortName = 'ka'
+CampFarmer.command_ShortName = 'cf'
 CampFarmer.command_LongName = 'CampFarmer'
 CampFarmer.loop = true
 CampFarmer.NewDisconnectHandler = true
+CampFarmer.needToBank = false
+CampFarmer.needToCashSell = false
+CampFarmer.needToVendorSell = false
+CampFarmer.needToFabledSell = false
 CampFarmer.startX = mq.TLO.Me.X()
 CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
+CampFarmer.settingsFile = '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 500
 CampFarmer.ItemReuseDelay = 500
 CampFarmer.FastDelay = 50
@@ -23,6 +28,7 @@ CampFarmer.RepopDelay = 1500
 CampFarmer.AggroDelay = 1500
 
 CampFarmer.Settings = {}
+CampFarmer.Settings.Version = CampFarmer._version
 CampFarmer.Settings.debug = false
 CampFarmer.Settings.spawnSearch = 'npc radius 60 los targetable noalert 1'
 CampFarmer.Settings.mobsSearch = 'npc targetable noalert 1'
@@ -41,21 +47,36 @@ CampFarmer.Settings.useBuffCharm = true
 CampFarmer.Settings.UseExpPotions = true
 CampFarmer.Settings.KeepMaxLevel = true
 CampFarmer.Settings.useCoinSack = true
+CampFarmer.Settings.useErtzStone = true
 CampFarmer.Settings.useCurrencyCharm = true
 CampFarmer.Settings.DoLoot = true
-CampFarmer.Settings.LootFabledItems = false
 CampFarmer.Settings.LootGroundSpawns = false
 CampFarmer.Settings.ClickAATokens = true
-CampFarmer.Settings.GroupAlt = true
+CampFarmer.Settings.GroupAlt = false
 CampFarmer.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
 CampFarmer.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
 CampFarmer.Settings.AltLooterName = 'Binli'
-CampFarmer.Settings.lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-MINLI.ini'
+CampFarmer.Settings.lootINIFile = '\\EZLoot\\EZLoot-MINLI.ini'
 CampFarmer.Settings.MinMobsInZone = 10
 CampFarmer.Settings.UberPullMobsInZone = 50
-CampFarmer.Settings.ReturnToHomeDistance = 60
 
+CampFarmer.Settings.ReturnToHomeDistance = 60
+CampFarmer.Settings.returnHomeAfterLoot = false
+CampFarmer.Settings.potionName = 'Potion of Adventure II'
+CampFarmer.Settings.potionBuff = 'Potion of Adventure II'
+CampFarmer.Settings.bankDeposit = true
+CampFarmer.Settings.sellVendor = false
+CampFarmer.Settings.sellFabled = true
+CampFarmer.Settings.sellCash = true
 CampFarmer.Settings.staticHunt = true
+CampFarmer.Settings.bankAtFreeSlots = 5
+CampFarmer.Settings.bankZone = 451
+CampFarmer.Settings.bankNPC = 'Griphook'
+CampFarmer.Settings.cashNPC = 'Silent Bob'
+CampFarmer.Settings.vendorNPC = 'Kirito'
+CampFarmer.Settings.fabledNPC = 'The Fabled Jim Carrey'
+CampFarmer.Settings.SellFabledFor = 'Cash' -- Doublons, Papers, Cash
+CampFarmer.Settings.SellFabledFor_idx = 3
 CampFarmer.Settings.staticZoneID = '173'
 CampFarmer.Settings.staticZoneName = 'maiden'
 CampFarmer.Settings.staticX = '1426.87'
@@ -123,6 +144,29 @@ CampFarmer.ClassAAs = {
     Warrior = 39901,
     Wizard = 39912
 }
+
+function CampFarmer.SaveSettings(iniFile, settingsList)
+    CampFarmer.Messages.Debug('function SaveSettings(iniFile, settingsList) Entry')
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniFile, settingsList)
+end
+
+function CampFarmer.Setup()
+    CampFarmer.Messages.Debug('function Setup() Entry')
+    local conf
+    local configData, err = loadfile(CampFarmer.settingsFile)
+    if err then
+        CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+    elseif configData then
+        conf = configData()
+        if conf.Version ~= CampFarmer.Settings.Version then
+            CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+            CampFarmer.Setup()
+        else
+            CampFarmer.Settings = conf
+        end
+    end
+end
 
 function CampFarmer.SetupAlertLists()
     mq.cmd('/squelch /alert clear 1')
@@ -196,6 +240,7 @@ end
 
 function CampFarmer.CheckCorpseCount()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 then
         return
     end
@@ -209,6 +254,7 @@ end
 
 function CampFarmer.KillThis()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     mq.cmd('/squelch /stick moveback 10')
     mq.cmd('/squelch /attack on')
     mq.cmd('/squelch /face fast')
@@ -227,6 +273,7 @@ end
 
 function CampFarmer.CheckBuffs()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if CampFarmer.Settings.useCoinSack and mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then
         mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack')
         mq.delay(5000, function()
@@ -261,8 +308,8 @@ function CampFarmer.CheckBuffs()
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     else
-        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem('Potion of Adventure II')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() and not mq.TLO.Me.Buff('Potion of Adventure II')() then
-            mq.cmdf('/useitem %s', 'Potion of Adventure II')
+        if CampFarmer.Settings.UseExpPotions and mq.TLO.FindItem(CampFarmer.Settings.potionName)() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() and not mq.TLO.Me.Buff(CampFarmer.Settings.potionBuff)() then
+            mq.cmdf('/useitem %s', CampFarmer.Settings.potionName)
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     end
@@ -285,6 +332,7 @@ end
 
 function CampFarmer.CombatSpells()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if mq.TLO.SpawnCount('npc alert 2')() >= 3 then
         if mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Necromancer'])() then
             mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Necromancer'])
@@ -365,12 +413,13 @@ end
 function CampFarmer.CheckZone()
     CampFarmer.HandleDisconnect()
     if mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() ~= nil then
-        mq.cmd('/say #enter')
-        mq.delay(50000, function()
-            return mq.TLO.Zone.ID()() == CampFarmer.startZone
-        end)
-        mq.delay(1000)
-        mq.TLO.DynamicZone.Name()
+        if not CampFarmer.needToBank and not CampFarmer.needToCashSell and not CampFarmer.needToFabledSell then
+            mq.cmd('/say #enter')
+            mq.delay(50000, function()
+                return mq.TLO.Zone.ID()() == CampFarmer.startZone
+            end)
+            mq.delay(1000)
+        end
     elseif mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() == nil then
         mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
         mq.delay(50000, function()
@@ -409,6 +458,7 @@ end
 local allowUberPull = false
 function CampFarmer.RespawnZone()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() > CampFarmer.Settings.MinMobsInZone then
         return
     end
@@ -428,6 +478,7 @@ end
 
 function CampFarmer.Aggro(aggroCharm)
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if CampFarmer.CheckXTargAggro() > 0 then
         return
     end
@@ -442,6 +493,7 @@ end
 
 function CampFarmer.AggroZone()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if allowUberPull and CampFarmer.Settings.DoUberPull and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() > CampFarmer.Settings.MinMobsInZone and mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() <= CampFarmer.Settings.UberPullMobsInZone then
         CampFarmer.Aggro(CampFarmer.Settings.aggroUberItem)
         allowUberPull = false
@@ -468,6 +520,7 @@ end
 
 function CampFarmer.LootMobs()
     CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
     if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
             mq.cmdf('/target %s', mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
@@ -749,7 +802,55 @@ function CampFarmer.VersionCheck()
     end
 end
 
+local function binds(...)
+    local args = {
+        ...
+    }
+    if args ~= nil then
+        if args[1] == 'gui' then
+            CampFarmer.GUI.Open = not CampFarmer.GUI.Open
+        elseif args[1] == 'bank' then
+            CampFarmer.needToBank = true
+            CampFarmer.BankDropOff()
+        elseif args[1] == 'vendor' then
+            CampFarmer.needToVendorSell = true
+        elseif args[1] == 'cash' then
+            CampFarmer.needToCashSell = true
+            CampFarmer.CashSell()
+        elseif args[1] == 'fabled' then
+            CampFarmer.needToFabledSell = true
+            CampFarmer.FabledSell()
+        elseif args[1] == 'quit' then
+            CampFarmer.terminate = true
+            mq.cmdf('/lua stop %s', CampFarmer.script_ShortName)
+        else
+            CampFarmer.Messages.Normal('Valid Commands:')
+            CampFarmer.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI', CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items', CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items', CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agquit\aw - Quits the lua script.', CampFarmer.command_ShortName)
+        end
+    else
+        CampFarmer.Messages.Normal('Valid Commands:')
+        CampFarmer.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI', CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items', CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items', CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agquit\aw - Quits the lua script.', CampFarmer.command_ShortName)
+    end
+end
+
+CampFarmer.GUI.initGUI()
+
+local function setupBinds()
+    mq.bind('/' .. CampFarmer.command_ShortName, binds)
+    mq.bind('/' .. CampFarmer.command_LongName, binds)
+end
+
 function CampFarmer.Main()
+    setupBinds()
+    CampFarmer.Setup()
     CampFarmer.Messages.Normal('Setting up Alert Lists')
     CampFarmer.SetupAlertLists()
     CampFarmer.CheckCampInfo()
@@ -772,6 +873,22 @@ function CampFarmer.Main()
         CampFarmer.HandleDisconnect()
         CampFarmer.Checks()
         pcall(CampFarmer.CheckTarget)
+        if CampFarmer.Settings.bankDeposit and mq.TLO.Me.FreeInventory() <= CampFarmer.Settings.bankAtFreeSlots then
+            CampFarmer.needToBank = true
+        end
+        if CampFarmer.needToBank then
+            CampFarmer.BankDropOff()
+        end
+        if CampFarmer.needToCashSell then
+            CampFarmer.CashSell()
+        end
+        if CampFarmer.needToFabledSell then
+            CampFarmer.FabledSell()
+        end
+        if CampFarmer.needToVendorSell then
+            CampFarmer.VendorSell()
+        end
+
         mq.delay(CampFarmer.FastDelay)
     end
 end
