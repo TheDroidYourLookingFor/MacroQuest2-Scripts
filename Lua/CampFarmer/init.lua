@@ -523,9 +523,14 @@ function CampFarmer.LootMobs()
     CampFarmer.CheckZone()
     if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
-            mq.cmdf('/target %s', mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
+            mq.cmdf('/target %s',
+                mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse',
+                    CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
         else
-            mq.cmdf('/target %s', mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
+            mq.cmdf('/target %s',
+                mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format(
+                'corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius,
+                    CampFarmer.Settings.scan_zRadius))())
         end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/squelch /warp t')
@@ -773,7 +778,9 @@ local function event_fabledSell_handler(line)
         end
     end
 end
-mq.event('SellFabledItems', "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'", event_fabledSell_handler, {
+mq.event('SellFabledItems',
+    "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'",
+    event_fabledSell_handler, {
     keepLinks = true
 })
 
@@ -793,7 +800,8 @@ function CampFarmer.VersionCheck()
 
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
-            CampFarmer.Messages.Normal('Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+            CampFarmer.Messages.Normal(
+            'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', CampFarmer.script_ShortName)
             return
         elseif currentVersion[i] > requiredVersion[i] then
@@ -826,17 +834,22 @@ local function binds(...)
         else
             CampFarmer.Messages.Normal('Valid Commands:')
             CampFarmer.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI', CampFarmer.command_ShortName)
-            CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer.command_ShortName)
-            CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items', CampFarmer.command_ShortName)
-            CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items', CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer
+            .command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items',
+            CampFarmer.command_ShortName)
+            CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items',
+                CampFarmer.command_ShortName)
             CampFarmer.Messages.Normal('/%s \agquit\aw - Quits the lua script.', CampFarmer.command_ShortName)
         end
     else
         CampFarmer.Messages.Normal('Valid Commands:')
         CampFarmer.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI', CampFarmer.command_ShortName)
         CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer.command_ShortName)
-        CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items', CampFarmer.command_ShortName)
-        CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items', CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items',
+            CampFarmer.command_ShortName)
+        CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items',
+            CampFarmer.command_ShortName)
         CampFarmer.Messages.Normal('/%s \agquit\aw - Quits the lua script.', CampFarmer.command_ShortName)
     end
 end
@@ -888,7 +901,6 @@ function CampFarmer.Main()
         if CampFarmer.needToVendorSell then
             CampFarmer.VendorSell()
         end
-
         mq.delay(CampFarmer.FastDelay)
     end
 end

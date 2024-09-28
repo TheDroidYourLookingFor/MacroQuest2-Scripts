@@ -1,8 +1,6 @@
 ---@type Mq
 local mq = require('mq')
 
-local Storage = require('EmuHelper.lib.Storage')
-
 local className = mq.TLO.Me.Class.Name()
 ClassOptions = require('EmuHelper.Classes.' .. className .. '')
 
@@ -133,8 +131,8 @@ function casting.BuffTarget(WhoToBuff)
         Buff()
         PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
                     Settings.BuffCost))
         end
     else
@@ -148,8 +146,8 @@ function casting.BuffTarget(WhoToBuff)
         Buff()
         PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
                     Settings.BuffCost))
         end
     else
@@ -163,8 +161,8 @@ function casting.BuffTarget(WhoToBuff)
         Buff()
         PRINTMETHOD('Serviced: ' .. mq.TLO.Target())
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToBuff,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToBuff) -
                     Settings.BuffCost))
         end
     end
@@ -254,8 +252,8 @@ function casting.SummonTarget(WhoToSummon, SummonSpell)
         if SummonSpell == 'Summon Remains' then summonIsAltAbility = true end
         casting.castSummon(SummonSpell, summonIsAltAbility)
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToSummon,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToSummon) - Settings.RezCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToSummon,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToSummon) - Settings.RezCost))
         end
     end
 end
@@ -297,8 +295,8 @@ function casting.RezTarget(WhoToRez, RezSpell)
         mq.cmd('/face')
         casting.castRez(RezSpell)
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToRez,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToRez) - Settings.RezCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', WhoToRez,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', WhoToRez) - Settings.RezCost))
         end
     end
 end
@@ -329,8 +327,8 @@ function casting.PortTarget(whoToPort, spellToUse)
         mq.cmd('/face')
         casting.castPort(spellToUse)
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', whoToPort,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', whoToPort) - Settings.RezCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', whoToPort,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', whoToPort) - Settings.RezCost))
         end
     end
 end
@@ -383,8 +381,8 @@ function casting.SummonToys(summonTarget, requestedAmount)
         end
 
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
         end
     end
 end
@@ -432,8 +430,8 @@ function casting.SummonModRod(summonTarget)
         end
 
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
         end
     end
 end
@@ -494,8 +492,8 @@ function casting.SummonOther(summonTarget)
         end
 
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
         end
     end
 end
@@ -528,8 +526,8 @@ function casting.MageSummonItem(summonTarget, spellName, spellGem)
         casting.CastBuff(spellName, spellGem)
 
         if Settings.AccountMode and (not TargIsFriend and not Settings.FriendFree) and (not TargGuildIsFriend and not Settings.GuildFree) then
-            Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
-                mq.TLO.Math(Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
+            EmuHelper.Storage.SetINI(Accounting.AccountsPath, 'Balances', summonTarget,
+                mq.TLO.Math(EmuHelper.Storage.ReadINI(Accounting.AccountsPath, 'Balances', summonTarget) - Settings.SummonCost))
         end
     end
 end

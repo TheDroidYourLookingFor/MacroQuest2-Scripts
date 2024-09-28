@@ -12,16 +12,6 @@ local mq = require('mq')
 local imgui = require 'ImGui'
 
 local ScriptName = 'EmuHelper'
-
--- local Casting = require('EmuHelper.Lib.Casting')
--- local Events = require('EmuHelper.Lib.Events')
--- local Gui = require('EmuHelper.Lib.Gui')
-local GTM = require('EmuHelper.Lib.GivetoMain')
-local Messages = require('EmuHelper.Lib.Messages')
--- local Navigation = require('EmuHelper.lib.Movement')
--- local SpellRoutines = require('EmuHelper.lib.spell_routines')
-local Storage = require('EmuHelper.lib.Storage')
-
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 local my_Server = mq.TLO.EverQuest.Server() or ''
@@ -57,6 +47,14 @@ local EmuHelper = {
     directMessage = '/dex',
     Raid_Mode = true,
 }
+-- local Casting = require('EmuHelper.Lib.Casting')
+-- local Events = require('EmuHelper.Lib.Events')
+-- local Gui = require('EmuHelper.Lib.Gui')
+EmuHelper.GTM = require('EmuHelper.Lib.GivetoMain')
+EmuHelper.Messages = require('EmuHelper.Lib.Messages')
+-- local Navigation = require('EmuHelper.lib.Movement')
+-- local SpellRoutines = require('EmuHelper.lib.spell_routines')
+EmuHelper.Storage = require('EmuHelper.lib.Storage')
 
 EmuHelper.Raid_Members = 18
 EmuHelper.Raid_Groups = {
@@ -309,15 +307,15 @@ function ChangeLog()
 end
 
 function SaveSettings(iniFile, settingsList)
-    --Messages.CONSOLEMETHOD(false, 'function SaveSettings(iniFile, settingsList) Entry')
+    --EmuHelper.Messages.CONSOLEMETHOD(false, 'function SaveSettings(iniFile, settingsList) Entry')
     ---@diagnostic disable-next-line: undefined-field
     mq.pickle(iniFile, settingsList)
 end
 
 function Setup(iniFile, settingsList)
-    if EmuHelper.DEBUG then Messages.CONSOLEMETHOD(false, 'function Setup() Entry') end
+    if EmuHelper.DEBUG then EmuHelper.Messages.CONSOLEMETHOD(false, 'function Setup() Entry') end
     CurrentStatus = 'Loading Settings'
-    if not Storage.dir_exists(ConfigDir) then Storage.make_dir(mq.configDir, 'EmuHelper') end
+    if not EmuHelper.Storage.dir_exists(ConfigDir) then EmuHelper.Storage.make_dir(mq.configDir, 'EmuHelper') end
 
     local conf
     local configData, err = loadfile(iniFile)
@@ -1046,7 +1044,7 @@ function EmuHelper.ResourceClick(itemName, itemPct, itemCombatOnly)
 end
 
 function EmuHelper.Raid_Start()
-    Messages.CONSOLEMETHOD(false, 'Raid starting RGMercs.')
+    EmuHelper.Messages.CONSOLEMETHOD(false, 'Raid starting RGMercs.')
     mq.cmdf('/dgre /target %s pc', mq.TLO.Me.Name())
     mq.delay(750)
     mq.cmd('/dgre /rgstart')
@@ -1059,18 +1057,18 @@ function EmuHelper.Raid_Start()
 end
 
 function EmuHelper.Raid_Form()
-    Messages.CONSOLEMETHOD(false, 'Forming raid groups.')
+    EmuHelper.Messages.CONSOLEMETHOD(false, 'Forming raid groups.')
     EmuHelper.SetupRaid()
 end
 
 function EmuHelper.Raid_Loot()
-    Messages.CONSOLEMETHOD(false, 'Raid looting corpses.')
+    EmuHelper.Messages.CONSOLEMETHOD(false, 'Raid looting corpses.')
     EmuHelper.RaidTurboLoot()
 end
 
 function EmuHelper.Raid_Give(whoToGiveTo)
-    Messages.CONSOLEMETHOD(false, 'Giving tradable items to %s', whoToGiveTo)
-    GTM.GiveEZItems(whoToGiveTo)
+    EmuHelper.Messages.CONSOLEMETHOD(false, 'Giving tradable items to %s', whoToGiveTo)
+    EmuHelper.GTM.GiveEZItems(whoToGiveTo)
 end
 
 local function emuhelper_command(...)
@@ -1078,10 +1076,10 @@ local function emuhelper_command(...)
     if args ~= nil then
         if args[1] == 'gui' then
             if Open then
-                Messages.CONSOLEMETHOD(false, 'Hiding %s Bot GUI', EmuHelper.Command_LongName)
+                EmuHelper.Messages.CONSOLEMETHOD(false, 'Hiding %s Bot GUI', EmuHelper.Command_LongName)
                 Open = false
             else
-                Messages.CONSOLEMETHOD(false, 'Restoring %s Bot GUI', EmuHelper.Command_LongName)
+                EmuHelper.Messages.CONSOLEMETHOD(false, 'Restoring %s Bot GUI', EmuHelper.Command_LongName)
                 Open = true
             end
             return
@@ -1103,10 +1101,11 @@ local function emuhelper_command(...)
             elseif args[2] == 'start' then
                 EmuHelper.Raid_Start()
             else
-                Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-                Messages.CONSOLEMETHOD(false, '/%s \atraid\aw \apform\aw - Forms a raid from the Raid_Groups array',
+                EmuHelper.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+                EmuHelper.Messages.CONSOLEMETHOD(false,
+                '/%s \atraid\aw \apform\aw - Forms a raid from the Raid_Groups array',
                     EmuHelper.Command_ShortName)
-                Messages.CONSOLEMETHOD(false,
+                EmuHelper.Messages.CONSOLEMETHOD(false,
                     '/%s \atraid\aw \aploot\aw - Tells the raid to run TurboLoot macro for the current Zone ShortName with delay per launch',
                     EmuHelper.Command_ShortName)
             end
@@ -1130,23 +1129,24 @@ local function emuhelper_command(...)
             EmuHelper.SetBotRange = true
             return
         else
-            Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-            Messages.CONSOLEMETHOD(false, '/%s gui - Toggles the %s GUI', EmuHelper.Command_ShortName,
+            EmuHelper.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+            EmuHelper.Messages.CONSOLEMETHOD(false, '/%s gui - Toggles the %s GUI', EmuHelper.Command_ShortName,
                 EmuHelper.Command_LongName)
-            Messages.CONSOLEMETHOD(false, '/%s invite - Invites bots to group.', EmuHelper.Command_ShortName)
-            Messages.CONSOLEMETHOD(false, '/%s summon - Summons active bots to you.', EmuHelper.Command_ShortName)
-            Messages.CONSOLEMETHOD(false, '/%s spawn - Spawns bots.', EmuHelper.Command_ShortName)
-            Messages.CONSOLEMETHOD(false, '/%s quit - Quits the %s lua script.', EmuHelper.Command_ShortName,
+            EmuHelper.Messages.CONSOLEMETHOD(false, '/%s invite - Invites bots to group.', EmuHelper.Command_ShortName)
+            EmuHelper.Messages.CONSOLEMETHOD(false, '/%s summon - Summons active bots to you.',
+            EmuHelper.Command_ShortName)
+            EmuHelper.Messages.CONSOLEMETHOD(false, '/%s spawn - Spawns bots.', EmuHelper.Command_ShortName)
+            EmuHelper.Messages.CONSOLEMETHOD(false, '/%s quit - Quits the %s lua script.', EmuHelper.Command_ShortName,
                 EmuHelper.Command_LongName)
         end
     else
-        Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-        Messages.CONSOLEMETHOD(false, '/%s gui - Toggles the %s GUI', EmuHelper.Command_ShortName,
+        EmuHelper.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
+        EmuHelper.Messages.CONSOLEMETHOD(false, '/%s gui - Toggles the %s GUI', EmuHelper.Command_ShortName,
             EmuHelper.Command_LongName)
-        Messages.CONSOLEMETHOD(false, '/%s invite - Invites bots to group.', EmuHelper.Command_ShortName)
-        Messages.CONSOLEMETHOD(false, '/%s summon - Summons active bots to you.', EmuHelper.Command_ShortName)
-        Messages.CONSOLEMETHOD(false, '/%s spawn - Spawns bots.', EmuHelper.Command_ShortName)
-        Messages.CONSOLEMETHOD(false, '/%s quit - Quits the %s lua script.', EmuHelper.Command_ShortName,
+        EmuHelper.Messages.CONSOLEMETHOD(false, '/%s invite - Invites bots to group.', EmuHelper.Command_ShortName)
+        EmuHelper.Messages.CONSOLEMETHOD(false, '/%s summon - Summons active bots to you.', EmuHelper.Command_ShortName)
+        EmuHelper.Messages.CONSOLEMETHOD(false, '/%s spawn - Spawns bots.', EmuHelper.Command_ShortName)
+        EmuHelper.Messages.CONSOLEMETHOD(false, '/%s quit - Quits the %s lua script.', EmuHelper.Command_ShortName,
             EmuHelper.Command_LongName)
     end
 end
@@ -1166,8 +1166,8 @@ function EmuHelper.Main()
                 EmuHelper.FormRaid = false
             else
                 EmuHelper.FormRaid = false
-                Messages.CONSOLEMETHOD(false, "Issue forming raid!")
-                Messages.CONSOLEMETHOD(false, RaidForm_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue forming raid!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, RaidForm_Error)
             end
         end
         if EmuHelper.StartRaid then
@@ -1176,8 +1176,8 @@ function EmuHelper.Main()
                 EmuHelper.StartRaid = false
             else
                 EmuHelper.StartRaid = false
-                Messages.CONSOLEMETHOD(false, "Issue starting raid!")
-                Messages.CONSOLEMETHOD(false, RaidStart_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue starting raid!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, RaidStart_Error)
             end
         end
         if EmuHelper.RaidLoot then
@@ -1186,8 +1186,8 @@ function EmuHelper.Main()
                 EmuHelper.RaidLoot = false
             else
                 EmuHelper.RaidLoot = false
-                Messages.CONSOLEMETHOD(false, "Issue starting raid looting!")
-                Messages.CONSOLEMETHOD(false, RaidLoot_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue starting raid looting!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, RaidLoot_Error)
             end
         end
         if EmuHelper.RaidGive then
@@ -1196,8 +1196,8 @@ function EmuHelper.Main()
                 EmuHelper.RaidGive = false
             else
                 EmuHelper.RaidGive = false
-                Messages.CONSOLEMETHOD(false, "Issue starting raid give!")
-                Messages.CONSOLEMETHOD(false, RaidGive_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue starting raid give!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, RaidGive_Error)
             end
         end
 
@@ -1207,8 +1207,8 @@ function EmuHelper.Main()
                 EmuHelper.SpawnBots = false
             else
                 EmuHelper.SpawnBots = false
-                Messages.CONSOLEMETHOD(false, "Issue spawning bots!")
-                Messages.CONSOLEMETHOD(false, SpawnBots_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue spawning bots!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, SpawnBots_Error)
             end
         end
         if EmuHelper.SetBotStance then
@@ -1217,8 +1217,8 @@ function EmuHelper.Main()
                 EmuHelper.SetBotStance = false
             else
                 EmuHelper.SetBotStance = false
-                Messages.CONSOLEMETHOD(false, "Issue setting bot stance!")
-                Messages.CONSOLEMETHOD(false, SetBotStance_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue setting bot stance!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, SetBotStance_Error)
             end
         end
         if EmuHelper.SetBotRange then
@@ -1227,8 +1227,8 @@ function EmuHelper.Main()
                 EmuHelper.SetBotRange = false
             else
                 EmuHelper.SetBotRange = false
-                Messages.CONSOLEMETHOD(false, "Issue setting bot range!")
-                Messages.CONSOLEMETHOD(false, SetBotRange_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue setting bot range!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, SetBotRange_Error)
             end
         end
         if EmuHelper.GroupBots then
@@ -1237,8 +1237,8 @@ function EmuHelper.Main()
                 EmuHelper.GroupBots = false
             else
                 EmuHelper.GroupBots = false
-                Messages.CONSOLEMETHOD(false, "Issue inviting bots to group!")
-                Messages.CONSOLEMETHOD(false, GroupBots_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue inviting bots to group!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, GroupBots_Error)
             end
         end
         if EmuHelper.SummonBots then
@@ -1247,8 +1247,8 @@ function EmuHelper.Main()
                 EmuHelper.SummonBots = false
             else
                 EmuHelper.SummonBots = false
-                Messages.CONSOLEMETHOD(false, "Issue summmoning bots!")
-                Messages.CONSOLEMETHOD(false, SummonBots_Error)
+                EmuHelper.Messages.CONSOLEMETHOD(false, "Issue summmoning bots!")
+                EmuHelper.Messages.CONSOLEMETHOD(false, SummonBots_Error)
             end
         end
         if EmuHelper.BotRunning then
@@ -1257,8 +1257,8 @@ function EmuHelper.Main()
                     local ItemClick_Status, ItemClick_Error = pcall(EmuHelper.ItemClick, EmuHelper.ItemClicks[i].Name,
                         EmuHelper.ItemClicks[i].AttackRange, EmuHelper.ItemClicks[i].CombatOnly)
                     if not ItemClick_Status then
-                        Messages.CONSOLEMETHOD(false, "Item Click Error!!!")
-                        Messages.CONSOLEMETHOD(false, ItemClick_Error)
+                        EmuHelper.Messages.CONSOLEMETHOD(false, "Item Click Error!!!")
+                        EmuHelper.Messages.CONSOLEMETHOD(false, ItemClick_Error)
                     end
                 end
             end
@@ -1266,8 +1266,8 @@ function EmuHelper.Main()
             for i = 1, #EmuHelper.HealthItems do
                 local HealthItems_Status, HealthItems_Error = pcall(EmuHelper.ResourceClick, EmuHelper.HealthItems[i].Name, EmuHelper.HealthItems[i].PctHP, EmuHelper.HealthItems[i].CombatOnly)
                 if not HealthItems_Status then
-                    Messages.CONSOLEMETHOD(false, "Resource Click Error!!!")
-                    Messages.CONSOLEMETHOD(false, HealthItems_Error)
+                    EmuHelper.Messages.CONSOLEMETHOD(false, "Resource Click Error!!!")
+                    EmuHelper.Messages.CONSOLEMETHOD(false, HealthItems_Error)
                 end
             end
         end
@@ -1276,11 +1276,11 @@ function EmuHelper.Main()
     end
 end
 
-if EmuHelper.DEBUG then Messages.CONSOLEMETHOD(false, 'Main Loop Entry') end
+if EmuHelper.DEBUG then EmuHelper.Messages.CONSOLEMETHOD(false, 'Main Loop Entry') end
 EmuHelper.Main()
-if EmuHelper.DEBUG then Messages.CONSOLEMETHOD(false, 'Main Loop Exit') end
+if EmuHelper.DEBUG then EmuHelper.Messages.CONSOLEMETHOD(false, 'Main Loop Exit') end
 
-if EmuHelper.DEBUG then Messages.CONSOLEMETHOD(false, 'Shutting down') end
+if EmuHelper.DEBUG then EmuHelper.Messages.CONSOLEMETHOD(false, 'Shutting down') end
 mq.unbind('/' .. EmuHelper.Command_ShortName)
 mq.unbind('/' .. EmuHelper.Command_LongName)
 return EmuHelper
