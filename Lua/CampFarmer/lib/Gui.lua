@@ -834,11 +834,11 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', CampFarmer.LootUtils.DoLoot)
+                CampFarmer.Settings.DoLoot = ImGui.Checkbox('Enable Looting', CampFarmer.Settings.DoLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Enables looting.')
-                if gui.DOLOOT ~= CampFarmer.LootUtils.DoLoot then
-                    gui.DOLOOT = CampFarmer.LootUtils.DoLoot
+                if gui.DOLOOT ~= CampFarmer.Settings.DoLoot then
+                    gui.DOLOOT = CampFarmer.Settings.DoLoot
                     CampFarmer.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
