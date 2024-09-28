@@ -4,7 +4,7 @@ local mq = require('mq')
 -- Dont edit these settings
 --
 local RB = {
-    version = '1.0.2',
+    version = '1.0.3',
     script_ShortName = 'RebirthMachine',
     debug = false,
     Terminate = false,
@@ -36,7 +36,7 @@ local RB = {
 --
 RB.Settings = {
     swapClasses = true,                   -- Swap classes when we hit rebirth cap?
-    classType = 'DPS',                    -- Type of classes to rebirth. DPS/TANK
+    classType = 'TANK',                    -- Type of classes to rebirth. DPS/TANK
     farmClassAugs = false,                -- DOESNT WORK CURRENTLY
     farmClassAugsAmount = 2,              -- How many of the class augments should we farm?
     rebirthStopAt = 10,                   -- After how many Rebirths should we stop?
@@ -327,9 +327,9 @@ function RB.CheckClass()
                 mq.cmdf('/target npc %s', 'Caitlyn Jenner')
                 mq.delay(RB.wait_Three)
                 mq.cmd('/warp t')
-                mq.delay(RB.wait_Four)
+                mq.delay(RB.wait_Three)
                 mq.cmd('/say Yes, I will return to level 1.')
-                mq.delay(RB.wait_Four)
+                mq.delay(RB.wait_Three)
                 -- Update the current class in the table
                 RB.UpdateCurrentClass()
 
