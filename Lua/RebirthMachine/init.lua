@@ -49,18 +49,27 @@ RB.Settings = {
         'Cool Spell 01',
         'Cool Spell 02'
     }, -- Which spells should we cast? Put as many as you want
-    buffItem = 'Amulet of Ultimate Buffing', -- Name of the item that gives us buff
-    BuffCheckName = 'Hand of Conviction', -- The name of the buff we should be checking to see if buffItem worked
-    useXP_Potions = false, -- Should we consume XP potions?
-    XPPotionName = 'Potion of Adventure II', -- What is the name of the XP Potion?
-    XPPotionBuff = 'Potion of Adventure II', -- What is the name of the XP Potion Buff?
+    UseExpPotions = false, -- Should we consume XP potions?
+    potionName = 'Potion of Adventure II', -- What is the name of the XP Potion?
+    potionBuff = 'Potion of Adventure II', -- What is the name of the XP Potion Buff?
     zoneRefresh = 'Uber Charm of Refreshing', -- Name of the item we use to refresh the zone
     moveOnPull = true, -- Should we move automatically when we pull away from the mob stack?
     zonePull = 'Derekthomx\'s Horrorkrunk Hook', -- Name of the item we use to mass aggro
     -- zonePull = 'Charm of Hate',                                                        -- Name of the item we use to mass aggro
     hubZoneID = 451, -- Zone ID of our hub zone
     equip_Macro = '/ma equip', -- Line to restore all our gear
-    unequip_Macro = '/ma unequipall' -- Line to remove all our gear
+    unequip_Macro = '/ma unequipall', -- Line to remove all our gear
+    usePaladinAA = true,
+    useClericAA = true,
+    useBemChest = true,
+    useBemLegs = true,
+    useBemGloves = true,
+    useBuffCharm = true,
+    useCoinSack = true,
+    useErtzStone = true,
+    useCurrencyCharm = false,
+    buffCharmName = 'Amulet of Ultimate Buffing',
+    buffCharmBuffName = 'Talisman of the Panther Rk. III'
 }
 
 RB.AltToons = {
@@ -312,10 +321,11 @@ function RB.CheckClass()
                     -- Add logic to swap to the next class
                     mq.cmd('/say change class')
                     mq.delay(1000)
-                    mq.doevents()
+                    mq.doevents('ClassSwap')
                     mq.delay(1500)
-                    mq.doevents()
+                    mq.doevents('ClassSwap2')
                     mq.delay(1500)
+                    mq.flushevents()
                     mq.delay(RB.wait_CharChange, function()
                         return mq.TLO.EverQuest.GameState()() == 'CHARSELECT'
                     end)
@@ -327,6 +337,7 @@ function RB.CheckClass()
                     mq.delay(RB.wait_One)
                     mq.cmdf('%s', RB.Settings.equip_Macro)
                     mq.delay(RB.wait_Three)
+                    RB.CurrentRebirths = 0
                 end
             end
             if RB.Settings.farmClassAugs and RB.CurrentAugAmount >= RB.Settings.farmClassAugsAmount and not RB.Settings.swapClasses then
@@ -342,18 +353,107 @@ function RB.CheckClass()
     end
 end
 
-local function event_classSwap_handler(line)
-    local links = mq.ExtractLinks(line)
-    for _, link in ipairs(links) do
-        local linkText = link.text or tostring(link)
-        if string.find(linkText, RB.nextClass) then
+local function event_classSwap_handler(line, warriorLink, clericLink, paladinLink, rangerLink, shadowknightLink, druidLink, monkLink, bardLink, rogueLink, shamanLink, necroLink, wizLink, mageLink, enchanterLink, beastlordLink, berserkerLink)
+    -- local links = mq.ExtractLinks(line)
+    -- for _, link in ipairs(links) do
+    --     local linkText = link.text or tostring(link)
+    --     if string.find(linkText, RB.nextClass) then
+    --         mq.ExecuteTextLink(link)
+    --     end
+    -- end
+    if RB.nextClass == 'Warrior' then
+        local links = mq.ExtractLinks(warriorLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Cleric' then
+        local links = mq.ExtractLinks(clericLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Paladin' then
+        local links = mq.ExtractLinks(paladinLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Ranger' then
+        local links = mq.ExtractLinks(rangerLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Shadowknight' then
+        local links = mq.ExtractLinks(shadowknightLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Druid' then
+        local links = mq.ExtractLinks(druidLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Monk' then
+        local links = mq.ExtractLinks(monkLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Bard' then
+        local links = mq.ExtractLinks(bardLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Rogue' then
+        local links = mq.ExtractLinks(rogueLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Shaman' then
+        local links = mq.ExtractLinks(shamanLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Necromancer' then
+        local links = mq.ExtractLinks(necroLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Wizard' then
+        local links = mq.ExtractLinks(wizLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Magician' then
+        local links = mq.ExtractLinks(mageLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Enchanter' then
+        local links = mq.ExtractLinks(enchanterLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Beastlord' then
+        local links = mq.ExtractLinks(beastlordLink)
+        for _, link in ipairs(links) do
+            mq.ExecuteTextLink(link)
+        end
+    elseif RB.nextClass == 'Berserker' then
+        local links = mq.ExtractLinks(berserkerLink)
+        for _, link in ipairs(links) do
             mq.ExecuteTextLink(link)
         end
     end
 end
-mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, {
+-- mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1#'", event_classSwap_handler, { keepLinks = true })
+mq.event('ClassSwap', "Caitlyn Jenner whispers, '#1# || #2# || #3# || #4# || #5# || #6# || #7# || #8# || #9# || #10# || #11# || #12# || #13# || #14# || #15# || #16#'", event_classSwap_handler, {
     keepLinks = true
 })
+local function event_classSwap2_handler(line)
+    local links = mq.ExtractLinks(line)
+    for _, link in ipairs(links) do
+        mq.ExecuteTextLink(link)
+    end
+end
+mq.event('ClassSwap2', "Caitlyn Jenner whispers, 'You have enough AAs (#*#) to learn all AAs for #*#. Do you wish to proceed?#*#'", event_classSwap2_handler, { keepLinks = true })
 
 local function event_rebirth_handler(line, rebirths)
     CONSOLEMETHOD('function event_rebirth_handler(line, rebirths)')
@@ -425,64 +525,124 @@ function RB.HandleDisconnect()
 end
 
 function RB.CheckBuffs()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.HandleDisconnect()
-        return
+    RB.HandleDisconnect()
+    RB.CheckZone()
+    RB.CheckLevel()
+    if RB.Settings.useCoinSack and mq.TLO.Me.ItemReady('Bemvaras\' Coin Sack')() then
+        mq.cmdf('/useitem %s', 'Bemvaras\' Coin Sack')
+        mq.delay(5000, function()
+            return mq.TLO.Me.Casting.ID() == 0
+        end)
+        mq.delay(RB.ItemReuseDelay)
     end
-    if RB.Settings.useXP_Potions and not mq.TLO.Me.Buff(RB.Settings.XPPotionBuff).ID() then
-        mq.cmdf('/useitem "%s"', RB.Settings.XPPotionName)
-        mq.delay(RB.wait_One)
+    if RB.Settings.useCurrencyCharm and mq.TLO.FindItem('Soulriever\'s Charm of Currency')() and mq.TLO.Me.ItemReady('Soulriever\'s Charm of Currency')() and not mq.TLO.Me.Buff('Soulriever\'s Currency Doubler')() then
+        mq.cmdf('/useitem %s', 'Soulriever\'s Charm of Currency')
+        mq.delay(RB.ItemReuseDelay)
     end
-    if RB.UseClassAA['Shadowknight'] and not mq.TLO.Me.Buff('Shad\'s Warts').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shadowknight'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Shadowknight'])
-        mq.delay(RB.wait_One)
+    if RB.Settings.usePaladinAA and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Paladin'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Paladin'])
+        mq.delay(RB.ItemReuseDelay)
     end
-    if RB.UseClassAA['Warrior'] and not mq.TLO.Me.Buff('Defensive Disc').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Warrior'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Warrior'])
-        mq.delay(RB.wait_One)
+    if RB.Settings.useBemChest and (mq.TLO.Me.Diseased() or mq.TLO.Me.Cursed()) and mq.TLO.FindItem('Bemvaras\'s Golden Breastplate Rk. I')() and mq.TLO.Me.ItemReady('Bemvaras\'s Golden Breastplate Rk. I')() then
+        mq.cmdf('/useitem %s', 'Bemvaras\'s Golden Breastplate Rk. I')
+        mq.delay(RB.ItemReuseDelay)
     end
-    if RB.UseClassAA['Wizard'] and not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Wizard'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Wizard'])
-        mq.delay(RB.wait_One)
+    if RB.Settings.useClericAA and not mq.TLO.Me.Buff('Cleric Mastery - Divine Health')() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Cleric'])() and mq.TLO.SpawnCount(RB.Settings.spawnSearch)() == 0 then
+        if not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() then
+            mq.cmdf('/alt act %s', RB.ClassAAs['Cleric'])
+            mq.delay(2500, function()
+                return mq.TLO.Me.Buff('Cleric Mastery - Divine Health').ID() > 0
+            end)
+            mq.delay(RB.AAReuseDelay)
+        end
     end
-    if RB.UseClassAA['Bard'] and not mq.TLO.Me.Buff('Bard Mastery Greatest In The World').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Bard'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Bard'])
-        mq.delay(RB.wait_One)
+    if RB.Settings.useBemLegs and mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and mq.TLO.Me.ItemReady('Bemvaras\'s Holy Greaves')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
+        if mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() then
+            mq.cmdf('/useitem %s', 'Bemvaras\'s Holy Greaves')
+            mq.delay(RB.ItemReuseDelay)
+        end
+    else
+        if RB.Settings.UseExpPotions and mq.TLO.FindItem(RB.Settings.potionName)() and not mq.TLO.Me.Buff('Bemvaras\'s Enhanced Learning')() and not mq.TLO.Me.Buff(RB.Settings.potionBuff)() then
+            mq.cmdf('/useitem %s', RB.Settings.potionName)
+            mq.delay(RB.ItemReuseDelay)
+        end
     end
-    if RB.UseClassAA['Enchanter'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Enchanter'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Enchanter'])
-        mq.delay(RB.wait_One)
+    if RB.Settings.useBemGloves and mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() and mq.TLO.Me.ItemReady('Bemvaras\'s Holy Gauntlets')() and not mq.TLO.Me.Buff('Talisman of Guenhwyvar')() then
+        mq.cmdf('/useitem %s', 'Bemvaras\'s Holy Gauntlets')
+        mq.delay(RB.ItemReuseDelay)
     end
-    if mq.TLO.Me.Buff(RB.Settings.BuffCheckName).ID() == nil and mq.TLO.Me.ItemReady(RB.Settings.buffItem)() then
-        mq.cmdf('/useitem %s', RB.Settings.buffItem)
-        mq.delay(RB.wait_One)
+    if RB.Settings.useBemGloves and mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() then
+        if RB.Settings.useBuffCharm and mq.TLO.FindItem(RB.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(RB.Settings.buffCharmName)() and not mq.TLO.Me.Buff('Circle of Fireskin')() then
+            mq.cmdf('/useitem %s', RB.Settings.buffCharmName)
+            mq.delay(RB.ItemReuseDelay)
+        end
+    else
+        if not RB.Settings.useBemGloves and RB.Settings.useBuffCharm and mq.TLO.FindItem(RB.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(RB.Settings.buffCharmName)() and not mq.TLO.Me.Buff(RB.Settings.buffCharmBuffName)() then
+            mq.cmdf('/useitem %s', RB.Settings.buffCharmName)
+            mq.delay(RB.ItemReuseDelay)
+        end
     end
 end
 
 function RB.UseClassCombatAAs()
-    if RB.UseClassAA['Rogue'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Rogue'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Rogue'])
-        mq.delay(RB.wait_One)
+    RB.HandleDisconnect()
+    RB.CheckZone()
+    RB.CheckLevel()
+    if mq.TLO.SpawnCount('npc alert 2')() >= 3 then
+        if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer'])() then
+            mq.cmdf('/alt act %s', RB.ClassAAs['Necromancer'])
+            mq.delay(RB.AAReuseDelay)
+        end
+        if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Enchanter'])() then
+            mq.cmdf('/alt act %s', RB.ClassAAs['Enchanter'])
+            mq.delay(RB.AAReuseDelay)
+        end
     end
-    if RB.UseClassAA['Berserker'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berserker'])() then
-        mq.cmdf('/alt act %s', RB.ClassAAs['Berserker'])
-        mq.delay(RB.wait_One)
+    if mq.TLO.FindItem('Ertz\'s Mage Stone')() and mq.TLO.Me.ItemReady('Ertz\'s Mage Stone')() then
+        mq.cmdf('/useitem %s', 'Ertz\'s Mage Stone')
+        mq.delay(RB.AAReuseDelay)
     end
-    if RB.UseClassAA['Shaman'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman'])() then
+    if not mq.TLO.Me.Buff('Shad\'s Warts').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shadowknight'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Shadowknight'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if not mq.TLO.Me.Buff('Mystereon\'s Prismatic Rune').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Wizard'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Wizard'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if not mq.TLO.Me.Buff('Monk Mastery of A Thousand Fists').ID() and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Monk'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Monk'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Shaman'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Shaman'])
-        mq.delay(RB.wait_One)
+        mq.delay(RB.AAReuseDelay)
     end
-    if RB.UseClassAA['Necromancer'] and mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer'])() then
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Necromancer'])() then
         mq.cmdf('/alt act %s', RB.ClassAAs['Necromancer'])
-        mq.delay(RB.wait_One)
+        mq.delay(RB.AAReuseDelay)
     end
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Rogue'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Rogue'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Berserker'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Berserker'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Bard'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Bard'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    if mq.TLO.Me.AltAbilityReady(RB.ClassAAs['Ranger'])() then
+        mq.cmdf('/alt act %s', RB.ClassAAs['Ranger'])
+        mq.delay(RB.AAReuseDelay)
+    end
+    RB.CheckBuffs()
 end
 
 function RB.CheckLevel()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.HandleDisconnect()
-        return
-    end
+    RB.HandleDisconnect()
     if mq.TLO.Me.Level() >= 80 then
         mq.delay(RB.wait_Four)
         mq.cmd('/say #rebirth')
@@ -493,7 +653,7 @@ function RB.CheckLevel()
             mq.cmd('/autoinv')
             mq.delay(RB.wait_Two)
         end
-        if RB.Settings.hideCorpses then
+        if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
         end
@@ -547,7 +707,7 @@ function RB.CheckZone()
                     return mq.TLO.Zone.ID()() == RB.huntZone[RB.Settings.huntZoneName].ID
                 end)
                 mq.delay(RB.wait_Four)
-                if RB.Settings.hideCorpses then
+                if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
                     mq.cmdf('%s', RB.Settings.corpse_Phrase)
                     mq.delay(RB.wait_Four)
                 end
@@ -568,13 +728,11 @@ function RB.CheckZone()
 end
 
 function RB.AggroAllMobs()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.HandleDisconnect()
-        return
-    end
+    RB.HandleDisconnect()
+    RB.CheckLevel()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
         PRINTMETHOD('++ Attempting to Aggro the Zone ++')
-        if RB.Settings.hideCorpses then
+        if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
         end
@@ -606,17 +764,15 @@ function RB.AggroAllMobs()
 end
 
 function RB.RespawnAllMobs()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.HandleDisconnect()
-        return
-    end
+    RB.HandleDisconnect()
+    RB.CheckLevel()
     if mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID and mq.TLO.Me.ItemReady(RB.Settings.zoneRefresh)() and mq.TLO.SpawnCount('npc noalert 1')() < RB.Settings.reset_At_Mob_Count then
         PRINTMETHOD('++ Attempting to Respawn the Zone ++')
         mq.cmdf('/useitem %s', RB.Settings.zoneRefresh)
         mq.delay(RB.wait_Two)
         RB.AggroAllMobs()
         mq.delay(RB.wait_Two)
-        if RB.Settings.hideCorpses then
+        if RB.Settings.hideCorpses and mq.TLO.Zone.ID() == RB.huntZone[RB.Settings.huntZoneName].ID then
             mq.cmdf('%s', RB.Settings.corpse_Phrase)
             mq.delay(RB.wait_Four)
         end
@@ -624,10 +780,8 @@ function RB.RespawnAllMobs()
 end
 
 function RB.KillAllMobs()
-    if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-        RB.HandleDisconnect()
-        return
-    end
+    RB.HandleDisconnect()
+    RB.CheckLevel()
     pcall(RB.RespawnAllMobs)
     if mq.TLO.Me.XTarget() <= RB.Settings.reset_At_Mob_Count and mq.TLO.SpawnCount('npc noalert 1')() >= RB.Settings.reset_At_Mob_Count then
         RB.AggroAllMobs()
@@ -722,9 +876,7 @@ function RB.Main()
     mq.cmd('/melee melee=on stickmode=off stickrange=75 save')
     mq.doevents()
     while not RB.Terminate do
-        if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
-            RB.HandleDisconnect()
-        end
+        RB.HandleDisconnect()
         RB.Checks()
         pcall(RB.KillAllMobs)
         mq.doevents()

@@ -3,8 +3,13 @@ local FableUpgrader = {
     _version = '1.0.11',
     _author = 'TheDroidUrLookingFor'
 }
+FableUpgrader.MainLoop = true
 FableUpgrader.debug = false
 FableUpgrader.script_ShortName = 'FableUpgrader'
+FableUpgrader.command_ShortName = 'FU'
+FableUpgrader.command_LongName = 'FableUpgrader'
+FableUpgrader.StopAt = 'L'
+FableUpgrader.delayClickLink = 250
 
 local Colors = {
     b = "\ab", -- black
@@ -107,18 +112,23 @@ local function event_upgradeFabled_handler(line, currencyAmount, currencyType)
             upgradeExtract = link
         end
     end
+    local cursorItemName = mq.TLO.Cursor.Name()
+    if string.find(cursorItemName, FableUpgrader.StopAt .. '$') then
+        return
+    end
     if string.find(currencyType, 'Doubloons') then
         mq.ExecuteTextLink(upgradeExtract)
-        mq.delay(500)
+        mq.delay(FableUpgrader.delayClickLink)
     elseif string.find(currencyType, 'Papers') then
         mq.ExecuteTextLink(upgradeExtract)
-        mq.delay(500)
+        mq.delay(FableUpgrader.delayClickLink)
     elseif string.find(currencyType, 'Cash') then
         mq.ExecuteTextLink(upgradeExtract)
-        mq.delay(500)
+        mq.delay(FableUpgrader.delayClickLink)
     end
     FableUpgrader.CONSOLEMETHOD(false, 'Upgrade cost: \ag%s %s\ax', currencyAmount, currencyType)
 end
+
 mq.event('UpgadeFabledItems', "#*#whispers, 'The cost for the next upgrade is #1# #2#.#*#?'", event_upgradeFabled_handler, {
     keepLinks = true
 })
@@ -127,11 +137,44 @@ local function event_OutOfCurrency_handler(line, currencyAmount, currencyType)
 end
 mq.event('OutOfCurrency', "You do not have enough alternate currency for this upgrade. You need #1# #2#.", event_OutOfCurrency_handler)
 
+local function binds(...)
+    local args = {
+        ...
+    }
+    if args ~= nil then
+        if args[1] == 'stopat' then
+            if args[2] ~= nil then
+                FableUpgrader.StopAt = args[2]
+                FableUpgrader.CONSOLEMETHOD(false, 'StopAt: %s', FableUpgrader.StopAt)
+            else
+                FableUpgrader.CONSOLEMETHOD(false, 'Please specify a value: /%s stopat XL', FableUpgrader.command_ShortName)
+            end
+        elseif args[1] == 'quit' then
+            FableUpgrader.MainLoop = false
+            mq.cmdf('/lua stop %s', FableUpgrader.script_ShortName)
+        else
+            FableUpgrader.CONSOLEMETHOD(false, 'Valid Commands:')
+            FableUpgrader.CONSOLEMETHOD(false, '/%s \agstopat\aw - Stops upgrading items based on string given.', FableUpgrader.command_ShortName)
+            FableUpgrader.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableUpgrader.command_ShortName)
+        end
+    else
+        FableUpgrader.CONSOLEMETHOD(false, 'Valid Commands:')
+        FableUpgrader.CONSOLEMETHOD(false, '/%s \agstopat\aw - Stops upgrading items based on string given.', FableUpgrader.command_ShortName)
+        FableUpgrader.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', FableUpgrader.command_ShortName)
+    end
+end
+
+local function setupBinds()
+    mq.bind('/' .. FableUpgrader.command_ShortName, binds)
+    mq.bind('/' .. FableUpgrader.command_LongName, binds)
+end
+
 function FableUpgrader.Main()
+    setupBinds()
     FableUpgrader.VersionCheck()
-    while true do
+    while FableUpgrader.MainLoop do
         mq.doevents()
-        mq.delay(250)
+        mq.delay(100)
     end
 end
 

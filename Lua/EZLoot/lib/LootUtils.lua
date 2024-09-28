@@ -268,23 +268,23 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
     if messageType == 'Debug' then
         --LootUtils.Settings.logger.Debug((message):format(...))
         -- FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Debug(message, ...)
+        EZLoot.Messages.Debug(message, ...)
     elseif messageType == 'Info' then
         --LootUtils.Settings.logger.Info((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Info(message, ...)
+        --EZLoot.GUI.addToConsole((message):format(...))
+        EZLoot.Messages.Info(message, ...)
     elseif messageType == 'Warn' then
         --LootUtils.Settings.logger.Warn((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Warn(message, ...)
+        --EZLoot.GUI.addToConsole((message):format(...))
+        EZLoot.Messages.Warn(message, ...)
     elseif messageType == 'Normal' then
         --LootUtils.Settings.logger.Warn((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Normal(message, ...)
+        --EZLoot.GUI.addToConsole((message):format(...))
+        EZLoot.Messages.Normal(message, ...)
     else
         --LootUtils.Settings.logger.Info((message):format(...))
-        FableLooter.GUI.addToConsole((message):format(...))
-        FableLooter.Messages.Normal(message, ...)
+        --EZLoot.GUI.addToConsole((message):format(...))
+        EZLoot.Messages.Normal(message, ...)
     end
 end
 
