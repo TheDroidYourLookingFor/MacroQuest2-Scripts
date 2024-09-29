@@ -1,0 +1,57 @@
+| Equip.mac
+| This macro will re-equip items saved in the UnequippedItems.ini file by picking up each item by name and using /autoinventory.
+
+Sub Main
+    /declare i int local
+    /declare itemName string local
+    /declare iniFile string local "UnequippedItems.${Me.CleanName}.ini"
+    /declare section string local "UnequippedItems"
+
+    /for i 0 to 21
+        /varset itemName ${Ini[${iniFile},${section},Slot${i}]}
+        /echo Attempting to equip ${itemName}  | Debug output
+
+        /if (${itemName.Length}) {
+            /if (${FindItemCount[=${itemName}]}) {
+                /echo Picking up ${itemName} from inventory.
+                /call pickUpItem "${itemName}"
+                /delay 0.5s
+                /autoinventory
+                /delay 0.5s
+            } else {
+                /echo ERROR: Could not find ${itemName} in inventory.
+            }
+        } else {
+            /echo No valid item found to equip in slot ${i}.
+        }
+    /next i
+
+    /echo All items have been re-equipped.
+    /return
+
+    sub pickUpItem(itemName)
+    /declare slot int local
+    /declare itemSlot int local
+
+    /for slot 23 to 32
+        /if (${Me.Inventory[${slot}].ID}) {
+            /if (${Me.Inventory[${slot}].Container}) {
+                /for itemSlot 1 to ${Me.Inventory[${slot}].Container}
+                    /if (${Me.Inventory[${slot}].Item[${itemSlot}].ID}) {
+                        /if (${Me.Inventory[${slot}].Item[${itemSlot}].Name.Equal[${itemName}]}) {
+                            /itemnotify in pack${Math.Calc[${slot}-22].Int} ${itemSlot} leftmouseup
+                            /delay 1s ${Cursor.Name.Equal[${itemName}]}
+                            /return
+                        }
+                    }
+                /next itemSlot
+            } else {
+                /if (${Me.Inventory[${slot}].Name.Equal[${itemName}]}) {
+                    /itemnotify ${slot} leftmouseup
+                    /delay 1s ${Cursor.Name.Equal[${itemName}]}
+                    /return
+                }
+            }
+        }
+    /next slot
+    /return

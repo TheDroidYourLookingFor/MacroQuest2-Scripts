@@ -1,0 +1,58 @@
+| UnequipAll.mac
+| This macro will unequip all worn inventory items and save their names.
+
+|#include WriteToIni.inc
+
+Sub Main
+    /declare i int local
+    /declare iniFile string local "UnequippedItems.${Me.CleanName}.ini"
+    /declare section string local "UnequippedItems"
+
+    /call clearCursor
+    /for i 0 to 22
+        /if (${Me.Inventory[${i}].ID}) {
+            /echo Saving ${Me.Inventory[${i}].Name} from slot ${i} to ${iniFile}
+            |/call WriteToIni "${iniFile}" "${section}" "Slot${i}" "${Me.Inventory[${i}].Name}" TRUE
+            /ini "${iniFile}" "${section}" "Slot${i}" "${Me.Inventory[${i}].Name}"
+            |/unequip ${i}
+            /itemnotify ${i} leftmouseup
+            /delay 1s ${Cursor.ID}
+            /call placeItem
+            /call clearCursor
+        } else {
+            /echo Slot ${i} is empty or no item found.
+        }
+    /next i
+
+    /echo All items have been unequipped and saved to ${iniFile}.
+/return
+
+sub clearCursor
+    :loop
+    /autoinv
+    /if (${Cursor.ID}) /goto :loop
+/return
+
+sub placeItem()
+    /declare slot int local
+    /declare itemSlot int local
+    /if (!${Cursor.ID}) /return
+
+    /for slot 24 to 32
+        /if (${Me.Inventory[${slot}].ID}) {
+            /if (${Me.Inventory[${slot}].Container}) {
+                /for itemSlot 1 to ${Me.Inventory[${slot}].Container}
+                    /if (!${Me.Inventory[${slot}].Item[${itemSlot}].ID}) {
+                        /itemnotify in pack${Math.Calc[${slot}-22].Int} ${itemSlot} leftmouseup
+                        /delay 1s !${Cursor.ID}
+                        /return
+                    }
+                /next itemSlot
+            }
+        } else {
+            /itemnotify ${slot} leftmouseup
+            /delay 1s !${Cursor.ID}
+            /return
+        }
+    /next slot
+/return
