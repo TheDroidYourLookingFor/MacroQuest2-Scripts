@@ -26,6 +26,12 @@ CampFarmer.ItemReuseDelay = 500
 CampFarmer.FastDelay = 50
 CampFarmer.RepopDelay = 1500
 CampFarmer.AggroDelay = 1500
+CampFarmer.StartDoubloons = 0
+CampFarmer.StartPapers = 0
+CampFarmer.StartCash = 0
+CampFarmer.StartAA = 0
+CampFarmer.StartTime = os.time()
+CampFarmer.LastReportTime = os.time()
 
 CampFarmer.Settings = {}
 CampFarmer.Settings.Version = CampFarmer._version
@@ -91,11 +97,8 @@ CampFarmer.Settings.corpseCleanupCommand = '/hidecorpse all'
 CampFarmer.Settings.corpseLimit = 200
 CampFarmer.Settings.doStand = true
 CampFarmer.Settings.lootAll = false
-
-CampFarmer.LootUtils = require('CampFarmer.lib.LootUtils')
-CampFarmer.Messages = require('CampFarmer.lib.Messages')
-CampFarmer.GUI = require('CampFarmer.lib.Gui')
-CampFarmer.Storage = require('CampFarmer.lib.Storage')
+CampFarmer.Settings.ReportGain = false
+CampFarmer.Settings.ReportAATime = 300
 
 CampFarmer.IgnoreList = {
     "Gillamina Garstobidokis",
@@ -145,6 +148,8 @@ CampFarmer.ClassAAs = {
     Wizard = 39912
 }
 
+CampFarmer.Messages = require('CampFarmer.lib.Messages')
+
 function CampFarmer.SaveSettings(iniFile, settingsList)
     CampFarmer.Messages.Debug('function SaveSettings(iniFile, settingsList) Entry')
     ---@diagnostic disable-next-line: undefined-field
@@ -167,6 +172,10 @@ function CampFarmer.Setup()
         end
     end
 end
+
+CampFarmer.LootUtils = require('CampFarmer.lib.LootUtils')
+CampFarmer.GUI = require('CampFarmer.lib.Gui')
+CampFarmer.Storage = require('CampFarmer.lib.Storage')
 
 function CampFarmer.SetupAlertLists()
     mq.cmd('/squelch /alert clear 1')
@@ -255,8 +264,15 @@ end
 function CampFarmer.KillThis()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
-    mq.cmd('/squelch /stick moveback 10')
-    mq.cmd('/squelch /attack on')
+    if mq.TLO.Me.Class() ~= 'Ranger' then
+        mq.cmd('/squelch /stick moveback 10')
+        mq.cmd('/squelch /attack on')
+    else
+        if not mq.TLO.Me.AutoFire() then
+            mq.cmd('/squelch /stick moveback 20')
+            mq.cmd('/squelch /autofire')
+        end
+    end
     mq.cmd('/squelch /face fast')
     if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
         mq.cmd('/squelch /pet attack')
@@ -529,7 +545,7 @@ function CampFarmer.LootMobs()
         else
             mq.cmdf('/target %s',
                 mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format(
-                'corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius,
+                    'corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius,
                     CampFarmer.Settings.scan_zRadius))())
         end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
@@ -572,7 +588,10 @@ function CampFarmer.CheckTarget()
             mq.cmdf('/squelch /target id %s', mq.TLO.Spawn('npc alert 2').ID())
             mq.delay(CampFarmer.FastDelay)
         end
-        if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 then
+        if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
+            mq.cmd('/squelch /warp t')
+            mq.delay(CampFarmer.FastDelay)
+        elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.FastDelay)
         end
@@ -781,8 +800,8 @@ end
 mq.event('SellFabledItems',
     "#*#The Fabled Jim Carrey whispers, 'Which currency would you like to receive for your rank 1 fabled items? #1#?'",
     event_fabledSell_handler, {
-    keepLinks = true
-})
+        keepLinks = true
+    })
 
 function CampFarmer.VersionCheck()
     local requiredVersion = {
@@ -801,7 +820,7 @@ function CampFarmer.VersionCheck()
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
             CampFarmer.Messages.Normal(
-            'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+                'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', CampFarmer.script_ShortName)
             return
         elseif currentVersion[i] > requiredVersion[i] then
@@ -828,6 +847,10 @@ local function binds(...)
         elseif args[1] == 'fabled' then
             CampFarmer.needToFabledSell = true
             CampFarmer.FabledSell()
+        elseif args[1] == 'report' then
+            local totalAA, aaPerHour = CampFarmer.AAStatus()
+            CampFarmer.Messages.Normal('Total AA gained: %d', totalAA)
+            CampFarmer.Messages.Normal('Current AA per hour: %.2f', aaPerHour)
         elseif args[1] == 'quit' then
             CampFarmer.terminate = true
             mq.cmdf('/lua stop %s', CampFarmer.script_ShortName)
@@ -835,9 +858,9 @@ local function binds(...)
             CampFarmer.Messages.Normal('Valid Commands:')
             CampFarmer.Messages.Normal('/%s \aggui\aw - Toggles the Control Panel GUI', CampFarmer.command_ShortName)
             CampFarmer.Messages.Normal('/%s \agbank\aw - Send your character to bank items', CampFarmer
-            .command_ShortName)
+                .command_ShortName)
             CampFarmer.Messages.Normal('/%s \agfabled\aw - Send your character to sell fabled items',
-            CampFarmer.command_ShortName)
+                CampFarmer.command_ShortName)
             CampFarmer.Messages.Normal('/%s \agcash\aw - Send your character to sell cash items',
                 CampFarmer.command_ShortName)
             CampFarmer.Messages.Normal('/%s \agquit\aw - Quits the lua script.', CampFarmer.command_ShortName)
@@ -861,9 +884,75 @@ local function setupBinds()
     mq.bind('/' .. CampFarmer.command_LongName, binds)
 end
 
+function CampFarmer.formatNumberWithCommas(number)
+    local formatted = tostring(number)
+    -- Use pattern to insert commas
+    while true do
+        formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
+        if k == 0 then break end
+    end
+    return formatted
+end
+
+function CampFarmer.AAStatus()
+    -- Get current AA points and current time
+    local currentAA = mq.TLO.Me.AAPoints()
+    local currentTime = os.time()
+
+    -- Calculate total AA gained
+    local aaGained = currentAA - CampFarmer.StartAA
+
+    -- Calculate elapsed time in seconds and convert to hours
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    -- Prevent division by zero if somehow elapsedTimeInHours is too small
+    local aaPerHour = 0
+    if elapsedTimeInHours > 0 then
+        aaPerHour = aaGained / elapsedTimeInHours
+    end
+
+    -- Return both total AA gained and AA per hour
+    return aaGained, aaPerHour
+end
+
+function CampFarmer.CurrencyStatus()
+    -- Get current AA points and current time
+    local currentDoubloons = mq.TLO.Me.AltCurrency('Doubloons')()
+    local currentPapers = mq.TLO.Me.AltCurrency('31')()
+    local currentCash = mq.TLO.Me.AltCurrency('Cash')()
+    local currentTime = os.time()
+
+    local doubloonsGained = currentDoubloons - CampFarmer.StartDoubloons
+    local papersGained = currentPapers - CampFarmer.StartPapers
+    local cashGained = currentCash - CampFarmer.StartCash
+
+    -- Calculate elapsed time in seconds and convert to hours
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    -- Prevent division by zero if somehow elapsedTimeInHours is too small
+    local doubloonsPerHour = 0
+    local papersPerHour = 0
+    local cashPerHour = 0
+    if elapsedTimeInHours > 0 then
+        doubloonsPerHour = doubloonsGained / elapsedTimeInHours
+        papersPerHour = papersGained / elapsedTimeInHours
+        cashPerHour = cashGained / elapsedTimeInHours
+    end
+
+    -- Return both total AA gained and AA per hour
+    return doubloonsGained, doubloonsPerHour, papersGained, papersPerHour, cashGained, cashPerHour
+end
+
 function CampFarmer.Main()
     setupBinds()
     CampFarmer.Setup()
+    CampFarmer.StartAA = mq.TLO.Me.AAPoints()
+    CampFarmer.StartDoubloons = mq.TLO.Me.AltCurrency('Doubloons')()
+    CampFarmer.StartPapers = mq.TLO.Me.AltCurrency('31')()
+    CampFarmer.StartCash = mq.TLO.Me.AltCurrency('Cash')()
+    CampFarmer.StartTime = os.time()
     CampFarmer.Messages.Normal('Setting up Alert Lists')
     CampFarmer.SetupAlertLists()
     CampFarmer.CheckCampInfo()
@@ -900,6 +989,16 @@ function CampFarmer.Main()
         end
         if CampFarmer.needToVendorSell then
             CampFarmer.VendorSell()
+        end
+        -- Check if 5 minutes (300 seconds) have passed since the last report
+        if CampFarmer.Settings.ReportGain then
+            local currentTime = os.time()
+            if os.difftime(currentTime, CampFarmer.LastReportTime) >= CampFarmer.Settings.ReportAATime then
+                local totalAA, aaPerHour = CampFarmer.AAStatus()
+                CampFarmer.Messages.Normal('Total AA gained: %d', totalAA)
+                CampFarmer.Messages.Normal('Current AA per hour: %.2f', aaPerHour)
+                CampFarmer.LastReportTime = currentTime -- Update the last report time
+            end
         end
         mq.delay(CampFarmer.FastDelay)
     end

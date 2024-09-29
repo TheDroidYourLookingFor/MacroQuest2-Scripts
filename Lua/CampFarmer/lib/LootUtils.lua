@@ -149,7 +149,7 @@ LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
+    LootFile = '\\EZLoot\\EZLoot.ini'
     -- LootLagDelay = 0,
     -- GlobalLootOn = true,
     -- CorpseRotTime = "440s",
@@ -159,14 +159,14 @@ LootUtils.Settings = {
 }
 
 -- LootUtils.Settings.logger.prefix = 'EZLoot'
-local function SetINIType()
+function LootUtils.SetINIType()
     if LootUtils.useMacroLootFile then
         LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
     if LootUtils.UseSingleFileForAllCharacters then
-        LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
+        LootUtils.Settings.LootFile = '\\EZLoot\\EZLoot.ini'
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
@@ -218,7 +218,7 @@ local function SetINIType()
     end
     printf('LootFile: %s', LootUtils.Settings.LootFile)
 end
-SetINIType()
+LootUtils.SetINIType()
 -- Internal settings
 local lootData = {}
 local doSell = false

@@ -45,6 +45,7 @@ gui.ANNOUNCELOOT = true
 gui.REPORTSKIPPED = true
 gui.LOOTCHANNEL = "dgt"
 gui.ANNOUNCECHANNEL = 'dgt'
+gui.LOOTINIFILE = 'EZLoot\\EZloot.ini'
 gui.SPAMLOOTINFO = false
 gui.LOOTFORAGESPAM = false
 gui.COMBATLOOTING = true
@@ -824,7 +825,17 @@ function gui.FableLooterGUI()
                     FableLooter.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
-                ImGui.Unindent()
+
+                FableLooter.Settings.lootINIFile = ImGui.InputText('Loot file', FableLooter.Settings.lootINIFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot file to use.')
+                if gui.LOOTINIFILE ~= FableLooter.Settings.lootINIFile then
+                    gui.LOOTINIFILE = FableLooter.Settings.lootINIFile
+                    FableLooter.LootUtils.Settings.LootFile = FableLooter.Settings.lootINIFile
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
+                ImGui.Unindent();
             end
             if ImGui.CollapsingHeader("Console") then
                 ImGui.Indent()
