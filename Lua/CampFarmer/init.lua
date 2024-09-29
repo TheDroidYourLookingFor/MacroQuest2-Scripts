@@ -884,6 +884,19 @@ local function setupBinds()
     mq.bind('/' .. CampFarmer.command_LongName, binds)
 end
 
+function CampFarmer.getElapsedTime(startTime)
+    local currentTime = os.time()
+    local elapsedTimeInSeconds = os.difftime(currentTime, startTime)
+
+    -- Calculate hours, minutes, and seconds
+    local hours = math.floor(elapsedTimeInSeconds / 3600)
+    local minutes = math.floor((elapsedTimeInSeconds % 3600) / 60)
+    local seconds = elapsedTimeInSeconds % 60
+
+    -- Format as HH:MM:SS
+    return string.format('%02d:%02d:%02d', hours, minutes, seconds)
+end
+
 function CampFarmer.formatNumberWithCommas(number)
     local formatted = tostring(number)
     -- Use pattern to insert commas

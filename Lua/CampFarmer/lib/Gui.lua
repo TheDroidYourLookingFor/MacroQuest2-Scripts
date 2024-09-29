@@ -160,16 +160,12 @@ function gui.CampFarmerGUI()
         ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
         ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
         if gui.ShowUI then
-            local totalAA, aaPerHour = CampFarmer.AAStatus()
-            local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA) -- Format total AA
-            local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
-            ImGui.Text('AA Gained')
+            -- Get the elapsed time since CampFarmer.StartTime
+            local formattedElapsedTime = CampFarmer.getElapsedTime(CampFarmer.StartTime)
+            ImGui.SameLine(250)
+            ImGui.Text('Run Time:')
             ImGui.SameLine()
-            ImGui.Text(tostring(formattedTotalAA))
-            ImGui.SameLine(450)
-            ImGui.Text('AA / Hour')
-            ImGui.SameLine()
-            ImGui.Text(tostring(formattedAAPerHour))
+            ImGui.Text(formattedElapsedTime)
             ImGui.Separator();
             local buttonWidth, buttonHeight = 140, 30
             local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
@@ -214,9 +210,9 @@ function gui.CampFarmerGUI()
             end
             if ImGui.CollapsingHeader('Gains') then
                 local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer.CurrencyStatus()
-                totalAA, aaPerHour = CampFarmer.AAStatus()
-                formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
-                formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
+                local totalAA, aaPerHour = CampFarmer.AAStatus()
+                local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
+                local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
                 local formattedDoubloonsPerHour = CampFarmer.formatNumberWithCommas(math.floor(doubloonsPerHour))
                 local formattedPaperssPerHour = CampFarmer.formatNumberWithCommas(math.floor(papersPerHour))
                 local formattedCashPerHour = CampFarmer.formatNumberWithCommas(math.floor(cashPerHour))
