@@ -405,7 +405,7 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.useCurrencyCharm = ImGui.Checkbox('Enable Ertz\'s Stone',
+                    CampFarmer.Settings.useCurrencyCharm = ImGui.Checkbox('Enable Currency Stone',
                         CampFarmer.Settings.useCurrencyCharm)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Use currency doubler?')
