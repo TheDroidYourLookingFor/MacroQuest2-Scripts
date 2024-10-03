@@ -32,6 +32,13 @@ CampFarmer.StartCash = 0
 CampFarmer.StartAA = 0
 CampFarmer.StartTime = os.time()
 CampFarmer.LastReportTime = os.time()
+CampFarmer.reset_Instance_At = 5
+CampFarmer.zone_Wait = 50000
+CampFarmer.rebirth_Wait = 2500
+CampFarmer.wait_One = 250
+CampFarmer.wait_Two = 500
+CampFarmer.wait_Three = 750
+CampFarmer.wait_Four = 1000
 
 CampFarmer.Settings = {}
 CampFarmer.Settings.Version = CampFarmer._version
@@ -99,6 +106,7 @@ CampFarmer.Settings.doStand = true
 CampFarmer.Settings.lootAll = false
 CampFarmer.Settings.ReportGain = false
 CampFarmer.Settings.ReportAATime = 300
+CampFarmer.Settings.RangerStickRange = 140
 
 CampFarmer.IgnoreList = {
     "Gillamina Garstobidokis",
@@ -269,7 +277,9 @@ function CampFarmer.KillThis()
         mq.cmd('/squelch /attack on')
     else
         if not mq.TLO.Me.AutoFire() then
-            mq.cmd('/squelch /stick moveback 20')
+            if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
+                mq.cmdf('/squelch /stick moveback %s', CampFarmer.Settings.RangerStickRange)
+            end
             mq.cmd('/squelch /autofire')
         end
     end
@@ -590,9 +600,11 @@ function CampFarmer.CheckTarget()
         end
         if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
             mq.cmd('/squelch /warp t')
+            mq.cmd('/squelch /stick moveback 10')
             mq.delay(CampFarmer.FastDelay)
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
+            mq.cmd('/squelch /stick moveback 10')
             mq.delay(CampFarmer.FastDelay)
         end
         CampFarmer.KillThis()
@@ -787,6 +799,34 @@ function CampFarmer.CheckPet()
         CampFarmer.CheckPetAoE()
     end
 end
+
+local function event_instance_handler(line, minutes)
+    CampFarmer.Messages.Debug('function event_instance_handler(line, minutes)')
+    local minutesLeft = tonumber(minutes)
+    if minutesLeft >= CampFarmer.reset_Instance_At then
+        if mq.TLO.DynamicZone() ~= nil then
+            if mq.TLO.Plugin('MQ2DanNet').IsLoaded() and mq.TLO.DynamicZone.Members() > 1 then
+                mq.cmd('/dgga /dzq')
+            else
+                mq.cmd('/dzq')
+            end
+            mq.delay(CampFarmer.wait_Two)
+            mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
+            mq.delay(CampFarmer.wait_Three)
+            mq.delay(CampFarmer.zone_Wait, function()
+                return mq.TLO.Zone.ID()() == CampFarmer.startZone
+            end)
+        else
+            mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
+            mq.delay(CampFarmer.wait_Three)
+            mq.delay(CampFarmer.zone_Wait, function()
+                return mq.TLO.Zone.ID()() == CampFarmer.startZone
+            end)
+        end
+    end
+end
+mq.event('InstanceCheck', "You only have #1# minutes remaining before this expedition comes to an end.",
+    event_instance_handler)
 
 local function event_fabledSell_handler(line)
     local links = mq.ExtractLinks(line)
