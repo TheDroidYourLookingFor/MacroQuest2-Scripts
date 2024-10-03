@@ -72,13 +72,13 @@ end
 function FableLooter.Setup()
     FableLooter.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(FableLooter.settingsFile)
+    local configData, err = loadfile(mq.configDir .. FableLooter.settingsFile)
     if err then
-        FableLooter.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+        FableLooter.SaveSettings(mq.configDir .. FableLooter.settingsFile, FableLooter.Settings)
     elseif configData then
         conf = configData()
         if conf.version ~= FableLooter.Settings.version then
-            FableLooter.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+            FableLooter.SaveSettings(mq.configDir .. FableLooter.settingsFile, FableLooter.Settings)
             FableLooter.Setup()
         else
             FableLooter.Settings = conf

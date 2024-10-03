@@ -108,7 +108,7 @@ local mq = require 'mq'
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.16",
+    Version = "1.0.17",
     _Macro = FableLooter,
     UseWarp = true,
     AddNewSales = true,
@@ -161,7 +161,7 @@ LootUtils.Settings = {
 -- LootUtils.Settings.logger.prefix = 'EZLoot'
 function LootUtils.SetINIType()
     if LootUtils.useMacroLootFile then
-        LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
+        LootUtils.Settings.LootFile = mq.configDir .. LootUtils._Macro.Settings.lootINIFile
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
