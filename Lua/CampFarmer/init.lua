@@ -19,7 +19,7 @@ CampFarmer.startX = mq.TLO.Me.X()
 CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
-CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
+CampFarmer.startZoneName = mq.TLO.Zone.ShortName() mq.configDir()
 CampFarmer.settingsFile = '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 500
 CampFarmer.ItemReuseDelay = 500
@@ -167,13 +167,13 @@ end
 function CampFarmer.Setup()
     CampFarmer.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(CampFarmer.settingsFile)
+    local configData, err = loadfile(mq.configDir() .. CampFarmer.settingsFile)
     if err then
-        CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+        CampFarmer.SaveSettings(mq.configDir() .. CampFarmer.settingsFile, CampFarmer.Settings)
     elseif configData then
         conf = configData()
         if conf.Version ~= CampFarmer.Settings.Version then
-            CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+            CampFarmer.SaveSettings(mq.configDir() .. CampFarmer.settingsFile, CampFarmer.Settings)
             CampFarmer.Setup()
         else
             CampFarmer.Settings = conf
@@ -1016,7 +1016,7 @@ function CampFarmer.Main()
     CampFarmer.Messages.Normal('Camp Zone: %s', CampFarmer.startZoneName)
     CampFarmer.Messages.Normal('Location: X(%s) Y(%s) Z(%s)', CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ)
     CampFarmer.Messages.Normal('Looting: %s', CampFarmer.Settings.DoLoot)
-    CampFarmer.Messages.Normal('Loot INI File: %s', CampFarmer.Settings.lootINIFile)
+    CampFarmer.Messages.Normal('Loot INI File: %s', mq.configDir() .. CampFarmer.Settings.lootINIFile)
     if mq.TLO.Pet.ID() then
         CampFarmer.CheckPetAoE()
     else

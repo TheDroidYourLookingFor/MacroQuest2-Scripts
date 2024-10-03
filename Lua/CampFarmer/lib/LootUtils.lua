@@ -161,7 +161,7 @@ LootUtils.Settings = {
 -- LootUtils.Settings.logger.prefix = 'EZLoot'
 function LootUtils.SetINIType()
     if LootUtils.useMacroLootFile then
-        LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
+        LootUtils.Settings.LootFile = mq.configDir() .. LootUtils._Macro.Settings.lootINIFile
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
