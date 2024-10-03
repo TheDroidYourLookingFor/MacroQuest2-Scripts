@@ -108,7 +108,7 @@ local mq = require 'mq'
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.16",
+    Version = "1.0.17",
     _Macro = CampFarmer,
     UseWarp = true,
     AddNewSales = true,
