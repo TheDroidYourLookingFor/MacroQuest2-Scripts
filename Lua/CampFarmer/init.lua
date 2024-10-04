@@ -167,7 +167,7 @@ end
 function CampFarmer.Setup()
     CampFarmer.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(CampFarmer.settingsFile)
+    local configData, err = loadfile(mq.configDir .. CampFarmer.settingsFile)
     if err then
         CampFarmer.SaveSettings(mq.configDir .. CampFarmer.settingsFile, CampFarmer.Settings)
     elseif configData then
