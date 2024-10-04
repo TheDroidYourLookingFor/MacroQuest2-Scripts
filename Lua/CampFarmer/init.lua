@@ -154,9 +154,9 @@ CampFarmer.ClassAAs = {
 
 CampFarmer.Delays = {
     One = 25,
-    Two = 50, -- Normally 50
+    Two = 100, -- Normally 50
     Three = 75,
-    Four = 100, -- Normally 100
+    Four = 250, -- Normally 100
     Five = 125,
     Six = 150,
     Seven = 200,
