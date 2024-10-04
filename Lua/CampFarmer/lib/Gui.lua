@@ -991,13 +991,13 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
-                    CampFarmer.LootUtils.CombatLooting)
+                CampFarmer.Settings.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
+                    CampFarmer.Settings.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
-                if gui.COMBATLOOTING ~= CampFarmer.LootUtils.CombatLooting then
-                    gui.COMBATLOOTING = CampFarmer.LootUtils.CombatLooting
-                    CampFarmer.LootUtils.writeSettings()
+                if gui.COMBATLOOTING ~= CampFarmer.Settings.CombatLooting then
+                    gui.COMBATLOOTING = CampFarmer.Settings.CombatLooting
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
                 ImGui.Columns(1)
 

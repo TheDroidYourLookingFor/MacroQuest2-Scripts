@@ -63,6 +63,7 @@ CampFarmer.Settings.useCoinSack = true
 CampFarmer.Settings.useErtzStone = true
 CampFarmer.Settings.useCurrencyCharm = true
 CampFarmer.Settings.DoLoot = true
+CampFarmer.Settings.CombatLooting = false
 CampFarmer.Settings.LootGroundSpawns = false
 CampFarmer.Settings.ClickAATokens = true
 CampFarmer.Settings.GroupAlt = false
@@ -547,7 +548,7 @@ end
 function CampFarmer.LootMobs()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
-    if not CampFarmer.LootUtils.CombatLooting and mq.TLO.Me.Combat() then return end
+    if not CampFarmer.Settings.CombatLooting and mq.TLO.Me.Combat() then return end
     if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
             mq.cmdf('/target %s',
