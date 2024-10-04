@@ -21,9 +21,8 @@ CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
 CampFarmer.settingsFile = mq.configDir .. '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
-CampFarmer.AAReuseDelay = 500
-CampFarmer.ItemReuseDelay = 500
-CampFarmer.FastDelay = 50
+CampFarmer.AAReuseDelay = 750
+CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
 CampFarmer.AggroDelay = 1500
 CampFarmer.StartDoubloons = 0
@@ -35,10 +34,6 @@ CampFarmer.LastReportTime = os.time()
 CampFarmer.reset_Instance_At = 5
 CampFarmer.zone_Wait = 50000
 CampFarmer.rebirth_Wait = 2500
-CampFarmer.wait_One = 250
-CampFarmer.wait_Two = 500
-CampFarmer.wait_Three = 750
-CampFarmer.wait_Four = 1000
 
 CampFarmer.Settings = {}
 CampFarmer.Settings.Version = CampFarmer._version
@@ -157,6 +152,20 @@ CampFarmer.ClassAAs = {
     Wizard = 39912
 }
 
+CampFarmer.Delays = {
+    One = 25,
+    Two = 50, -- Normally 50
+    Three = 75,
+    Four = 100, -- Normally 100
+    Five = 125,
+    Six = 150,
+    Seven = 200,
+    Eight = 250,
+    Nine = 500,
+    Ten = 1000,
+    Eleven = 750
+}
+
 CampFarmer.Messages = require('CampFarmer.lib.Messages')
 
 function CampFarmer.SaveSettings(iniFile, settingsList)
@@ -190,12 +199,12 @@ function CampFarmer.SetupAlertLists()
     mq.cmd('/squelch /alert clear 1')
     for _, name in ipairs(CampFarmer.IgnoreList) do
         mq.cmdf('/squelch /alert add 1 "%s"', name)
-        mq.delay(25)
+        mq.delay(CampFarmer.Delays.One)
     end
     mq.cmd('/squelch /alert clear 2')
     for _, name in ipairs(CampFarmer.PriorityList) do
         mq.cmdf('/squelch /alert add 2 "%s"', name)
-        mq.delay(25)
+        mq.delay(CampFarmer.Delays.One)
     end
     mq.cmd('/squelch /alert clear 25')
 end
@@ -230,28 +239,28 @@ function CampFarmer.HandleDisconnect()
     if CampFarmer.NewDisconnectHandler then
         if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
             mq.TLO.AutoLogin.Profile.ReRun()
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
         end
     else
         if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
             mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
             end)
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
         end
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
             mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
         end
     end
 end
@@ -264,9 +273,9 @@ function CampFarmer.CheckCorpseCount()
     end
     if mq.TLO.SpawnCount('npccorpse')() > CampFarmer.Settings.corpseLimit then
         mq.cmdf('%s', CampFarmer.Settings.corpseCleanupCommand)
-        mq.delay(50)
+        mq.delay(CampFarmer.Delays.Two)
         mq.cmd('/hidecorpse looted')
-        mq.delay(250)
+        mq.delay(CampFarmer.Delays.Eight)
     end
 end
 
@@ -445,14 +454,14 @@ function CampFarmer.CheckZone()
             mq.delay(50000, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.startZone
             end)
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
         end
     elseif mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() == nil then
         mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
         mq.delay(50000, function()
             return mq.TLO.Zone.ID()() == CampFarmer.startZone
         end)
-        mq.delay(1000)
+        mq.delay(CampFarmer.Delays.Ten)
     end
 end
 
@@ -470,7 +479,7 @@ function CampFarmer.CheckGroup()
     if CampFarmer.Settings.GroupAlt and not mq.TLO.Me.Grouped() then
         if mq.TLO.Spawn(CampFarmer.Settings.AltLooterName).ID() > 0 then
             mq.cmdf('/invite %s', CampFarmer.Settings.AltLooterName)
-            mq.delay(CampFarmer.FastDelay)
+            mq.delay(CampFarmer.Delays.Two)
         end
     end
 end
@@ -513,7 +522,7 @@ function CampFarmer.Aggro(aggroCharm)
     mq.delay(1000, function()
         return mq.TLO.Target.ID() == mq.TLO.Me.ID()
     end)
-    mq.delay(CampFarmer.FastDelay)
+    mq.delay(CampFarmer.Delays.Two)
     mq.cmdf('/useitem %s', aggroCharm)
     mq.delay(CampFarmer.AggroDelay)
 end
@@ -562,18 +571,18 @@ function CampFarmer.LootMobs()
         end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/squelch /warp t')
-            mq.delay(100)
+            mq.delay(CampFarmer.Delays.Four)
             if CampFarmer.Settings.doStand and not mq.TLO.Me.Standing() then
                 mq.cmd('/stand')
-                mq.delay(50)
+                mq.delay(CampFarmer.Delays.Two)
             end
             CampFarmer.LootUtils.lootCorpse(mq.TLO.Target.ID())
-            mq.delay(100)
+            mq.delay(CampFarmer.Delays.Four)
             mq.doevents()
-            mq.delay(100)
+            mq.delay(CampFarmer.Delays.Four)
             if CampFarmer.Settings.returnHomeAfterLoot then
                 mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
-                mq.delay(50)
+                mq.delay(CampFarmer.Delays.Two)
             end
         end
     end
@@ -589,7 +598,7 @@ function CampFarmer.CheckTarget()
     if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) > CampFarmer.Settings.ReturnToHomeDistance then
         if (mq.TLO.Target() and not string.find(mq.TLO.Target.CleanName(), 'Treasure Goblin')) or not mq.TLO.Target() then
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
-            mq.delay(100)
+            mq.delay(CampFarmer.Delays.Four)
         end
     end
     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() == 'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
@@ -598,16 +607,16 @@ function CampFarmer.CheckTarget()
     if mq.TLO.SpawnCount('npc alert 2')() > 0 then
         if mq.TLO.Target() and not string.find(mq.TLO.Target.CleanName(), 'Treasure Goblin') then
             mq.cmdf('/squelch /target id %s', mq.TLO.Spawn('npc alert 2').ID())
-            mq.delay(CampFarmer.FastDelay)
+            mq.delay(CampFarmer.Delays.Two)
         end
         if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.cmd('/squelch /stick moveback 10')
-            mq.delay(CampFarmer.FastDelay)
+            mq.delay(CampFarmer.Delays.Eight)
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.cmd('/squelch /stick moveback 10')
-            mq.delay(CampFarmer.FastDelay)
+            mq.delay(CampFarmer.Delays.Eight)
         end
         CampFarmer.KillThis()
     end
@@ -666,37 +675,37 @@ function CampFarmer.BankDropOff()
             mq.delay(50000, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.Settings.bankZone
             end)
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
         end
         if mq.TLO.Zone.ID() == CampFarmer.Settings.bankZone then
             mq.cmdf('/target npc %s', CampFarmer.Settings.bankNPC)
-            mq.delay(250)
+            mq.delay(CampFarmer.Delays.Eight)
             mq.delay(5000, function()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('BigBankWnd').Open()
             end)
-            mq.delay(50)
+            mq.delay(CampFarmer.Delays.Two)
             CampFarmer.LootUtils.bankStuff()
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             if CampFarmer.Settings.sellFabled then
                 CampFarmer.needToFabledSell = true
                 CampFarmer.FabledSell()
-                mq.delay(500)
+                mq.delay(CampFarmer.Delays.Nine)
             end
             if CampFarmer.Settings.sellCash then
                 CampFarmer.needToCashSell = true
                 CampFarmer.CashSell()
-                mq.delay(500)
+                mq.delay(CampFarmer.Delays.Nine)
             end
             if CampFarmer.Settings.sellVendor then
                 CampFarmer.needToVendorSell = true
                 CampFarmer.VendorSell()
-                mq.delay(500)
+                mq.delay(CampFarmer.Delays.Nine)
             end
             CampFarmer.needToBank = false
         end
@@ -711,17 +720,17 @@ function CampFarmer.VendorSell()
             mq.delay(50000, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.Settings.bankZone
             end)
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
         end
         if mq.TLO.Zone.ID() == CampFarmer.Settings.bankZone then
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/target npc %s', CampFarmer.Settings.vendorNPC)
-            mq.delay(250)
+            mq.delay(CampFarmer.Delays.Eight)
             mq.delay(5000, function()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('MerchantWnd').Open()
@@ -740,17 +749,17 @@ function CampFarmer.CashSell()
             mq.delay(50000, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.Settings.bankZone
             end)
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
         end
         if mq.TLO.Zone.ID() == CampFarmer.Settings.bankZone then
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/target npc %s', CampFarmer.Settings.cashNPC)
-            mq.delay(250)
+            mq.delay(CampFarmer.Delays.Eight)
             mq.delay(5000, function()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('NewPointMerchantWnd').Open()
@@ -769,21 +778,21 @@ function CampFarmer.FabledSell()
             mq.delay(50000, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.Settings.bankZone
             end)
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
         end
         if mq.TLO.Zone.ID() == CampFarmer.Settings.bankZone then
-            mq.delay(500)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/target npc %s', CampFarmer.Settings.fabledNPC)
-            mq.delay(250)
+            mq.delay(CampFarmer.Delays.Eight)
             mq.delay(5000, function()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
             mq.cmd('/say I understand')
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
             mq.doevents('SellFabledItems')
-            mq.delay(1000)
+            mq.delay(CampFarmer.Delays.Ten)
             CampFarmer.needToFabledSell = false
         end
     end
@@ -812,15 +821,15 @@ local function event_instance_handler(line, minutes)
             else
                 mq.cmd('/dzq')
             end
-            mq.delay(CampFarmer.wait_Two)
+            mq.delay(CampFarmer.Delays.Nine)
             mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
-            mq.delay(CampFarmer.wait_Three)
+            mq.delay(CampFarmer.Delays.Eleven)
             mq.delay(CampFarmer.zone_Wait, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.startZone
             end)
         else
             mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
-            mq.delay(CampFarmer.wait_Three)
+            mq.delay(CampFarmer.Delays.Eleven)
             mq.delay(CampFarmer.zone_Wait, function()
                 return mq.TLO.Zone.ID()() == CampFarmer.startZone
             end)
@@ -1055,7 +1064,7 @@ function CampFarmer.Main()
                 CampFarmer.LastReportTime = currentTime -- Update the last report time
             end
         end
-        mq.delay(CampFarmer.FastDelay)
+        mq.delay(CampFarmer.Delays.Two)
     end
 end
 
