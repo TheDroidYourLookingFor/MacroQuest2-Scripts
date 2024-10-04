@@ -1,7 +1,7 @@
 local mq = require('mq')
 
 FableLooter = {
-    _version = '1.0.17',
+    _version = '1.0.18',
     _author = 'TheDroidUrLookingFor'
 }
 FableLooter.script_ShortName = 'FableLooter'
@@ -14,7 +14,7 @@ FableLooter.needToCashSell = false
 FableLooter.needToVendorSell = false
 FableLooter.needToFabledSell = false
 FableLooter.mob_Wait = 50000
-FableLooter.settingsFile = '\\FableLooter.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+FableLooter.settingsFile = mq.configDir .. '\\FableLooter.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 FableLooter.huntZoneID = mq.TLO.Zone.ID()
 FableLooter.huntZoneName = mq.TLO.Zone.ShortName()
 FableLooter.camp_X = mq.TLO.Me.X()
@@ -60,7 +60,7 @@ FableLooter.Settings = {
     staticZ = '-151.74',
     targetName = 'treasure',
     spawnSearch = '%s radius %d zradius %d',
-    lootINIFile = 'EZLoot\\EZLoot-BINLI.ini'
+    lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-BINLI.ini'
 }
 
 function FableLooter.SaveSettings(iniFile, settingsList)
@@ -72,13 +72,13 @@ end
 function FableLooter.Setup()
     FableLooter.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(mq.configDir .. FableLooter.settingsFile)
+    local configData, err = loadfile(FableLooter.settingsFile)
     if err then
-        FableLooter.SaveSettings(mq.configDir .. FableLooter.settingsFile, FableLooter.Settings)
+        FableLooter.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
     elseif configData then
         conf = configData()
         if conf.version ~= FableLooter.Settings.version then
-            FableLooter.SaveSettings(mq.configDir .. FableLooter.settingsFile, FableLooter.Settings)
+            FableLooter.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
             FableLooter.Setup()
         else
             FableLooter.Settings = conf
