@@ -571,7 +571,7 @@ local function lootItem(index, doWhat, button)
     local itemName = mq.TLO.Corpse.Item(index).Name()
     local ruleAction = doWhat
     if doWhat == 'Announce' then
-        mq.cmdf('/%s Found: %s (%s)', EZLoot.AnnounceChannel, itemLink, corpseName)
+        mq.cmdf('/%s Found: %s (%s)', LootUtils.AnnounceChannel, itemLink, corpseName)
         return
     end
     if string.find(doWhat, "Quest|") == 1 then
@@ -581,7 +581,7 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
-        if EZLoot.debug then
+        if LootUtils.debug then
             printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
         end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then

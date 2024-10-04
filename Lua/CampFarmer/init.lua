@@ -20,7 +20,8 @@ CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
-CampFarmer.settingsFile = mq.configDir .. '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+CampFarmer.settingsFile = mq.configDir ..
+'\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 750
 CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
@@ -154,7 +155,7 @@ CampFarmer.ClassAAs = {
 
 CampFarmer.Delays = {
     One = 25,
-    Two = 100, -- Normally 50
+    Two = 100,  -- Normally 50
     Three = 75,
     Four = 250, -- Normally 100
     Five = 125,
@@ -163,7 +164,8 @@ CampFarmer.Delays = {
     Eight = 250,
     Nine = 500,
     Ten = 1000,
-    Eleven = 750
+    Eleven = 750,
+    Warp = 500
 }
 
 CampFarmer.Messages = require('CampFarmer.lib.Messages')
@@ -283,17 +285,20 @@ function CampFarmer.KillThis()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
     if mq.TLO.Me.Class() ~= 'Ranger' then
-        mq.cmd('/squelch /stick moveback 10')
+        mq.cmd('/squelch /stick')
+        mq.delay(CampFarmer.Delays.One)
         mq.cmd('/squelch /attack on')
     else
         if not mq.TLO.Me.AutoFire() then
             if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
-                mq.cmdf('/squelch /stick moveback %s', CampFarmer.Settings.RangerStickRange)
+                mq.cmd('/squelch /stick')
+                mq.delay(CampFarmer.Delays.One)
             end
             mq.cmd('/squelch /autofire')
+            mq.delay(CampFarmer.Delays.One)
         end
     end
-    mq.cmd('/squelch /face fast')
+    if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
     if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
         mq.cmd('/squelch /pet attack')
     end
@@ -571,7 +576,7 @@ function CampFarmer.LootMobs()
         end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/squelch /warp t')
-            mq.delay(CampFarmer.Delays.Four)
+            mq.delay(CampFarmer.Delays.Warp)
             if CampFarmer.Settings.doStand and not mq.TLO.Me.Standing() then
                 mq.cmd('/stand')
                 mq.delay(CampFarmer.Delays.Two)
@@ -582,7 +587,7 @@ function CampFarmer.LootMobs()
             mq.delay(CampFarmer.Delays.Four)
             if CampFarmer.Settings.returnHomeAfterLoot then
                 mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
-                mq.delay(CampFarmer.Delays.Two)
+                mq.delay(CampFarmer.Delays.Warp)
             end
         end
     end
@@ -598,7 +603,7 @@ function CampFarmer.CheckTarget()
     if CampFarmer.CheckDistance(CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ) > CampFarmer.Settings.ReturnToHomeDistance then
         if (mq.TLO.Target() and not string.find(mq.TLO.Target.CleanName(), 'Treasure Goblin')) or not mq.TLO.Target() then
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
-            mq.delay(CampFarmer.Delays.Four)
+            mq.delay(CampFarmer.Delays.Warp)
         end
     end
     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() == 'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
@@ -611,12 +616,24 @@ function CampFarmer.CheckTarget()
         end
         if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
             mq.cmd('/squelch /warp t')
-            mq.cmd('/squelch /stick moveback 10')
-            mq.delay(CampFarmer.Delays.Eight)
+            mq.delay(CampFarmer.Delays.Warp)
+            mq.cmd('/squelch /stick')
+            mq.delay(CampFarmer.Delays.One)
+            if mq.TLO.Target() and mq.TLO.Target.Distance() < 1 then
+                mq.cmd('/squelch /stick moveback')
+                mq.delay(CampFarmer.Delays.One)
+            end
+            if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
-            mq.cmd('/squelch /stick moveback 10')
-            mq.delay(CampFarmer.Delays.Eight)
+            mq.delay(CampFarmer.Delays.Warp)
+            mq.cmd('/squelch /stick')
+            mq.delay(CampFarmer.Delays.One)
+            if mq.TLO.Target() and mq.TLO.Target.Distance() < 1 then
+                mq.cmd('/squelch /stick moveback')
+                mq.delay(CampFarmer.Delays.One)
+            end
+            if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
         end
         CampFarmer.KillThis()
     end
@@ -684,7 +701,7 @@ function CampFarmer.BankDropOff()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(CampFarmer.Delays.Nine)
+            mq.delay(CampFarmer.Delays.Warp)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('BigBankWnd').Open()
@@ -730,7 +747,7 @@ function CampFarmer.VendorSell()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(CampFarmer.Delays.Ten)
+            mq.delay(CampFarmer.Delays.Warp)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('MerchantWnd').Open()
@@ -759,7 +776,7 @@ function CampFarmer.CashSell()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(CampFarmer.Delays.Nine)
+            mq.delay(CampFarmer.Delays.Warp)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function()
                 return mq.TLO.Window('NewPointMerchantWnd').Open()
@@ -788,7 +805,7 @@ function CampFarmer.FabledSell()
                 return mq.TLO.Target()() ~= nil
             end)
             mq.cmd('/squelch /warp t')
-            mq.delay(CampFarmer.Delays.Ten)
+            mq.delay(CampFarmer.Delays.Warp)
             mq.cmd('/say I understand')
             mq.delay(CampFarmer.Delays.Ten)
             mq.doevents('SellFabledItems')
