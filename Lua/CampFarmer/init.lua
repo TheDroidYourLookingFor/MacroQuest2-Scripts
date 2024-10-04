@@ -548,7 +548,7 @@ end
 function CampFarmer.LootMobs()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
-    if not CampFarmer.Settings.CombatLooting and mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() then return end
+    if not CampFarmer.Settings.CombatLooting and mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() > 0 then return end
     if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
             mq.cmdf('/target %s',
