@@ -3,7 +3,7 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.2',
+    _version = '1.0.4',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
@@ -20,7 +20,7 @@ CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
-CampFarmer.settingsFile = '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+CampFarmer.settingsFile = mq.configDir .. '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 500
 CampFarmer.ItemReuseDelay = 500
 CampFarmer.FastDelay = 50
@@ -70,7 +70,7 @@ CampFarmer.Settings.GroupAlt = false
 CampFarmer.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
 CampFarmer.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
 CampFarmer.Settings.AltLooterName = 'Binli'
-CampFarmer.Settings.lootINIFile = '\\EZLoot\\EZLoot-MINLI.ini'
+CampFarmer.Settings.lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-MINLI.ini'
 CampFarmer.Settings.MinMobsInZone = 10
 CampFarmer.Settings.UberPullMobsInZone = 50
 
@@ -168,13 +168,13 @@ end
 function CampFarmer.Setup()
     CampFarmer.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(mq.configDir .. '\\' .. CampFarmer.settingsFile)
+    local configData, err = loadfile(CampFarmer.settingsFile)
     if err then
-        CampFarmer.SaveSettings(mq.configDir .. '\\' .. CampFarmer.settingsFile, CampFarmer.Settings)
+        CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
     elseif configData then
         conf = configData()
         if conf.Version ~= CampFarmer.Settings.Version then
-            CampFarmer.SaveSettings(mq.configDir .. '\\' .. CampFarmer.settingsFile, CampFarmer.Settings)
+            CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
             CampFarmer.Setup()
         else
             CampFarmer.Settings = conf
@@ -548,7 +548,7 @@ end
 function CampFarmer.LootMobs()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
-    if not CampFarmer.Settings.CombatLooting and mq.TLO.Me.Combat() then return end
+    if not CampFarmer.Settings.CombatLooting and mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() then return end
     if mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) then
         if CampFarmer.Settings.lootAll then
             mq.cmdf('/target %s',

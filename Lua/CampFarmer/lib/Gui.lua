@@ -991,8 +991,7 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.Settings.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
-                    CampFarmer.Settings.CombatLooting)
+                CampFarmer.Settings.CombatLooting = ImGui.Checkbox('Enable Combat Looting', CampFarmer.Settings.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
                 if gui.COMBATLOOTING ~= CampFarmer.Settings.CombatLooting then

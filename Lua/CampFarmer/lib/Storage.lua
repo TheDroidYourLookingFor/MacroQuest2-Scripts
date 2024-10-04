@@ -36,7 +36,7 @@ end
 
 function storage.SaveSettings(iniFile, settingsList)
 	---@diagnostic disable-next-line: undefined-field
-	mq.pickle(iniFile, settingsList)
+    mq.pickle(iniFile, settingsList)
 end
 
 return storage
