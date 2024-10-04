@@ -3,7 +3,7 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.1',
+    _version = '1.0.2',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
@@ -167,13 +167,13 @@ end
 function CampFarmer.Setup()
     CampFarmer.Messages.Debug('function Setup() Entry')
     local conf
-    local configData, err = loadfile(mq.configDir .. CampFarmer.settingsFile)
+    local configData, err = loadfile(mq.configDir .. '\\' .. CampFarmer.settingsFile)
     if err then
-        CampFarmer.SaveSettings(mq.configDir .. CampFarmer.settingsFile, CampFarmer.Settings)
+        CampFarmer.SaveSettings(mq.configDir .. '\\' .. CampFarmer.settingsFile, CampFarmer.Settings)
     elseif configData then
         conf = configData()
         if conf.Version ~= CampFarmer.Settings.Version then
-            CampFarmer.SaveSettings(mq.configDir .. CampFarmer.settingsFile, CampFarmer.Settings)
+            CampFarmer.SaveSettings(mq.configDir .. '\\' .. CampFarmer.settingsFile, CampFarmer.Settings)
             CampFarmer.Setup()
         else
             CampFarmer.Settings = conf

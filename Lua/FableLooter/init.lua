@@ -1,7 +1,7 @@
 local mq = require('mq')
 
 FableLooter = {
-    _version = '1.0.14',
+    _version = '1.0.15',
     _author = 'TheDroidUrLookingFor'
 }
 FableLooter.script_ShortName = 'FableLooter'
