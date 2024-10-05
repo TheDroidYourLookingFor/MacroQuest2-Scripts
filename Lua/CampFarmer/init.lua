@@ -21,7 +21,7 @@ CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
 CampFarmer.settingsFile = mq.configDir ..
-'\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+    '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 750
 CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
@@ -156,9 +156,9 @@ CampFarmer.ClassAAs = {
 
 CampFarmer.Delays = {
     One = 25,
-    Two = 100,  -- Normally 50
+    Two = 50,
     Three = 75,
-    Four = 250, -- Normally 100
+    Four = 100,
     Five = 125,
     Six = 150,
     Seven = 200,
@@ -289,6 +289,7 @@ function CampFarmer.KillThis()
         mq.cmd('/squelch /stick')
         mq.delay(CampFarmer.Delays.One)
         mq.cmd('/squelch /attack on')
+        mq.delay(CampFarmer.Delays.One)
     else
         if not mq.TLO.Me.AutoFire() then
             if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
@@ -299,7 +300,10 @@ function CampFarmer.KillThis()
             mq.delay(CampFarmer.Delays.One)
         end
     end
-    if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
+    if mq.TLO.Target() then
+        mq.cmd('/squelch /face fast')
+        mq.delay(CampFarmer.Delays.One)
+    end
     if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
         mq.cmd('/squelch /pet attack')
     end
@@ -624,7 +628,10 @@ function CampFarmer.CheckTarget()
                 mq.cmd('/squelch /stick moveback')
                 mq.delay(CampFarmer.Delays.One)
             end
-            if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
+            if mq.TLO.Target() then
+                mq.cmd('/squelch /face fast')
+                mq.delay(CampFarmer.Delays.One)
+            end
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
@@ -634,7 +641,10 @@ function CampFarmer.CheckTarget()
                 mq.cmd('/squelch /stick moveback')
                 mq.delay(CampFarmer.Delays.One)
             end
-            if mq.TLO.Target() then mq.cmd('/squelch /face fast') end
+            if mq.TLO.Target() then
+                mq.cmd('/squelch /face fast')
+                mq.delay(CampFarmer.Delays.One)
+            end
         end
         CampFarmer.KillThis()
     end
