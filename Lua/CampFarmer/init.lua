@@ -30,6 +30,7 @@ CampFarmer.StartDoubloons = 0
 CampFarmer.StartPapers = 0
 CampFarmer.StartCash = 0
 CampFarmer.StartAA = 0
+CampFarmer.GoblinCounter = 0
 CampFarmer.StartTime = os.time()
 CampFarmer.LastReportTime = os.time()
 CampFarmer.reset_Instance_At = 5
@@ -670,6 +671,7 @@ function CampFarmer.CheckTarget()
 end
 
 function CampFarmer.Checks()
+    mq.doevents()
     if not mq.TLO.Me.Standing() or mq.TLO.Me.Ducking() then
         mq.TLO.Me.Stand()
     end
@@ -828,6 +830,15 @@ function CampFarmer.CheckPet()
     end
 end
 
+local function event_aagain_handler(line, gainedPoints)
+    CampFarmer.StartAA = CampFarmer.StartAA + tonumber(gainedPoints)
+end
+mq.event('AACheck', "You have gained #1# ability point(s)!#*#", event_aagain_handler)
+local function event_goblinCounter_handler(line)
+    CampFarmer.GoblinCounter = (CampFarmer.GoblinCounter or 0) + 1
+end
+mq.event('GoblinCheck', "#*#a Treasure Goblin squeals!#*#", event_goblinCounter_handler)
+
 local function event_instance_handler(line, minutes)
     CampFarmer.Messages.Debug('function event_instance_handler(line, minutes)')
     local minutesLeft = tonumber(minutes)
@@ -976,25 +987,31 @@ function CampFarmer.formatNumberWithCommas(number)
 end
 
 function CampFarmer.AAStatus()
-    -- Get current AA points and current time
-    local currentAA = mq.TLO.Me.AAPoints()
     local currentTime = os.time()
 
-    -- Calculate total AA gained
-    local aaGained = currentAA - CampFarmer.StartAA
-
-    -- Calculate elapsed time in seconds and convert to hours
     local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
     local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
 
-    -- Prevent division by zero if somehow elapsedTimeInHours is too small
     local aaPerHour = 0
     if elapsedTimeInHours > 0 then
-        aaPerHour = aaGained / elapsedTimeInHours
+        aaPerHour = CampFarmer.StartAA / elapsedTimeInHours
     end
 
-    -- Return both total AA gained and AA per hour
-    return aaGained, aaPerHour
+    return CampFarmer.StartAA, aaPerHour
+end
+
+function CampFarmer.GoblinStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local goblinPerHour = 0
+    if elapsedTimeInHours > 0 then
+        goblinPerHour = CampFarmer.GoblinCounter / elapsedTimeInHours
+    end
+
+    return CampFarmer.GoblinCounter, goblinPerHour
 end
 
 function CampFarmer.CurrencyStatus()
@@ -1029,7 +1046,7 @@ end
 function CampFarmer.Main()
     setupBinds()
     CampFarmer.Setup()
-    CampFarmer.StartAA = mq.TLO.Me.AAPoints()
+    -- CampFarmer.StartAA = mq.TLO.Me.AAPoints()
     CampFarmer.StartDoubloons = mq.TLO.Me.AltCurrency('Doubloons')()
     CampFarmer.StartPapers = mq.TLO.Me.AltCurrency('31')()
     CampFarmer.StartCash = mq.TLO.Me.AltCurrency('Cash')()
@@ -1081,6 +1098,7 @@ function CampFarmer.Main()
                 CampFarmer.LastReportTime = currentTime -- Update the last report time
             end
         end
+        mq.doevents()
         mq.delay(CampFarmer.Delays.Two)
     end
 end

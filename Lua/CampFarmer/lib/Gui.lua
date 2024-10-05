@@ -210,6 +210,7 @@ function gui.CampFarmerGUI()
             end
             if ImGui.CollapsingHeader('Gains') then
                 local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer.CurrencyStatus()
+                local totalGoblins, goblinsPerHour = CampFarmer.GoblinStatus()
                 local totalAA, aaPerHour = CampFarmer.AAStatus()
                 local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
                 local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
@@ -219,6 +220,8 @@ function gui.CampFarmerGUI()
                 local formattedTotalDoubloons = CampFarmer.formatNumberWithCommas(totalDoubloons)
                 local formattedTotalPapers = CampFarmer.formatNumberWithCommas(totalPapers)
                 local formattedTotalCash = CampFarmer.formatNumberWithCommas(totalCash)
+                local formattedTotalGoblins = CampFarmer.formatNumberWithCommas(totalGoblins)
+                local formattedGoblinsPerHour = CampFarmer.formatNumberWithCommas(goblinsPerHour)
                 ImGui.Text('AA Gained')
                 ImGui.SameLine()
                 ImGui.Text(tostring(formattedTotalAA))
@@ -253,6 +256,15 @@ function gui.CampFarmerGUI()
                 ImGui.Text('Cash / Hour')
                 ImGui.SameLine()
                 ImGui.Text(tostring(formattedCashPerHour))
+                ImGui.Separator();
+
+                ImGui.Text('Goblins Spawned')
+                ImGui.SameLine()
+                ImGui.Text(tostring(formattedTotalGoblins))
+                ImGui.SameLine(400)
+                ImGui.Text('Goblins / Hour')
+                ImGui.SameLine()
+                ImGui.Text(tostring(formattedGoblinsPerHour))
                 ImGui.Separator();
             end
             if ImGui.CollapsingHeader("Options") then
@@ -361,7 +373,7 @@ function gui.CampFarmerGUI()
                     ImGui.Columns(2)
                     local start_y_Options = ImGui.GetCursorPosY()
                     CampFarmer.Settings.useBemChest = ImGui.Checkbox('Enable Bems Chest', CampFarmer.Settings
-                    .useBemChest)
+                        .useBemChest)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Use Bemevaras Breastplate?')
                     if gui.USEBEMCHEST ~= CampFarmer.Settings.useBemChest then
@@ -747,7 +759,7 @@ function gui.CampFarmerGUI()
                     ImGui.Separator();
 
                     CampFarmer.Settings.targetName = ImGui.InputText('Corpse Target Name', CampFarmer.Settings
-                    .targetName)
+                        .targetName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Look for this name on corpses when looting.')
                     if gui.TARGETNAME ~= CampFarmer.Settings.targetName then
@@ -797,7 +809,7 @@ function gui.CampFarmerGUI()
                 ImGui.Separator();
 
                 CampFarmer.Settings.KeepMaxLevel = ImGui.Checkbox('Enable Keep Max Lvl', CampFarmer.Settings
-                .KeepMaxLevel)
+                    .KeepMaxLevel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Should we try to stay level 80 if we die?')
                 if gui.KEEPMAXLEVEL ~= CampFarmer.Settings.KeepMaxLevel then
@@ -932,7 +944,7 @@ function gui.CampFarmerGUI()
                 ImGui.Separator();
 
                 CampFarmer.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable', CampFarmer.LootUtils
-                .EquipUsable)
+                    .EquipUsable)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Equips usable items. Buggy at best.')
                 if gui.EQUIPUSABLE ~= CampFarmer.LootUtils.EquipUsable then
@@ -991,7 +1003,8 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.Settings.CombatLooting = ImGui.Checkbox('Enable Combat Looting', CampFarmer.Settings.CombatLooting)
+                CampFarmer.Settings.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
+                    CampFarmer.Settings.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
                 if gui.COMBATLOOTING ~= CampFarmer.Settings.CombatLooting then
