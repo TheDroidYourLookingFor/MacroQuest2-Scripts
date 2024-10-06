@@ -208,6 +208,22 @@ function CampFarmer.ValidateSettings()
             'Bemvaras\'s Holy Gauntlets')
         CampFarmer.Settings.useBemGloves = false
     end
+    if not mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() then
+        CampFarmer.Messages.Normal('You have enabled auto buffing with %s but do not have it.',
+            CampFarmer.Settings.buffCharmName)
+        if mq.TLO.FindItem('Amulet of Ultimate Buffing')() then
+            CampFarmer.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
+            CampFarmer.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
+        elseif mq.TLO.FindItem('Amulet of Elite Buffing')() then
+            CampFarmer.Settings.buffCharmName = 'Amulet of Elite Buffing'
+            CampFarmer.Settings.buffCharmBuffName = 'Spirit of Minato'
+        elseif mq.TLO.FindItem('Amulet of Strong Buffing')() then
+            CampFarmer.Settings.buffCharmName = 'Amulet of Strong Buffing'
+            CampFarmer.Settings.buffCharmBuffName = 'Spirit of Ox'
+        else
+            CampFarmer.Messages.Normal('No buff item found!')
+        end
+    end
     if CampFarmer.Settings.buffCharmName == 'Amulet of Ultimate Buffing' and not mq.TLO.FindItem('Amulet of Ultimate Buffing')() then
         CampFarmer.Messages.Normal('You have enabled auto buffing with %s but do not have it.',
             'Amulet of Ultimate Buffing')
@@ -222,11 +238,13 @@ function CampFarmer.ValidateSettings()
         end
     end
     if not mq.TLO.FindItem(CampFarmer.Settings.aggroItem)() then
-        CampFarmer.Messages.Normal('You are missing your zone wide aggro item! You tried to use %s.', CampFarmer.Settings.aggroItem)
+        CampFarmer.Messages.Normal('You are missing your zone wide aggro item! You tried to use %s.',
+            CampFarmer.Settings.aggroItem)
         mq.cmd('/lua stop CampFarmer')
     end
     if not mq.TLO.FindItem(CampFarmer.Settings.respawnItem)() then
-        CampFarmer.Messages.Normal('You are missing your zone wide respawn item! You tried to use %s.', CampFarmer.Settings.respawnItem)
+        CampFarmer.Messages.Normal('You are missing your zone wide respawn item! You tried to use %s.',
+            CampFarmer.Settings.respawnItem)
         mq.cmd('/lua stop CampFarmer')
     end
     if CampFarmer.Settings.DoUberPull and not mq.TLO.FindItem(CampFarmer.Settings.aggroUberItem)() then
@@ -526,7 +544,8 @@ end
 
 function CampFarmer.CheckZone()
     CampFarmer.HandleDisconnect()
-    local instanceString = CampFarmer.Settings.InstanceLeader .. '_' .. CampFarmer.Settings.InstanceType .. '_' .. CampFarmer.startZoneName
+    local instanceString = CampFarmer.Settings.InstanceLeader ..
+        '_' .. CampFarmer.Settings.InstanceType .. '_' .. CampFarmer.startZoneName
     if mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() ~= nil and mq.TLO.DynamicZone() == string.upper(instanceString) then
         if not CampFarmer.needToBank and not CampFarmer.needToCashSell and not CampFarmer.needToFabledSell then
             mq.cmd('/say #enter')
