@@ -1,6 +1,6 @@
 ---@type Mq
 local mq = require('mq')
-local gui = { _version = '1.0.11', _author = 'TheDroidUrLookingFor' }
+local gui = { _version = '1.0.19', _author = 'TheDroidUrLookingFor' }
 
 -- FableLooter
 gui.DEBUG = false
@@ -24,6 +24,7 @@ gui.ZONECHECK = true
 gui.LOOTGROUNDSPAWNS = true
 gui.RETURNHOMEAFTERLOOT = false
 gui.DOSTAND = true
+gui.KEEPMAXLEVEL = true
 gui.LOOTALL = false
 gui.CORPSECLEANUP = true
 gui.CORPSECLEANUPCOMMAND = '/say #deletecorpse'
@@ -572,6 +573,15 @@ function gui.FableLooterGUI()
                     gui.DOSTAND = FableLooter.Settings.doStand
                     FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                 end
+
+                FableLooter.Settings.KeepMaxLevel = ImGui.Checkbox('Keep Max Level', FableLooter.Settings.KeepMaxLevel)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Should we try to keep level 80?')
+                if gui.KEEPMAXLEVEL ~= FableLooter.Settings.KeepMaxLevel then
+                    gui.KEEPMAXLEVEL = FableLooter.Settings.KeepMaxLevel
+                    FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                end
+                ImGui.Separator();
                 ImGui.Columns(1);
                 ImGui.Unindent()
             end

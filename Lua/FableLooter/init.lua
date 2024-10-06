@@ -1,7 +1,7 @@
 local mq = require('mq')
 
 FableLooter = {
-    _version = '1.0.18',
+    _version = '1.0.19',
     _author = 'TheDroidUrLookingFor'
 }
 FableLooter.script_ShortName = 'FableLooter'
@@ -26,9 +26,10 @@ FableLooter.Settings = {
     debug = false,
     pauseMacro = false,
     bankDeposit = true,
-    sellVendor = false,
+    sellVendor = true,
     sellFabled = true,
     sellCash = true,
+    KeepMaxLevel = true,
     bankAtFreeSlots = 5,
     bankZone = 183,
     bankNPC = 'Griphook',
@@ -391,6 +392,7 @@ function FableLooter.HandleDisconnect()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
             mq.delay(50)
+            mq.cmd('/hidecorpse looted')
         end
     else
         if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
@@ -408,6 +410,7 @@ function FableLooter.HandleDisconnect()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
             mq.delay(50)
+            mq.cmd('/hidecorpse looted')
         end
     end
 end
@@ -424,10 +427,12 @@ end
 
 function FableLooter.CheckLevel()
     FableLooter.HandleDisconnect()
-    if mq.TLO.Me.Level() <= 79 or (mq.TLO.Me.Level() >= 80 and mq.TLO.Me.PctExp() < 50) then
-        mq.cmdf('/alt on %s', 50)
-    elseif mq.TLO.Me.Level() >= 80 then
-        mq.cmdf('/alt on %s', 100)
+    if FableLooter.Settings.KeepMaxLevel then
+        if mq.TLO.Me.Level() <= 79 or (mq.TLO.Me.Level() >= 80 and mq.TLO.Me.PctExp() < 50) then
+            mq.cmdf('/alt on %s', 50)
+        elseif mq.TLO.Me.Level() >= 80 then
+            mq.cmdf('/alt on %s', 100)
+        end
     end
 end
 
