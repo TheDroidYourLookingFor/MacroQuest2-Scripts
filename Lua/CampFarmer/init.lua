@@ -3,7 +3,7 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.4',
+    _version = '1.0.5',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
@@ -70,13 +70,15 @@ CampFarmer.Settings.AltLooterName = 'Binli'
 CampFarmer.Settings.lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-MINLI.ini'
 CampFarmer.Settings.MinMobsInZone = 10
 CampFarmer.Settings.UberPullMobsInZone = 50
+CampFarmer.Settings.InstanceLeader = mq.TLO.Me.Name()
+CampFarmer.Settings.InstanceType = 'SOLO'
 
 CampFarmer.Settings.ReturnToHomeDistance = 60
 CampFarmer.Settings.returnHomeAfterLoot = false
 CampFarmer.Settings.potionName = 'Potion of Adventure II'
 CampFarmer.Settings.potionBuff = 'Potion of Adventure II'
 CampFarmer.Settings.bankDeposit = true
-CampFarmer.Settings.sellVendor = false
+CampFarmer.Settings.sellVendor = true
 CampFarmer.Settings.sellFabled = true
 CampFarmer.Settings.sellCash = true
 CampFarmer.Settings.staticHunt = true
@@ -171,6 +173,70 @@ CampFarmer.Delays = {
 
 CampFarmer.Messages = require('CampFarmer.lib.Messages')
 
+function CampFarmer.ValidateSettings()
+    if CampFarmer.Settings.useCoinSack and not mq.TLO.FindItem('Bemvaras\' Coin Sack')() then
+        CampFarmer.Messages.Normal('You have enabled auto clicking %s but you do not have it!', 'Bemvaras\' Coin Sack')
+        CampFarmer.Settings.useCoinSack = false
+    end
+    if CampFarmer.Settings.useCurrencyCharm and not mq.TLO.FindItem('Soulriever\'s Charm of Currency')() then
+        CampFarmer.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Soulriever\'s Charm of Currency')
+        CampFarmer.Settings.useCurrencyCharm = false
+    end
+    if CampFarmer.Settings.usePaladinAA and not mq.TLO.Me.AltAbility(CampFarmer.ClassAAs['Paladin'])() then
+        CampFarmer.Messages.Normal('You have enabled using alt ability #%s but you do not have it!',
+            CampFarmer.ClassAAs['Paladin'])
+        CampFarmer.Settings.usePaladinAA = false
+    end
+    if CampFarmer.Settings.useBemChest and not mq.TLO.FindItem('Bemvaras\'s Golden Breastplate Rk. I')() then
+        CampFarmer.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Golden Breastplate Rk. I')
+        CampFarmer.Settings.useBemChest = false
+    end
+    if CampFarmer.Settings.useClericAA and not mq.TLO.Me.AltAbility(CampFarmer.ClassAAs['Cleric'])() then
+        CampFarmer.Messages.Normal('You have enabled using alt ability #%s but you do not have it!',
+            CampFarmer.ClassAAs['Cleric'])
+        CampFarmer.Settings.useClericAA = false
+    end
+    if CampFarmer.Settings.useBemLegs and not mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() then
+        CampFarmer.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Holy Greaves')
+        CampFarmer.Settings.useBemLegs = false
+    end
+    if CampFarmer.Settings.useBemGloves and not mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() then
+        CampFarmer.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Holy Gauntlets')
+        CampFarmer.Settings.useBemGloves = false
+    end
+    if CampFarmer.Settings.buffCharmName == 'Amulet of Ultimate Buffing' and not mq.TLO.FindItem('Amulet of Ultimate Buffing')() then
+        CampFarmer.Messages.Normal('You have enabled auto buffing with %s but do not have it.',
+            'Amulet of Ultimate Buffing')
+        if mq.TLO.FindItem('Amulet of Elite Buffing')() then
+            CampFarmer.Settings.buffCharmName = 'Amulet of Elite Buffing'
+            CampFarmer.Settings.buffCharmBuffName = 'Spirit of Minato'
+        elseif mq.TLO.FindItem('Amulet of Strong Buffing')() then
+            CampFarmer.Settings.buffCharmName = 'Amulet of Strong Buffing'
+            CampFarmer.Settings.buffCharmBuffName = 'Spirit of Ox'
+        else
+            CampFarmer.Messages.Normal('No buff item found!')
+        end
+    end
+    if not mq.TLO.FindItem(CampFarmer.Settings.aggroItem)() then
+        CampFarmer.Messages.Normal('You are missing your zone wide aggro item! You tried to use %s.', CampFarmer.Settings.aggroItem)
+        mq.cmd('/lua stop CampFarmer')
+    end
+    if not mq.TLO.FindItem(CampFarmer.Settings.respawnItem)() then
+        CampFarmer.Messages.Normal('You are missing your zone wide respawn item! You tried to use %s.', CampFarmer.Settings.respawnItem)
+        mq.cmd('/lua stop CampFarmer')
+    end
+    if CampFarmer.Settings.DoUberPull and not mq.TLO.FindItem(CampFarmer.Settings.aggroUberItem)() then
+        CampFarmer.Settings.DoUberPull = false
+    end
+    if CampFarmer.Settings.useErtzStone and not mq.TLO.FindItem('Ertz\'s Mage Stone')() then
+        CampFarmer.Settings.useErtzStone = false
+    end
+end
+
 function CampFarmer.SaveSettings(iniFile, settingsList)
     CampFarmer.Messages.Debug('function SaveSettings(iniFile, settingsList) Entry')
     ---@diagnostic disable-next-line: undefined-field
@@ -187,9 +253,11 @@ function CampFarmer.Setup()
         conf = configData()
         if conf.Version ~= CampFarmer.Settings.Version then
             CampFarmer.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+            CampFarmer.ValidateSettings()
             CampFarmer.Setup()
         else
             CampFarmer.Settings = conf
+            CampFarmer.ValidateSettings()
         end
     end
 end
@@ -369,7 +437,7 @@ function CampFarmer.CheckBuffs()
             mq.delay(CampFarmer.ItemReuseDelay)
         end
     else
-        if not CampFarmer.Settings.useBemGloves and CampFarmer.Settings.useBuffCharm and mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and not mq.TLO.Me.Buff(CampFarmer.Settings.buffCharmBuffName)() then
+        if CampFarmer.Settings.useBuffCharm and mq.TLO.FindItem(CampFarmer.Settings.buffCharmName)() and mq.TLO.Me.ItemReady(CampFarmer.Settings.buffCharmName)() and not mq.TLO.Me.Buff(CampFarmer.Settings.buffCharmBuffName)() then
             mq.cmdf('/useitem %s', CampFarmer.Settings.buffCharmName)
             mq.delay(CampFarmer.ItemReuseDelay)
         end
@@ -458,7 +526,8 @@ end
 
 function CampFarmer.CheckZone()
     CampFarmer.HandleDisconnect()
-    if mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() ~= nil then
+    local instanceString = CampFarmer.Settings.InstanceLeader .. '_' .. CampFarmer.Settings.InstanceType .. '_' .. CampFarmer.startZoneName
+    if mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() ~= nil and mq.TLO.DynamicZone() == string.upper(instanceString) then
         if not CampFarmer.needToBank and not CampFarmer.needToCashSell and not CampFarmer.needToFabledSell then
             mq.cmd('/say #enter')
             mq.delay(50000, function()
@@ -466,6 +535,17 @@ function CampFarmer.CheckZone()
             end)
             mq.delay(CampFarmer.Delays.Ten)
         end
+    elseif mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() ~= nil and mq.TLO.DynamicZone() ~= string.upper(instanceString) then
+        if mq.TLO.Plugin('MQ2DanNet').IsLoaded() and mq.TLO.DynamicZone.Members() > 1 then
+            mq.cmd('/dgga /dzq')
+        else
+            mq.cmd('/dzq')
+        end
+        mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
+        mq.delay(50000, function()
+            return mq.TLO.Zone.ID()() == CampFarmer.startZone
+        end)
+        mq.delay(CampFarmer.Delays.Ten)
     elseif mq.TLO.Zone.ID() ~= CampFarmer.startZone and mq.TLO.DynamicZone() == nil then
         mq.cmdf('/say #create solo %s', CampFarmer.startZoneName)
         mq.delay(50000, function()
@@ -477,10 +557,12 @@ end
 
 function CampFarmer.CheckLevel()
     CampFarmer.HandleDisconnect()
-    if mq.TLO.Me.Level() <= 79 or (mq.TLO.Me.Level() >= 80 and mq.TLO.Me.PctExp() < 50) then
-        mq.cmdf('/alt on %s', 50)
-    elseif mq.TLO.Me.Level() >= 80 then
-        mq.cmdf('/alt on %s', 100)
+    if CampFarmer.Settings.KeepMaxLevel then
+        if mq.TLO.Me.Level() <= 79 or (mq.TLO.Me.Level() >= 80 and mq.TLO.Me.PctExp() < 50) then
+            mq.cmdf('/alt on %s', 50)
+        elseif mq.TLO.Me.Level() >= 80 then
+            mq.cmdf('/alt on %s', 100)
+        end
     end
 end
 
@@ -1072,6 +1154,7 @@ function CampFarmer.Main()
     CampFarmer.Messages.Normal('Location: X(%s) Y(%s) Z(%s)', CampFarmer.startX, CampFarmer.startY, CampFarmer.startZ)
     CampFarmer.Messages.Normal('Looting: %s', CampFarmer.Settings.DoLoot)
     CampFarmer.Messages.Normal('Loot INI File: %s', CampFarmer.Settings.lootINIFile)
+    if mq.TLO.Me.Name() == 'Elsher' then mq.cmd('/emote roars widly into the AIR!!!!!!') end
     if mq.TLO.Pet.ID() then
         CampFarmer.CheckPetAoE()
     else
