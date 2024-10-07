@@ -1,0 +1,65 @@
+#turbo
+sub Main
+    /declare iniFile string local "UnequippedAugs.${Me.CleanName}.ini"
+    /declare section string local "UnequippedAugs"
+    /declare itemName string local
+	/call clearCursor
+
+	/declare augslot int inner
+	/if (${DisplayItem.ID} == NULL || ${DisplayItem.Augs} < 1) {
+		/echo You need a Item Display Window open that has one or more aug slots
+	} else {
+        |/varset section ${DisplayItem.ID}
+        /for augslot 1 to 6
+            /varset itemName ${Ini[${iniFile},${section},Slot${augslot}]}
+
+            /if (${itemName.Length}) {
+                /if (${FindItemCount[=${itemName}]}) {
+                    /echo Picking up ${itemName} from inventory.
+                    /call pickUpItem "${itemName}"
+                    /delay 1s ${Cursor.ID}
+                    /delay 2
+                    /insertaug ${DisplayItem.ID}
+                    /delay 1s !${Cursor.ID}
+                } else {
+                    /echo ERROR: Could not find ${itemName} in inventory.
+                }
+            }
+        /next augslot
+    }
+
+    /echo All items have been re-equipped.
+/return
+
+sub clearCursor
+    :loop
+    /autoinv
+    /if (${Cursor.ID}) /goto :loop
+/return
+
+sub pickUpItem(itemName)
+    /declare slot int local
+    /declare itemSlot int local
+
+    /for slot 23 to 32
+        /if (${Me.Inventory[${slot}].ID}) {
+            /if (${Me.Inventory[${slot}].Container}) {
+                /for itemSlot 1 to ${Me.Inventory[${slot}].Container}
+                    /if (${Me.Inventory[${slot}].Item[${itemSlot}].ID}) {
+                        /if (${Me.Inventory[${slot}].Item[${itemSlot}].Name.Equal[${itemName}]}) {
+                            /itemnotify in pack${Math.Calc[${slot}-22].Int} ${itemSlot} leftmouseup
+                            /delay 1s ${Cursor.Name.Equal[${itemName}]}
+                            /return
+                        }
+                    }
+                /next itemSlot
+            } else {
+                /if (${Me.Inventory[${slot}].Name.Equal[${itemName}]}) {
+                    /itemnotify ${slot} leftmouseup
+                    /delay 1s ${Cursor.Name.Equal[${itemName}]}
+                    /return
+                }
+            }
+        }
+    /next slot
+/return

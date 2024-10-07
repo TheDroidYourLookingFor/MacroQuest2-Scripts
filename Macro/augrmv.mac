@@ -1,0 +1,37 @@
+#turbo
+sub Main
+    /declare iniFile string local "UnequippedAugs.${Me.CleanName}.ini"
+    /declare section string local "UnequippedAugs"
+	/call clearCursor
+
+	/declare augslot int inner
+	/if (${DisplayItem.ID} == NULL || ${DisplayItem.Augs} < 1) {
+		/echo You need a Item Display Window open that has one or more aug slots
+	} else {
+		| /varset section ${DisplayItem.ID}
+		/for augslot 1 to 6
+			/if (${DisplayItem.AugSlot[${augslot}].Name.NotEqual[NULL]}) {
+				|-- Can Uncomment and increase delays if its skipping augs
+				/echo Saving ${DisplayItem.AugSlot[${augslot}].Name} from slot ${augslot} to ${iniFile}
+				/ini "${iniFile}" "${section}" "Slot${augslot}" "${DisplayItem.AugSlot[${augslot}].Name}"
+				/echo Removing ${DisplayItem.AugSlot[${augslot}]} from ${DisplayItem.Name}
+				/removeaug "${DisplayItem.AugSlot[${augslot}]}" "${DisplayItem.Name}"
+				/delay 1
+				/delay 1s ${Cursor.ID}
+				/autoinventory
+				/delay 1
+				/autoinventory
+				/delay 1s !${Cursor.ID}
+				/delay 1
+			} else {
+                /ini "${iniFile}" "${section}" "Slot${augslot}" "NULL"
+            }
+		/next augslot
+	}
+/return
+
+sub clearCursor
+    :loop
+    /autoinv
+    /if (${Cursor.ID}) /goto :loop
+/return
