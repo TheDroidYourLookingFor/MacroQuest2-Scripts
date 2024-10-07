@@ -1,7 +1,7 @@
 local mq = require('mq')
 
 FableLooter = {
-    _version = '1.0.19',
+    _version = '1.0.20',
     _author = 'TheDroidUrLookingFor'
 }
 FableLooter.script_ShortName = 'FableLooter'
@@ -30,6 +30,10 @@ FableLooter.Settings = {
     sellFabled = true,
     sellCash = true,
     KeepMaxLevel = true,
+    health_Check = true,
+    heal_Spell = 'Daria\'s Mending Rk. III',
+    heal_Gem = 1,
+    heal_At = 50,
     bankAtFreeSlots = 5,
     bankZone = 183,
     bankNPC = 'Griphook',
@@ -40,13 +44,13 @@ FableLooter.Settings = {
     SellFabledFor_idx = 3,
     corpseCleanup = true,
     corpseCleanupCommand = '/say #deletecorpse',
-    corpseLimit = 500,
+    corpseLimit = 250,
     scan_Radius = 10000,
     scan_zRadius = 250,
     returnToCampDistance = 200,
     camp_Check = false,
     zone_Check = true,
-    lootGroundSpawns = true,
+    lootGroundSpawns = false,
     returnHomeAfterLoot = true,
     doStand = true,
     lootAll = false,
@@ -453,11 +457,27 @@ function FableLooter.VersionCheck()
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
             FableLooter.Messages.Normal(
-            'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
+                'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', FableLooter.script_ShortName)
             return
         elseif currentVersion[i] > requiredVersion[i] then
             return
+        end
+    end
+end
+
+local cast_Mode = 'casting'
+function FableLooter.CheckHP()
+    function DoneCasting()
+        return not mq.TLO.Me.Casting()
+    end
+    if FableLooter.Settings.health_Check then
+        if mq.TLO.Me.PctHPs() <= FableLooter.Settings.heal_At then
+            FableLooter.Messages.Normal('Casting \ag %s \ax on \ag %s\ax', FableLooter.Settings.heal_Spell, mq.TLO.Me())
+            mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(FableLooter.Settings.heal_Spell).RankName() .. '" ' .. FableLooter.Settings.heal_Gem)
+            while mq.TLO.Me.Casting() do
+                mq.delay(1000, DoneCasting)
+            end
         end
     end
 end
@@ -516,6 +536,9 @@ function FableLooter.Main()
         end
         if FableLooter.Settings.camp_Check then
             FableLooter.MoveToCamp()
+        end
+        if FableLooter.Settings.health_Check then
+            FableLooter.CheckHP()
         end
         if FableLooter.doStand and not mq.TLO.Me.Standing() then
             mq.cmd('/stand')

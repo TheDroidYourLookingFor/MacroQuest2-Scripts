@@ -38,6 +38,9 @@ gui.ADDNEWSALES = true
 gui.LOOTFORAGE = true
 gui.LOOTTRADESKILL = false
 gui.DOLOOT = true
+gui.HEALTHCHECK = true
+gui.HEALAT = 70
+gui.HEALSPELL = 'Daria\'s Mending Rk. III'
 gui.EQUIPUSABLE = false
 gui.CORPSERADIUS = 100
 gui.MOBSTOOCLOSE = 40
@@ -302,7 +305,8 @@ function gui.FableLooterGUI()
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.sellVendor = ImGui.Checkbox('Enable Vendor Selling', FableLooter.Settings.sellVendor)
+                    FableLooter.Settings.sellVendor = ImGui.Checkbox('Enable Vendor Selling',
+                        FableLooter.Settings.sellVendor)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Platinum when enabled.')
                     if gui.SELLVENDOR ~= FableLooter.Settings.sellVendor then
@@ -370,7 +374,8 @@ function gui.FableLooterGUI()
                     end
                     ImGui.Separator();
 
-                    FableLooter.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For", gui.SellFabledForType, FableLooter.Settings.SellFabledFor_idx);
+                    FableLooter.Settings.SellFabledFor_idx = gui.CreateComboBox:draw("Fabled Sell For",
+                        gui.SellFabledForType, FableLooter.Settings.SellFabledFor_idx);
                     if SellFabledFor_idx ~= FableLooter.Settings.SellFabledFor_idx then
                         SellFabledFor_idx = FableLooter.Settings.SellFabledFor_idx
                         if SellFabledFor_idx == 1 then
@@ -401,7 +406,47 @@ function gui.FableLooterGUI()
                         FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
                     end
                     ImGui.Separator();
-                    ImGui.Unindent()
+                    ImGui.Unindent();
+                end
+                if ImGui.CollapsingHeader("Health Operations") then
+                    ImGui.Indent();
+                    FableLooter.Settings.health_Check = ImGui.Checkbox('Enable Healing', FableLooter.Settings
+                        .health_Check)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enables healing with our heal spell when below our heal at limit.')
+                    if gui.HEALTHCHECK ~= FableLooter.Settings.health_Check then
+                        gui.HEALTHCHECK = FableLooter.Settings.health_Check
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.heal_Spell = ImGui.InputText('Heal Spell', FableLooter.Settings.heal_Spell)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of the spell to cast to heal.')
+                    if gui.HEALSPELL ~= FableLooter.Settings.heal_Spell then
+                        gui.HEALSPELL = FableLooter.Settings.heal_Spell
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.heal_Gem = ImGui.SliderInt("Heal Gem", FableLooter.Settings.heal_Gem, 1, 12)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The gem number our heal spell is on.')
+                    if gui.HEALAT ~= FableLooter.Settings.heal_Gem then
+                        gui.HEALAT = FableLooter.Settings.heal_Gem
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+
+                    FableLooter.Settings.heal_At = ImGui.SliderInt("Heal At", FableLooter.Settings.heal_At, 1, 99)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The amount of health we cast our heal spell at.')
+                    if gui.HEALAT ~= FableLooter.Settings.heal_At then
+                        gui.HEALAT = FableLooter.Settings.heal_At
+                        FableLooter.Storage.SaveSettings(FableLooter.settingsFile, FableLooter.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("Movement Operations") then
                     ImGui.Indent()
