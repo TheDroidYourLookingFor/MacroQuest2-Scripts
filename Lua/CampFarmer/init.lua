@@ -26,6 +26,12 @@ CampFarmer.AAReuseDelay = 750
 CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
 CampFarmer.AggroDelay = 1500
+CampFarmer.goblin_Doubloon = 0
+CampFarmer.goblin_Paper = 0
+CampFarmer.goblin_Cash = 0
+CampFarmer.goblin_Platinum = 0
+CampFarmer.goblin_Raging = 0
+CampFarmer.goblin_Fabled = 0
 CampFarmer.StartDoubloons = 0
 CampFarmer.StartPapers = 0
 CampFarmer.StartCash = 0
@@ -952,10 +958,24 @@ local function event_aagain_handler(line, gainedPoints)
     CampFarmer.StartAA = CampFarmer.StartAA + tonumber(gainedPoints)
 end
 mq.event('AACheck', "You have gained #1# ability point(s)!#*#", event_aagain_handler)
-local function event_goblinCounter_handler(line)
+
+local function event_goblinCounter_handler(line, goblinType)
+    if goblinType == 'Doubloon' then
+        CampFarmer.goblin_Doubloon = (CampFarmer.goblin_Doubloon or 0) + 1
+    elseif goblinType == 'Paper' then
+        CampFarmer.goblin_Paper = (CampFarmer.goblin_Paper or 0) + 1
+    elseif goblinType == 'Cash' then
+        CampFarmer.goblin_Cash = (CampFarmer.goblin_Cash or 0) + 1
+    elseif goblinType == 'Platinum' then
+        CampFarmer.goblin_Platinum = (CampFarmer.goblin_Platinum or 0) + 1
+    elseif goblinType == 'Raging' then
+        CampFarmer.goblin_Raging = (CampFarmer.goblin_Raging or 0) + 1
+    elseif goblinType == 'Fabled' then
+        CampFarmer.goblin_Fabled = (CampFarmer.goblin_Fabled or 0) + 1
+    end
     CampFarmer.GoblinCounter = (CampFarmer.GoblinCounter or 0) + 1
 end
-mq.event('GoblinCheck', "#*#a Treasure Goblin squeals!#*#", event_goblinCounter_handler)
+mq.event('GoblinCheck', "#*#a #1# Treasure Goblin squeals!#*#", event_goblinCounter_handler)
 
 local function event_instance_handler(line, minutes)
     CampFarmer.Messages.Debug('function event_instance_handler(line, minutes)')
@@ -1130,6 +1150,32 @@ function CampFarmer.GoblinStatus()
     end
 
     return CampFarmer.GoblinCounter, goblinPerHour
+end
+
+function CampFarmer.GoblinTypeStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local doubloonGoblinPerHour = 0
+    local paperGoblinPerHour = 0
+    local cashGoblinPerHour = 0
+    local platinumGoblinPerHour = 0
+    local ragingGoblinPerHour = 0
+    local fabledGoblinPerHour = 0
+    if elapsedTimeInHours > 0 then
+        doubloonGoblinPerHour = CampFarmer.goblin_Doubloon / elapsedTimeInHours
+        paperGoblinPerHour = CampFarmer.goblin_Paper / elapsedTimeInHours
+        cashGoblinPerHour = CampFarmer.goblin_Cash / elapsedTimeInHours
+        platinumGoblinPerHour = CampFarmer.goblin_Platinum / elapsedTimeInHours
+        ragingGoblinPerHour = CampFarmer.goblin_Raging / elapsedTimeInHours
+        fabledGoblinPerHour = CampFarmer.goblin_Fabled / elapsedTimeInHours
+    end
+
+    return CampFarmer.goblin_Doubloon, doubloonGoblinPerHour, CampFarmer.goblin_Paper, paperGoblinPerHour,
+    CampFarmer.goblin_Cash, cashGoblinPerHour, CampFarmer.goblin_Platinum, platinumGoblinPerHour,
+        CampFarmer.goblin_Raging, ragingGoblinPerHour, CampFarmer.goblin_Fabled, fabledGoblinPerHour
 end
 
 function CampFarmer.CurrencyStatus()

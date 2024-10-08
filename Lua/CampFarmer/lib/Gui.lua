@@ -209,8 +209,9 @@ function gui.CampFarmerGUI()
                 ImGui.Unindent()
             end
             if ImGui.CollapsingHeader('Gains') then
-                local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer.CurrencyStatus()
-                local totalGoblins, goblinsPerHour = CampFarmer.GoblinStatus()
+                ImGui.Indent()
+                local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer
+                    .CurrencyStatus()
                 local totalAA, aaPerHour = CampFarmer.AAStatus()
                 local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
                 local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
@@ -220,8 +221,25 @@ function gui.CampFarmerGUI()
                 local formattedTotalDoubloons = CampFarmer.formatNumberWithCommas(totalDoubloons)
                 local formattedTotalPapers = CampFarmer.formatNumberWithCommas(totalPapers)
                 local formattedTotalCash = CampFarmer.formatNumberWithCommas(totalCash)
+
+                local totalGoblins, goblinsPerHour = CampFarmer.GoblinStatus()
                 local formattedTotalGoblins = CampFarmer.formatNumberWithCommas(totalGoblins)
                 local formattedGoblinsPerHour = CampFarmer.formatNumberWithCommas(goblinsPerHour)
+                local totalDoubloonGoblins, doubloonGoblinsPerHour, totalPaperGoblins, paperGoblinsPerHour, totalCashGoblins, cashGoblinsPerHour, totalPlatinumGoblins, platinumGoblinsPerHour, totalRagingGoblins, ragingGoblinsPerHour, totalFabledGoblins, fabledGoblinsPerHour =
+                    CampFarmer.GoblinTypeStatus()
+                local formattedTotalDoubloonGoblins = CampFarmer.formatNumberWithCommas(totalDoubloonGoblins)
+                local formattedDoubloonGoblinsPerHour = CampFarmer.formatNumberWithCommas(doubloonGoblinsPerHour)
+                local formattedTotalPaperGoblins = CampFarmer.formatNumberWithCommas(totalPaperGoblins)
+                local formattedPaperGoblinsPerHour = CampFarmer.formatNumberWithCommas(paperGoblinsPerHour)
+                local formattedTotalCashGoblins = CampFarmer.formatNumberWithCommas(totalCashGoblins)
+                local formattedCashGoblinsPerHour = CampFarmer.formatNumberWithCommas(cashGoblinsPerHour)
+                local formattedTotalPlatinumGoblins = CampFarmer.formatNumberWithCommas(totalPlatinumGoblins)
+                local formattedPlatinumGoblinsPerHour = CampFarmer.formatNumberWithCommas(platinumGoblinsPerHour)
+                local formattedTotalRagingGoblins = CampFarmer.formatNumberWithCommas(totalRagingGoblins)
+                local formattedRagingGoblinsPerHour = CampFarmer.formatNumberWithCommas(ragingGoblinsPerHour)
+                local formattedTotalFabledGoblins = CampFarmer.formatNumberWithCommas(totalFabledGoblins)
+                local formattedFabledGoblinsPerHour = CampFarmer.formatNumberWithCommas(fabledGoblinsPerHour)
+
                 ImGui.Text('AA Gained')
                 ImGui.SameLine()
                 ImGui.Text(tostring(formattedTotalAA))
@@ -266,6 +284,63 @@ function gui.CampFarmerGUI()
                 ImGui.SameLine()
                 ImGui.Text(tostring(formattedGoblinsPerHour))
                 ImGui.Separator();
+                if ImGui.CollapsingHeader("Goblin Info") then
+                    ImGui.Indent()
+                    ImGui.Text('Doubloon Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalDoubloonGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Doubloon Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedDoubloonGoblinsPerHour))
+                    ImGui.Separator();
+
+                    ImGui.Text('Paper Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalPaperGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Paper Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedPaperGoblinsPerHour))
+                    ImGui.Separator();
+
+                    ImGui.Text('Cash Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalCashGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Cash Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedCashGoblinsPerHour))
+                    ImGui.Separator();
+
+                    ImGui.Text('Platinum Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalPlatinumGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Platinum Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedPlatinumGoblinsPerHour))
+                    ImGui.Separator();
+
+                    ImGui.Text('Raging Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalRagingGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Raging Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedRagingGoblinsPerHour))
+                    ImGui.Separator();
+
+                    ImGui.Text('Fabled Goblins Spawned')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedTotalFabledGoblins))
+                    ImGui.SameLine(400)
+                    ImGui.Text('Fabled Goblins / Hour')
+                    ImGui.SameLine()
+                    ImGui.Text(tostring(formattedFabledGoblinsPerHour))
+                    ImGui.Unindent()
+                end
+                ImGui.Unindent()
             end
             if ImGui.CollapsingHeader("Options") then
                 ImGui.Indent()
