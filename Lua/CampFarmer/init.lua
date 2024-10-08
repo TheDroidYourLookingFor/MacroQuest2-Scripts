@@ -733,28 +733,19 @@ function CampFarmer.CheckTarget()
         if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
-            if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
-                mq.cmdf('/squelch /stick moveback %s', 10)
-                mq.delay(CampFarmer.Delays.One)
-            else
-                mq.cmd('/squelch /stick')
-                mq.delay(CampFarmer.Delays.One)
-            end
-            mq.cmd('/squelch /face fast')
-            mq.delay(CampFarmer.Delays.One)
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
-            if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
-                mq.cmdf('/squelch /stick moveback %s', 10)
-                mq.delay(CampFarmer.Delays.One)
-            else
-                mq.cmd('/squelch /stick')
-                mq.delay(CampFarmer.Delays.One)
-            end
-            mq.cmd('/squelch /face fast')
+        end
+        if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
+            mq.cmdf('/squelch /stick moveback %s', 10)
+            mq.delay(CampFarmer.Delays.One)
+        else
+            mq.cmd('/squelch /stick')
             mq.delay(CampFarmer.Delays.One)
         end
+        mq.cmd('/squelch /face fast')
+        mq.delay(CampFarmer.Delays.Two)
         CampFarmer.KillThis()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() then
@@ -951,7 +942,7 @@ end
 
 local function event_tooClose_handler(line)
     mq.cmd('/keypress s hold')
-    mq.delay(100)
+    mq.delay(500)
     mq.cmd('/keypress w')
 end
 mq.event('TooClose', "#*#You are too close#*#", event_tooClose_handler)
