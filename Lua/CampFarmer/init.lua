@@ -107,6 +107,7 @@ CampFarmer.Settings.lootAll = false
 CampFarmer.Settings.ReportGain = false
 CampFarmer.Settings.ReportAATime = 300
 CampFarmer.Settings.RangerStickRange = 140
+CampFarmer.Settings.CombatStepBack = 1
 
 CampFarmer.IgnoreList = {
     "Gillamina Garstobidokis",
@@ -725,6 +726,10 @@ function CampFarmer.CheckTarget()
             mq.delay(CampFarmer.Delays.Warp)
             mq.cmd('/squelch /stick')
             mq.delay(CampFarmer.Delays.One)
+            if mq.TLO.Target.Distance3D() <= CampFarmer.Settings.CombatStepBack then
+                mq.cmdf('/stick moveback')
+                mq.delay(CampFarmer.Delays.Two)
+            end
             if mq.TLO.Target() and mq.TLO.Target.Distance() < 1 then
                 mq.cmd('/squelch /stick moveback')
                 mq.delay(CampFarmer.Delays.One)
