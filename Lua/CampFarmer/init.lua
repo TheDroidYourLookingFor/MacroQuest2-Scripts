@@ -60,7 +60,7 @@ CampFarmer.Settings.useCoinSack = true
 CampFarmer.Settings.useErtzStone = true
 CampFarmer.Settings.useCurrencyCharm = true
 CampFarmer.Settings.DoLoot = true
-CampFarmer.Settings.CombatLooting = false
+CampFarmer.Settings.CombatLooting = true
 CampFarmer.Settings.LootGroundSpawns = false
 CampFarmer.Settings.ClickAATokens = true
 CampFarmer.Settings.GroupAlt = false
@@ -373,23 +373,31 @@ function CampFarmer.KillThis()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
     if mq.TLO.Me.Class() ~= 'Ranger' then
-        mq.cmd('/squelch /stick')
-        mq.delay(CampFarmer.Delays.One)
+        if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
+            mq.cmdf('/squelch /stick moveback %s', 10)
+            mq.delay(CampFarmer.Delays.One)
+        else
+            mq.cmd('/squelch /stick')
+            mq.delay(CampFarmer.Delays.One)
+        end
         mq.cmd('/squelch /attack on')
-        mq.delay(CampFarmer.Delays.One)
+        mq.delay(CampFarmer.Delays.Two)
+        mq.cmd('/squelch /face fast')
+        mq.delay(CampFarmer.Delays.Two)
     else
+        if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
+            mq.cmd('/squelch /stick')
+            mq.delay(CampFarmer.Delays.One)
+        elseif mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
+            mq.cmdf('/squelch /stick moveback %s', 10)
+            mq.delay(CampFarmer.Delays.One)
+        end
+        mq.cmd('/squelch /face fast')
+        mq.delay(CampFarmer.Delays.Two)
         if not mq.TLO.Me.AutoFire() then
-            if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
-                mq.cmd('/squelch /stick')
-                mq.delay(CampFarmer.Delays.One)
-            end
             mq.cmd('/squelch /autofire')
             mq.delay(CampFarmer.Delays.One)
         end
-    end
-    if mq.TLO.Target() then
-        mq.cmd('/squelch /face fast')
-        mq.delay(CampFarmer.Delays.One)
     end
     if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
         mq.cmd('/squelch /pet attack')
@@ -712,6 +720,7 @@ function CampFarmer.CheckTarget()
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
             mq.delay(CampFarmer.Delays.Warp)
         end
+        mq.TLO.DisplayItem().Augs()
     end
     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() == 'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
         mq.cmd('/squelch /target clear')
@@ -724,33 +733,27 @@ function CampFarmer.CheckTarget()
         if mq.TLO.Target() and mq.TLO.Target.Distance() > 10 and mq.TLO.Me.Class() ~= 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
-            mq.cmd('/squelch /stick')
+            if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
+                mq.cmdf('/squelch /stick moveback %s', 10)
+                mq.delay(CampFarmer.Delays.One)
+            else
+                mq.cmd('/squelch /stick')
+                mq.delay(CampFarmer.Delays.One)
+            end
+            mq.cmd('/squelch /face fast')
             mq.delay(CampFarmer.Delays.One)
-            if mq.TLO.Target.Distance3D() <= CampFarmer.Settings.CombatStepBack then
-                mq.cmdf('/stick moveback')
-                mq.delay(CampFarmer.Delays.Two)
-            end
-            if mq.TLO.Target() and mq.TLO.Target.Distance() < 1 then
-                mq.cmd('/squelch /stick moveback')
-                mq.delay(CampFarmer.Delays.One)
-            end
-            if mq.TLO.Target() then
-                mq.cmd('/squelch /face fast')
-                mq.delay(CampFarmer.Delays.One)
-            end
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() > 20 and mq.TLO.Me.Class() == 'Ranger' then
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
-            mq.cmd('/squelch /stick')
+            if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
+                mq.cmdf('/squelch /stick moveback %s', 10)
+                mq.delay(CampFarmer.Delays.One)
+            else
+                mq.cmd('/squelch /stick')
+                mq.delay(CampFarmer.Delays.One)
+            end
+            mq.cmd('/squelch /face fast')
             mq.delay(CampFarmer.Delays.One)
-            if mq.TLO.Target() and mq.TLO.Target.Distance() < 1 then
-                mq.cmd('/squelch /stick moveback')
-                mq.delay(CampFarmer.Delays.One)
-            end
-            if mq.TLO.Target() then
-                mq.cmd('/squelch /face fast')
-                mq.delay(CampFarmer.Delays.One)
-            end
         end
         CampFarmer.KillThis()
     end
@@ -945,6 +948,13 @@ function CampFarmer.CheckPet()
         CampFarmer.CheckPetAoE()
     end
 end
+
+local function event_tooClose_handler(line)
+    mq.cmd('/keypress s hold')
+    mq.delay(100)
+    mq.cmd('/keypress w')
+end
+mq.event('TooClose', "#*#You are too close#*#", event_tooClose_handler)
 
 local function event_aagain_handler(line, gainedPoints)
     CampFarmer.StartAA = CampFarmer.StartAA + tonumber(gainedPoints)
