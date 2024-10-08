@@ -6,6 +6,8 @@ local mq = require('mq')
 local RB = {
     version = '1.0.3',
     script_ShortName = 'RebirthMachine',
+    command_ShortName = 'rbm',
+    command_LongName = 'RebirthMachine',
     debug = false,
     Terminate = false,
     NewDisconnectHandler = true,
@@ -36,7 +38,7 @@ local RB = {
 --
 RB.Settings = {
     swapClasses = true,                   -- Swap classes when we hit rebirth cap?
-    classType = 'TANK',                    -- Type of classes to rebirth. DPS/TANK
+    classType = 'DPS',                    -- Type of classes to rebirth. DPS/TANK
     farmClassAugs = false,                -- DOESNT WORK CURRENTLY
     farmClassAugsAmount = 2,              -- How many of the class augments should we farm?
     rebirthStopAt = 10,                   -- After how many Rebirths should we stop?
@@ -135,7 +137,7 @@ RB.ClassAAs = {
     Cleric = 39902,
     Druid = 39906,
     Enchanter = 39914,
-    Magician = 39913,
+    Mage = 39913,
     Monk = 39907,
     Necromancer = 39911,
     Paladin = 39903,
@@ -146,6 +148,7 @@ RB.ClassAAs = {
     Warrior = 39901,
     Wizard = 39912
 }
+
 RB.UseClassAA = {
     Bard = true,
     Beastlord = true,
@@ -153,7 +156,7 @@ RB.UseClassAA = {
     Cleric = true,
     Druid = true,
     Enchanter = true,
-    Magician = true,
+    Mage = true,
     Monk = true,
     Necromancer = true,
     Paladin = true,
@@ -169,7 +172,7 @@ RB.UseClassAA = {
 --
 
 RB.RebirthType = {
-    DPS = { 'Bard', 'Beastlord', 'Berserker', 'Cleric', 'Druid', 'Enchanter', 'Magician', 'Monk', 'Necromancer', 'Ranger', 'Rogue', 'Shaman', 'Wizard' },
+    DPS = { 'Bard', 'Beastlord', 'Berserker', 'Cleric', 'Druid', 'Enchanter', 'Mage', 'Monk', 'Necromancer', 'Ranger', 'Rogue', 'Shaman', 'Wizard' },
     TANK = { 'Paladin', 'Shadowknight', 'Warrior' }
 }
 
@@ -180,7 +183,7 @@ RB.Classes = {
     Cleric = true,
     Druid = true,
     Enchanter = true,
-    Magician = true,
+    Mage = true,
     Monk = true,
     Necromancer = true,
     Paladin = true,
@@ -207,6 +210,37 @@ function RB.CheckRebirthType()
 end
 
 RB.CheckRebirthType()
+
+function RB.FindItemInBags(itemName)
+    for slot = 23, 32 do
+        local item = mq.TLO.Me.Inventory(slot)
+        if item() and item.ID() then
+            if item.Container() then
+                for itemSlot = 1, item.Container() do
+                    local containerItem = item.Item(itemSlot)
+                    if containerItem() and containerItem.ID() and containerItem.Name() == itemName then
+                        return true
+                    end
+                end
+            elseif item.Name() == itemName then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function RB.CheckCurrentClassAugs()
+    for className, isEnabled in pairs(RB.Classes) do
+        if RB.FindItemInBags(className .. ' Mastery Augmentation') then
+            if not isEnabled then
+                RB.Classes[className] = true
+            end
+        end
+    end
+end
+
+RB.CheckCurrentClassAugs()
 
 local Colors = {
     b = "\ab",  -- black
@@ -436,7 +470,7 @@ local function event_classSwap_handler(line, warriorLink, clericLink, paladinLin
         for _, link in ipairs(links) do
             mq.ExecuteTextLink(link)
         end
-    elseif RB.nextClass == 'Magician' then
+    elseif RB.nextClass == 'Mage' then
         local links = mq.ExtractLinks(mageLink)
         for _, link in ipairs(links) do
             mq.ExecuteTextLink(link)
@@ -913,8 +947,106 @@ function RB.VersionCheck()
     end
 end
 
+RB.Open = false
+RB.ShowUI = false
+
+RB.outputLog = {}
+-- Function to add output to the log with a timestamp
+function RB.addToConsole(text, ...)
+    -- Get the current time in a readable format (HH:MM:SS)
+    local timestamp = os.date("[%H:%M:%S]")
+
+    -- Handle item links correctly by passing through string.format
+    local formattedText = string.format(text, ...)
+
+    -- Add the timestamp to the message
+    local logEntry = string.format("%s %s", timestamp, formattedText)
+
+    -- Add the combined message with timestamp to the log
+    table.insert(RB.outputLog, logEntry)
+end
+
+RB.CreateComboBox = {
+    flags = 0
+}
+function RB.CreateComboBox:draw(cb_label, buffs, current_idx, width)
+    local combo_buffs = buffs[current_idx]
+
+    ImGui.PushItemWidth(width)
+    if ImGui.BeginCombo(cb_label, combo_buffs, ImGuiComboFlags.None) then
+        for n = 1, #buffs do
+            local is_selected = current_idx == n
+            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
+                current_idx = n
+            end
+
+            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if is_selected then
+                ImGui.SetItemDefaultFocus()
+            end
+        end
+        ImGui.EndCombo()
+    end
+    return current_idx
+end
+
+function RB.InitGUI()
+    if RB.Open then
+        RB.Open, RB.ShowUI = ImGui.Begin('TheDroid Rebirth Machine v' .. RB.version, RB.Open)
+        ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
+        local x_size = 620
+        local y_size = 680
+        local io = ImGui.GetIO()
+        local center_x = io.DisplaySize.x / 2
+        local center_y = io.DisplaySize.y / 2
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
+        ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
+        if RB.ShowUI then
+            if ImGui.CollapsingHeader("Rebirth Machine") then
+                ImGui.Indent();
+                ImGui.Text("This is a simple script I threw together to help out a few friends.")
+                ImGui.Separator();
+
+                ImGui.Text("COMMANDS:");
+                ImGui.BulletText('/' .. RB.command_ShortName .. ' quit');
+                ImGui.Separator();
+
+                ImGui.Text("CREDIT:");
+                ImGui.BulletText("TheDroidUrLookingFor");
+                ImGui.Unindent();
+            end
+            if ImGui.CollapsingHeader("Rebirth Progress") then
+                ImGui.Indent();
+                ImGui.Text("Current Type: " .. RB.Settings.classType);
+                ImGui.Separator();
+                local textCount = 0
+                ImGui.Columns(2)
+                local start_y_Options = ImGui.GetCursorPosY()
+                for className, isDone in pairs(RB.Classes) do
+                    -- local checkMark = isDone and "O" or "X"
+                    local checkMark = isDone and "Complete" or "Incomplete"
+                    local color = isDone and { 0, 1, 0, 1 } or { 1, 0, 0, 1 } -- Green for done, red for not
+                    ImGui.TextColored(color[1], color[2], color[3], color[4], className .. ": " .. checkMark)
+                    textCount = (textCount or 0) + 1
+                    if textCount >= 8 then
+                        ImGui.NextColumn();
+                        ImGui.SetCursorPosY(start_y_Options);
+                        textCount = 0
+                    end
+                end
+                ImGui.Columns(1);
+                ImGui.Separator();
+                ImGui.Unindent();
+            end
+        end
+        ImGui.End()
+    end
+end
+
 function RB.Main()
     RB.VersionCheck()
+    mq.imgui.init('CampFarmer', RB.InitGUI)
+    RB.Open = true
     PRINTMETHOD('++ Initialized ++')
     PRINTMETHOD('++ Setting up Ignore List ++')
     mq.cmdf('/squelch /alert clear %s', 1)
