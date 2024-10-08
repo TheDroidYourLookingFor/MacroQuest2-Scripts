@@ -175,28 +175,32 @@ function LootUtils.SetINIType()
         if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
             my_ArmorType = 'Plate'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
             my_ArmorType = 'Chain'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
             my_ArmorType = 'Cloth'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
             my_ArmorType = 'Leather'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
             end
@@ -204,9 +208,11 @@ function LootUtils.SetINIType()
     else
         if LootUtils.useZoneLootFile then
             if LootUtils.useClassLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir ..
+                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
             end
         else
             if LootUtils.useClassLootFile then
@@ -218,6 +224,7 @@ function LootUtils.SetINIType()
     end
     printf('LootFile: %s', LootUtils.Settings.LootFile)
 end
+
 LootUtils.SetINIType()
 -- Internal settings
 local lootData = {}
@@ -248,6 +255,7 @@ function LootUtils.CheckLootActions()
         shouldLootActions['Fabled'] = true
     end
 end
+
 local validActions = {
     keep = 'Keep',
     bank = 'Bank',
@@ -303,7 +311,8 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults',
+            LootUtils.Settings.Defaults)
     end
 end
 
@@ -576,13 +585,14 @@ local function lootItem(index, doWhat, button)
     end
     if string.find(doWhat, "Quest|") == 1 then
         local lootRule = split(doWhat)
-        ruleAction = lootRule[1] -- what to do with the item
+        ruleAction = lootRule[1]       -- what to do with the item
         local ruleAmount = lootRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         if LootUtils.debug then
-            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
+            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount,
+                currentItemAmount)
         end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then
             return
@@ -645,12 +655,8 @@ function LootUtils.lootCorpse(corpseID)
             return
         end
         mq.cmd('/loot')
-        mq.delay(1000, function()
-            return mq.TLO.Window('LootWnd').Open()
-        end)
-        if mq.TLO.Window('LootWnd').Open() then
-            break
-        end
+        mq.delay(500, function() return mq.TLO.Window('LootWnd').Open() end)
+        if mq.TLO.Window('LootWnd').Open() then break end
     end
     mq.doevents('CantLoot')
     mq.doevents('CantLoot2')
@@ -659,17 +665,13 @@ function LootUtils.lootCorpse(corpseID)
     if not mq.TLO.Target.ID() == corpseID then
         return
     end
-    mq.delay(1000, function()
-        return mq.TLO.Window('LootWnd').Open()
-    end)
+    mq.delay(500, function() return mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.ConsoleMessage('Debug', 'Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(1000, function()
-        return (mq.TLO.Corpse.Items() or 0) > 0
-    end)
+    mq.delay(500, function() return (mq.TLO.Corpse.Items() or 0) > 0 end)
     local items = mq.TLO.Corpse.Items() or 0
     LootUtils.ConsoleMessage('Debug', 'Loot window open. Items: %s', items)
     local corpseName = mq.TLO.Corpse.Name()
@@ -714,9 +716,7 @@ function LootUtils.lootCorpse(corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
-    mq.delay(1000, function()
-        return not mq.TLO.Window('LootWnd').Open()
-    end)
+    mq.delay(500, function() return not mq.TLO.Window('LootWnd').Open() end)
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
     -- mark the corpse as not lootable for a bit so we don't keep trying
     if mq.TLO.Spawn(('corpse id %s'):format(corpseID))() then
@@ -902,7 +902,8 @@ function LootUtils.sellStuff(closeWindowWhenDone)
                     if sellRule == 'Sell' then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
-                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!', itemToSell)
+                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!',
+                                itemToSell)
                         else
                             sellToVendor(itemToSell)
                         end

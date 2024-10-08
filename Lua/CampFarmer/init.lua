@@ -720,7 +720,6 @@ function CampFarmer.CheckTarget()
             mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
             mq.delay(CampFarmer.Delays.Warp)
         end
-        mq.TLO.DisplayItem().Augs()
     end
     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Pet' or mq.TLO.Target.Type() == 'Corpse' or mq.TLO.Target.Type() == 'Pc' or mq.TLO.Target.ID() == mq.TLO.Me.ID() or mq.TLO.Target.CleanName() == mq.TLO.Pet.CleanName() then
         mq.cmd('/squelch /target clear')
@@ -749,6 +748,8 @@ function CampFarmer.CheckTarget()
         CampFarmer.KillThis()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() then
+        mq.cmd('/squelch /face fast')
+        mq.delay(CampFarmer.Delays.Two)
         CampFarmer.KillThis()
     end
     CampFarmer.CombatSpells()
