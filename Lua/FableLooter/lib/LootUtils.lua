@@ -1053,13 +1053,11 @@ function LootUtils.bankStuff()
                 local bankRule = getRule(bagSlot)
                 if bankRule == 'Bank' then
                     mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
-                    mq.delay(100, function()
-                        return mq.TLO.Cursor()
-                    end)
+                    mq.delay(1000, function() return mq.TLO.Cursor() end)
+                    mq.delay(100)
                     mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                    mq.delay(100, function()
-                        return not mq.TLO.Cursor()
-                    end)
+                    mq.delay(1000, function() return not mq.TLO.Cursor() end)
+                    mq.delay(100)
                 end
             end
         end
@@ -1075,13 +1073,11 @@ function LootUtils.bankStuff()
                     local bankRule = getRule(bagSlot.Item(j))
                     if bankRule == 'Bank' then
                         mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
-                        mq.delay(100, function()
-                            return mq.TLO.Cursor()
-                        end)
+                        mq.delay(1000, function() return mq.TLO.Cursor() end)
+                        mq.delay(100)
                         mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                        mq.delay(100, function()
-                            return not mq.TLO.Cursor()
-                        end)
+                        mq.delay(1000, function() return not mq.TLO.Cursor() end)
+                        mq.delay(100)
                     end
                 end
             end
