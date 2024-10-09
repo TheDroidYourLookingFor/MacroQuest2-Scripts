@@ -3,7 +3,7 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.5',
+    _version = '1.0.6',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
@@ -115,6 +115,14 @@ CampFarmer.Settings.ReportGain = false
 CampFarmer.Settings.ReportAATime = 300
 CampFarmer.Settings.RangerStickRange = 140
 CampFarmer.Settings.CombatStepBack = 1
+CampFarmer.Settings.castSpells = true -- Should we cast spells?
+CampFarmer.Settings.spells = {
+    'Vsorug\'s Presence Rk. III',
+    'Claw of Selig Rk. III',
+    'Ethereal Incineration Rk. III',
+    'Tangleweave Energy Rk. III',
+    'Telajasz Rk. III'
+}
 
 CampFarmer.IgnoreList = {
     "Gillamina Garstobidokis",
@@ -530,6 +538,14 @@ function CampFarmer.CombatSpells()
     if mq.TLO.Me.AltAbilityReady(CampFarmer.ClassAAs['Ranger'])() then
         mq.cmdf('/alt act %s', CampFarmer.ClassAAs['Ranger'])
         mq.delay(CampFarmer.AAReuseDelay)
+    end
+    if CampFarmer.Settings.castSpells then
+        for _, spell in ipairs(CampFarmer.Settings.spells) do
+            if mq.TLO.Spell(spell).ID() ~= nil and mq.TLO.Me.SpellReady(spell)() then
+                mq.cmdf('/casting "%s"', spell)
+                mq.delay(2500, function() return not mq.TLO.Me.Casting() end)
+            end
+        end
     end
     CampFarmer.CheckBuffs()
 end
@@ -1131,8 +1147,6 @@ local function binds(...)
     end
 end
 
-CampFarmer.GUI.initGUI()
-
 local function setupBinds()
     mq.bind('/' .. CampFarmer.command_ShortName, binds)
     mq.bind('/' .. CampFarmer.command_LongName, binds)
@@ -1211,7 +1225,7 @@ function CampFarmer.GoblinTypeStatus()
     end
 
     return CampFarmer.goblin_Doubloon, doubloonGoblinPerHour, CampFarmer.goblin_Paper, paperGoblinPerHour,
-    CampFarmer.goblin_Cash, cashGoblinPerHour, CampFarmer.goblin_Platinum, platinumGoblinPerHour,
+        CampFarmer.goblin_Cash, cashGoblinPerHour, CampFarmer.goblin_Platinum, platinumGoblinPerHour,
         CampFarmer.goblin_Raging, ragingGoblinPerHour, CampFarmer.goblin_Fabled, fabledGoblinPerHour
 end
 
@@ -1247,6 +1261,7 @@ end
 function CampFarmer.Main()
     setupBinds()
     CampFarmer.Setup()
+    CampFarmer.GUI.initGUI()
     -- CampFarmer.StartAA = mq.TLO.Me.AAPoints()
     CampFarmer.StartDoubloons = mq.TLO.Me.AltCurrency('Doubloons')()
     CampFarmer.StartPapers = mq.TLO.Me.AltCurrency('31')()
