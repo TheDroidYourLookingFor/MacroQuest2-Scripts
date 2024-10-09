@@ -4,7 +4,7 @@ local mq = require('mq')
 -- Dont edit these settings
 --
 local RB = {
-    version = '1.0.3',
+    version = '1.0.4',
     script_ShortName = 'RebirthMachine',
     command_ShortName = 'rbm',
     command_LongName = 'RebirthMachine',
@@ -31,12 +31,15 @@ local RB = {
     FastDelay = 50,
     RepopDelay = 1500,
     AggroDelay = 1500,
+    settingsFile = mq.configDir ..
+    '\\RebirthMachine.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini',
 }
 
 --
 -- Edit these settings
 --
 RB.Settings = {
+    Version = RB.version,
     swapClasses = true,                   -- Swap classes when we hit rebirth cap?
     classType = 'DPS',                    -- Type of classes to rebirth. DPS/TANK
     farmClassAugs = false,                -- DOESNT WORK CURRENTLY
@@ -51,6 +54,7 @@ RB.Settings = {
     warpToMobDistance = 25,               -- How close to warp to a mob?
     hideCorpses = true,                   -- Should we hide corpses?
     corpse_Phrase = '/say #deletecorpse', -- The commands we should use to hide corpses.
+    corpseLimit = 200,
     -- corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
     castSpells = false,                   -- Should we cast spells?
     spells = {
@@ -78,7 +82,9 @@ RB.Settings = {
     useCurrencyCharm = false,
     buffCharmName = 'Amulet of Ultimate Buffing',
     buffCharmBuffName = 'Talisman of the Panther Rk. III',
-    spawnSearch = 'npc radius 60 los targetable noalert 1'
+    spawnSearch = 'npc radius 60 los targetable noalert 1',
+    bankZone = 183,
+    bankNPC = 'Griphook'
 }
 
 RB.huntZone = {
@@ -194,6 +200,118 @@ RB.Classes = {
     Warrior = true,
     Wizard = true
 }
+
+RB.Messages = require('RebirthMachine.lib.Messages')
+RB.Storage = require('RebirthMachine.lib.Storage')
+
+function RB.ValidateSettings()
+    if RB.Settings.useCoinSack and not mq.TLO.FindItem('Bemvaras\' Coin Sack')() then
+        RB.Messages.Normal('You have enabled auto clicking %s but you do not have it!', 'Bemvaras\' Coin Sack')
+        RB.Settings.useCoinSack = false
+    end
+    if RB.Settings.useCurrencyCharm and not mq.TLO.FindItem('Soulriever\'s Charm of Currency')() then
+        RB.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Soulriever\'s Charm of Currency')
+        RB.Settings.useCurrencyCharm = false
+    end
+    if RB.Settings.usePaladinAA and not mq.TLO.Me.AltAbility(RB.ClassAAs['Paladin'])() then
+        RB.Messages.Normal('You have enabled using alt ability #%s but you do not have it!',
+            RB.ClassAAs['Paladin'])
+        RB.Settings.usePaladinAA = false
+    end
+    if RB.Settings.useBemChest and not mq.TLO.FindItem('Bemvaras\'s Golden Breastplate Rk. I')() then
+        RB.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Golden Breastplate Rk. I')
+        RB.Settings.useBemChest = false
+    end
+    if RB.Settings.useClericAA and not mq.TLO.Me.AltAbility(RB.ClassAAs['Cleric'])() then
+        RB.Messages.Normal('You have enabled using alt ability #%s but you do not have it!',
+            RB.ClassAAs['Cleric'])
+        RB.Settings.useClericAA = false
+    end
+    if RB.Settings.useBemLegs and not mq.TLO.FindItem('Bemvaras\'s Holy Greaves')() then
+        RB.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Holy Greaves')
+        RB.Settings.useBemLegs = false
+    end
+    if RB.Settings.useBemGloves and not mq.TLO.FindItem('Bemvaras\'s Holy Gauntlets')() then
+        RB.Messages.Normal('You have enabled auto clicking %s but you do not have it!',
+            'Bemvaras\'s Holy Gauntlets')
+        RB.Settings.useBemGloves = false
+    end
+    if not mq.TLO.FindItem(RB.Settings.buffCharmName)() then
+        RB.Messages.Normal('You have enabled auto buffing with %s but do not have it.',
+            RB.Settings.buffCharmName)
+        if mq.TLO.FindItem('Amulet of Ultimate Buffing')() then
+            RB.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
+            RB.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
+        elseif mq.TLO.FindItem('Amulet of Elite Buffing')() then
+            RB.Settings.buffCharmName = 'Amulet of Elite Buffing'
+            RB.Settings.buffCharmBuffName = 'Spirit of Minato'
+        elseif mq.TLO.FindItem('Amulet of Strong Buffing')() then
+            RB.Settings.buffCharmName = 'Amulet of Strong Buffing'
+            RB.Settings.buffCharmBuffName = 'Spirit of Ox'
+        else
+            RB.Messages.Normal('No buff item found!')
+        end
+    end
+    if RB.Settings.buffCharmName == 'Amulet of Ultimate Buffing' and not mq.TLO.FindItem('Amulet of Ultimate Buffing')() then
+        RB.Messages.Normal('You have enabled auto buffing with %s but do not have it.',
+            'Amulet of Ultimate Buffing')
+        if mq.TLO.FindItem('Amulet of Elite Buffing')() then
+            RB.Settings.buffCharmName = 'Amulet of Elite Buffing'
+            RB.Settings.buffCharmBuffName = 'Spirit of Minato'
+        elseif mq.TLO.FindItem('Amulet of Strong Buffing')() then
+            RB.Settings.buffCharmName = 'Amulet of Strong Buffing'
+            RB.Settings.buffCharmBuffName = 'Spirit of Ox'
+        else
+            RB.Messages.Normal('No buff item found!')
+        end
+    end
+    if not mq.TLO.FindItem(RB.Settings.zonePull)() then
+        RB.Messages.Normal('You are missing your zone wide aggro item! You tried to use %s.',
+            RB.Settings.zonePull)
+        mq.cmd('/lua stop RB')
+    end
+    if not mq.TLO.FindItem(RB.Settings.zoneRefresh)() then
+        RB.Messages.Normal('You are missing your zone wide respawn item! You tried to use %s.',
+            RB.Settings.zoneRefresh)
+        mq.cmd('/lua stop RB')
+    end
+    if RB.Settings.DoUberPull and not mq.TLO.FindItem(RB.Settings.aggroUberItem)() then
+        RB.Settings.DoUberPull = false
+    end
+    if RB.Settings.useErtzStone and not mq.TLO.FindItem('Ertz\'s Mage Stone')() then
+        RB.Settings.useErtzStone = false
+    end
+end
+
+function RB.SaveSettings(iniFile, settingsList)
+    RB.Messages.Debug('function SaveSettings(iniFile, settingsList) Entry')
+    ---@diagnostic disable-next-line: undefined-field
+    mq.pickle(iniFile, settingsList)
+end
+
+function RB.Setup()
+    RB.Messages.Debug('function Setup() Entry')
+    local conf
+    local configData, err = loadfile(RB.settingsFile)
+    if err then
+        RB.SaveSettings(RB.settingsFile, RB.Settings)
+    elseif configData then
+        conf = configData()
+        if conf.Version ~= RB.Settings.Version then
+            RB.SaveSettings(RB.settingsFile, RB.Settings)
+            RB.ValidateSettings()
+            RB.Setup()
+        else
+            RB.Settings = conf
+            RB.ValidateSettings()
+        end
+    end
+end
+
+RB.Setup()
 
 function RB.CheckRebirthType()
     local classType = RB.Settings.classType
@@ -328,7 +446,6 @@ function RB.GetNextClass()
     end
 end
 
-mq.TLO.EverQuest.LoginName()
 function RB.CheckClass()
     if RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
         if mq.TLO.Zone.ID() ~= RB.Settings.hubZoneID then
@@ -346,6 +463,8 @@ function RB.CheckClass()
                 mq.cmd('/squelch /warp t')
                 mq.delay(RB.wait_Three)
                 mq.cmd('/say confirm reset')
+                mq.delay(RB.wait_Three)
+                RB.BankDropOff()
                 mq.delay(RB.wait_Three)
                 RB.Settings.CurrentAugAmount = RB.Settings.CurrentAugAmount + 1
             end
@@ -916,6 +1035,10 @@ end
 
 function RB.Checks()
     pcall(RB.CheckLevel)
+    if mq.TLO.Cursor() then
+        mq.cmd('/autoinv')
+        mq.delay(RB.wait_Two)
+    end
     pcall(RB.CheckZone)
     pcall(RB.CheckBuffs)
     mq.doevents()
@@ -937,7 +1060,7 @@ function RB.VersionCheck()
 
     for i = 1, #requiredVersion do
         if currentVersion[i] == nil or currentVersion[i] < requiredVersion[i] then
-            RB.Messages.Normal(
+            PRINTMETHOD(
                 'Your build is too old to run this script. Please get a newer version of MacroQuest from https://www.mq2emu.com')
             mq.cmdf('/lua stop %s', RB.script_ShortName)
             return
@@ -990,12 +1113,30 @@ function RB.CreateComboBox:draw(cb_label, buffs, current_idx, width)
     return current_idx
 end
 
+local SWAPCLASSES
+local FARMCLASSAUGS
+local STATICHUNTMODE
+local STATICZONENAME
+local STATICZONEID
+local STATICX
+local STATICY
+local STATICZ
+local USECOINSACK
+local AGGROITEM
+local RESPAWNITEM
+local MINMOBSINZONE
+local BUFFCHARMNAME
+local BUFFCHARMBUFFNAME
+local CORPSECLEANUP
+local CORPSECLEANUPCOMMAND
+local CORPSELIMIT
+local MOVEONPULL
 function RB.InitGUI()
     if RB.Open then
         RB.Open, RB.ShowUI = ImGui.Begin('TheDroid Rebirth Machine v' .. RB.version, RB.Open)
-        ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
         local x_size = 620
-        local y_size = 680
+        local y_size = 350
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.Once)
         local io = ImGui.GetIO()
         local center_x = io.DisplaySize.x / 2
         local center_y = io.DisplaySize.y / 2
@@ -1038,14 +1179,386 @@ function RB.InitGUI()
                 ImGui.Separator();
                 ImGui.Unindent();
             end
+            if ImGui.CollapsingHeader("Rebirth Settings") then
+                ImGui.Indent();
+                RB.Settings.moveOnPull = ImGui.Checkbox('Enable Move On Pull', RB.Settings.moveOnPull);
+                ImGui.SameLine();
+                ImGui.HelpMarker('Should we move automatically when we pull away from the mob stack?');
+                if MOVEONPULL ~= RB.Settings.moveOnPull then
+                    MOVEONPULL = RB.Settings.moveOnPull
+                    RB.SaveSettings(RB.settingsFile, RB.Settings);
+                end
+                ImGui.Separator();
+
+                RB.Settings.swapClasses = ImGui.Checkbox('Enable Swap Classes', RB.Settings.swapClasses);
+                ImGui.SameLine();
+                ImGui.HelpMarker('Swap classes when we hit rebirth cap?');
+                if SWAPCLASSES ~= RB.Settings.swapClasses then
+                    SWAPCLASSES = RB.Settings.swapClasses
+                    RB.SaveSettings(RB.settingsFile, RB.Settings);
+                end
+                ImGui.Separator();
+
+                RB.Settings.farmClassAugs = ImGui.Checkbox('Enable Farm Class Augs', RB.Settings.farmClassAugs);
+                ImGui.SameLine();
+                ImGui.HelpMarker('Should we farm class augs?');
+                if FARMCLASSAUGS ~= RB.Settings.farmClassAugs then
+                    FARMCLASSAUGS = RB.Settings.farmClassAugs
+                    RB.SaveSettings(RB.settingsFile, RB.Settings);
+                end
+                ImGui.Separator();
+
+                if ImGui.CollapsingHeader("Zone Settings") then
+                    ImGui.Indent();
+                    RB.Settings.staticHuntMode = ImGui.Checkbox('Enable Static Hunt Mode', RB.Settings.staticHuntMode);
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Should we camp a spot and kill or move around?');
+                    if STATICHUNTMODE ~= RB.Settings.staticHuntMode then
+                        STATICHUNTMODE = RB.Settings.staticHuntMode
+                        RB.SaveSettings(RB.settingsFile, RB.Settings);
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.huntZoneName = ImGui.InputText('Zone Name', RB.Settings.huntZoneName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The short name of the Static Hunt Zone.')
+                    if STATICZONENAME ~= RB.Settings.huntZoneName then
+                        STATICZONENAME = RB.Settings.huntZoneName
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.huntZone[RB.Settings.huntZoneName].ID = ImGui.InputInt('Zone ID',
+                        RB.huntZone[RB.Settings.huntZoneName].ID)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The ID of the static Hunting Zone.')
+                    if STATICZONEID ~= RB.huntZone[RB.Settings.huntZoneName].ID then
+                        STATICZONEID = RB.huntZone[RB.Settings.huntZoneName].ID
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    local start_y_Options = ImGui.GetCursorPosY()
+                    ImGui.SetCursorPosY(start_y_Options + 3)
+                    ImGui.Text('X')
+                    ImGui.SameLine()
+                    ImGui.SetNextItemWidth(120)
+                    ImGui.SetCursorPosY(start_y_Options)
+                    RB.huntZone[RB.Settings.huntZoneName].X = ImGui.InputInt('##Zone X',
+                        RB.huntZone[RB.Settings.huntZoneName].X)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
+                    if STATICX ~= RB.huntZone[RB.Settings.huntZoneName].X then
+                        STATICX = RB.huntZone[RB.Settings.huntZoneName].X
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.SameLine();
+
+                    ImGui.SetCursorPosY(start_y_Options + 1)
+                    ImGui.Text('Y')
+                    ImGui.SameLine()
+                    ImGui.SetNextItemWidth(120)
+                    ImGui.SetCursorPosY(start_y_Options)
+                    RB.huntZone[RB.Settings.huntZoneName].Y = ImGui.InputInt('##Zone Y',
+                        RB.huntZone[RB.Settings.huntZoneName].Y)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
+                    if STATICY ~= RB.huntZone[RB.Settings.huntZoneName].Y then
+                        STATICY = RB.huntZone[RB.Settings.huntZoneName].Y
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.SameLine();
+
+                    ImGui.SetCursorPosY(start_y_Options + 1)
+                    ImGui.Text('Z')
+                    ImGui.SameLine()
+                    ImGui.SetNextItemWidth(120)
+                    ImGui.SetCursorPosY(start_y_Options)
+                    RB.huntZone[RB.Settings.huntZoneName].Z = ImGui.InputInt('##Zone Z',
+                        RB.huntZone[RB.Settings.huntZoneName].Z)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
+                    if STATICZ ~= RB.huntZone[RB.Settings.huntZoneName].Z then
+                        STATICZ = RB.huntZone[RB.Settings.huntZoneName].Z
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Unindent();
+                end
+                if ImGui.CollapsingHeader("Corpse Cleanup") then
+                    ImGui.Indent()
+                    RB.Settings.hideCorpses = ImGui.Checkbox('Enable Corpse Cleanup',
+                        RB.Settings.hideCorpses)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Should we hide the amount of corpses the client sees?')
+                    if CORPSECLEANUP ~= RB.Settings.hideCorpses then
+                        CORPSECLEANUP = RB.Settings.hideCorpses
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.corpse_Phrase = ImGui.InputText('Corpse Cleanup Command',
+                        RB.Settings.corpse_Phrase)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The phrase we say to hide/remove corpses.')
+                    if CORPSECLEANUPCOMMAND ~= RB.Settings.corpse_Phrase then
+                        CORPSECLEANUPCOMMAND = RB.Settings.corpse_Phrase
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.corpseLimit = ImGui.InputInt("Corpse Limit", RB.Settings.corpseLimit)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The amount of corpses allowed before we clean them for performance.')
+                    if CORPSELIMIT ~= RB.Settings.corpseLimit then
+                        CORPSELIMIT = RB.Settings.corpseLimit
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Unindent();
+                end
+                if ImGui.CollapsingHeader("Items") then
+                    ImGui.Indent()
+                    RB.Settings.useCoinSack = ImGui.Checkbox('Enable Coin Sack', RB.Settings.useCoinSack)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use coin sack for free donator coins??')
+                    if USECOINSACK ~= RB.Settings.useCoinSack then
+                        USECOINSACK = RB.Settings.useCoinSack
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.zonePull = ImGui.InputText('Aggro Item', RB.Settings.zonePull)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your zone wide aggro item.')
+                    if AGGROITEM ~= RB.Settings.zonePull then
+                        AGGROITEM = RB.Settings.zonePull
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.zoneRefresh = ImGui.InputText('Respawn Item', RB.Settings.zoneRefresh)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your zone respawn item.')
+                    if RESPAWNITEM ~= RB.Settings.zoneRefresh then
+                        RESPAWNITEM = RB.Settings.zoneRefresh
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.reset_At_Mob_Count = ImGui.InputInt("Respawn Mobs Limit",
+                        RB.Settings.reset_At_Mob_Count)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
+                    if MINMOBSINZONE ~= RB.Settings.reset_At_Mob_Count then
+                        MINMOBSINZONE = RB.Settings.reset_At_Mob_Count
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.buffCharmName = ImGui.InputText('Buff Item', RB.Settings.buffCharmName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of your buff item.')
+                    if BUFFCHARMNAME ~= RB.Settings.buffCharmName then
+                        BUFFCHARMNAME = RB.Settings.buffCharmName
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.buffCharmBuffName = ImGui.InputText('Buff Name',
+                        RB.Settings.buffCharmBuffName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name the buff to check if buff item worked.')
+                    if BUFFCHARMBUFFNAME ~= RB.Settings.buffCharmBuffName then
+                        BUFFCHARMBUFFNAME = RB.Settings.buffCharmBuffName
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader("Donor Items") then
+                    ImGui.Indent()
+                    ImGui.Columns(2)
+                    local start_y_Options = ImGui.GetCursorPosY()
+                    RB.Settings.useBemChest = ImGui.Checkbox('Enable Bems Chest', RB.Settings
+                        .useBemChest)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Breastplate?')
+                    if USEBEMCHEST ~= RB.Settings.useBemChest then
+                        USEBEMCHEST = RB.Settings.useBemChest
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.useBemGloves = ImGui.Checkbox('Enable Bems Gloves',
+                        RB.Settings.useBemGloves)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Gloves?')
+                    if USEBEMGLOVES ~= RB.Settings.useBemGloves then
+                        USEBEMGLOVES = RB.Settings.useBemGloves
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.useBemLegs = ImGui.Checkbox('Enable Bems Legs', RB.Settings.useBemLegs)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Bemevaras Leggings?')
+                    if USEBEMLEGS ~= RB.Settings.useBemLegs then
+                        USEBEMLEGS = RB.Settings.useBemLegs
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_Options)
+                    RB.Settings.useErtzStone = ImGui.Checkbox('Enable Ertz\'s Stone',
+                        RB.Settings.useErtzStone)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use Ertz\'s Mage Stone in combat?')
+                    if USEERTZSTONE ~= RB.Settings.useErtzStone then
+                        USEERTZSTONE = RB.Settings.useErtzStone
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.useCurrencyCharm = ImGui.Checkbox('Enable Currency Stone',
+                        RB.Settings.useCurrencyCharm)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Use currency doubler?')
+                    if USECURRENCYCHARM ~= RB.Settings.useCurrencyCharm then
+                        USECURRENCYCHARM = RB.Settings.useCurrencyCharm
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.Columns(1);
+                    ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader("AAs") then
+                    ImGui.Indent()
+                    ImGui.Columns(2)
+                    local start_y_Options = ImGui.GetCursorPosY()
+                    RB.Settings.useClericAA = ImGui.Checkbox('Enable Cleric AA', RB.Settings.useClericAA)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enable the use of the Cleric Class AA.')
+                    if USECLERICAA ~= RB.Settings.useClericAA then
+                        USECLERICAA = RB.Settings.useClericAA
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_Options)
+                    RB.Settings.usePaladinAA = ImGui.Checkbox('Enable Paladin AA',
+                        RB.Settings.usePaladinAA)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enable the use of the Paladin Class AA.')
+                    if USEPALADINAA ~= RB.Settings.usePaladinAA then
+                        USEPALADINAA = RB.Settings.usePaladinAA
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Columns(1);
+                    ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader("Experience Potions") then
+                    ImGui.Indent()
+                    RB.Settings.useExpPotions = ImGui.Checkbox('Enable Exp Potions',
+                        RB.Settings.useExpPotions)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
+                    if USEEXPPOTIONS ~= RB.Settings.useExpPotions then
+                        USEEXPPOTIONS = RB.Settings.useExpPotions
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.potionName = ImGui.InputText('Potion Name', RB.Settings.potionName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of the experience potion.')
+                    if POTIONNAME ~= RB.Settings.potionName then
+                        POTIONNAME = RB.Settings.potionName
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
+                    RB.Settings.potionBuff = ImGui.InputText('Potion Buff', RB.Settings.potionBuff)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The name of the experience buff.')
+                    if POTIONBUFF ~= RB.Settings.potionBuff then
+                        POTIONBUFF = RB.Settings.potionBuff
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Unindent();
+                end
+                ImGui.Unindent();
+            end
         end
         ImGui.End()
     end
 end
 
+function RB.bankClassAugs()
+    if not mq.TLO.Window('BigBankWnd').Open() then
+        PRINTMETHOD('Bank window must be open!')
+        return
+    end
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        if bagSlot.Container() == 0 then
+            if bagSlot.ID() then
+                local itemToBank = bagSlot.Name()
+                if string.find(itemToBank, 'Mastery Augmentation') then
+                    mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
+                    mq.delay(500, function() return mq.TLO.Cursor() end)
+                    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+                    mq.delay(500, function() return not mq.TLO.Cursor() end)
+                end
+            end
+        end
+    end
+    -- sell any items in bags which are marked as sell
+    for i = 1, 10 do
+        local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
+        local containerSize = bagSlot.Container()
+        if containerSize and containerSize > 0 then
+            for j = 1, containerSize do
+                local itemToBank = bagSlot.Item(j).Name()
+                if itemToBank then
+                    if string.find(itemToBank, 'Mastery Augmentation') then
+                        mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
+                        mq.delay(100, function() return mq.TLO.Cursor() end)
+                        mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+                        mq.delay(100, function() return not mq.TLO.Cursor() end)
+                    end
+                end
+            end
+        end
+    end
+end
+
+function RB.BankDropOff()
+    RB.HandleDisconnect()
+    if mq.TLO.Zone.ID() ~= RB.Settings.bankZone then
+        mq.cmdf('/say #zone %s', RB.Settings.bankZone)
+        mq.delay(50000, function() return mq.TLO.Zone.ID()() == RB.Settings.bankZone end)
+        mq.delay(1000)
+    end
+    if mq.TLO.Zone.ID() == RB.Settings.bankZone then
+        mq.cmdf('/target npc %s', RB.Settings.bankNPC)
+        mq.delay(250)
+        mq.delay(5000, function() return mq.TLO.Target()() ~= nil end)
+        mq.cmd('/squelch /warp t')
+        mq.delay(750)
+        mq.cmdf('/nomodkey /click right target')
+        mq.delay(5000, function() return mq.TLO.Window('BigBankWnd').Open() end)
+        mq.delay(50)
+        RB.bankClassAugs()
+    end
+end
+
 function RB.Main()
     RB.VersionCheck()
-    mq.imgui.init('CampFarmer', RB.InitGUI)
+    mq.imgui.init('RebirthMachine', RB.InitGUI)
     RB.Open = true
     PRINTMETHOD('++ Initialized ++')
     PRINTMETHOD('++ Setting up Ignore List ++')
@@ -1054,7 +1567,7 @@ function RB.Main()
         mq.cmdf('/squelch /alert add 1 "%s"', name)
         mq.delay(25)
     end
-    PRINTMETHOD('++ Sequence: Unlimted Grind Initiated ++')
+    PRINTMETHOD('++ Sequence: Rebirth Grind Initiated ++')
     CONSOLEMETHOD('Main Loop Entry')
     PRINTMETHOD('Putting MQ2Melee into basic melee mode.')
     mq.cmd('/melee melee=on stickmode=off stickrange=75 save')
