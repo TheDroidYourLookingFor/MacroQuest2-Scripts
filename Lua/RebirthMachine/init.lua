@@ -356,7 +356,11 @@ end
 
 function RB.CheckCurrentClassAugs()
     for className, isEnabled in pairs(RB.Classes) do
-        if RB.FindItemInBags(className .. ' Mastery Augmentation') then
+        if className ~= 'Shadowknight' and RB.FindItemInBags(className .. ' Mastery Augmentation') then
+            if not isEnabled then
+                RB.Classes[className] = true
+            end
+        elseif className == 'Shadowknight' and RB.FindItemInBags('Shadow Knight Mastery Augmentation') then
             if not isEnabled then
                 RB.Classes[className] = true
             end
@@ -522,7 +526,7 @@ function RB.CheckClass()
             if RB.Settings.farmClassAugs and RB.CurrentAugAmount >= RB.Settings.farmClassAugsAmount and not RB.Settings.swapClasses then
                 mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
-            if RB.Settings.swapClasses and not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt and RB.AllClassesDone then
+            if RB.Settings.swapClasses and not RB.Settings.farmClassAugs and RB.AllClassesDone then
                 mq.cmdf('/lua stop %s', RB.script_ShortName)
             end
             if not RB.Settings.swapClasses and not RB.Settings.farmClassAugs and RB.CurrentRebirths >= RB.Settings.rebirthStopAt then
