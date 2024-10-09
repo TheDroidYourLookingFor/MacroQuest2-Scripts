@@ -902,6 +902,15 @@ function gui.CampFarmerGUI()
                     gui.DOSTAND = CampFarmer.Settings.doStand
                     CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
+                ImGui.Separator();
+
+                CampFarmer.Settings.LootAllCorpsesBeforeRespawn = ImGui.Checkbox('Enable Loot All Corpses Before Respawn', CampFarmer.Settings.LootAllCorpsesBeforeRespawn)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Should we loot every corpse before we respawn the zone?')
+                if gui.DOSTAND ~= CampFarmer.Settings.LootAllCorpsesBeforeRespawn then
+                    gui.DOSTAND = CampFarmer.Settings.LootAllCorpsesBeforeRespawn
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                end
                 ImGui.Columns(1);
                 ImGui.Unindent()
             end

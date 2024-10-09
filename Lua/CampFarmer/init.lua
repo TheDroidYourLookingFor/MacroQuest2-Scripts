@@ -66,6 +66,7 @@ CampFarmer.Settings.useCoinSack = true
 CampFarmer.Settings.useErtzStone = true
 CampFarmer.Settings.useCurrencyCharm = true
 CampFarmer.Settings.DoLoot = true
+CampFarmer.Settings.LootAllCorpsesBeforeRespawn = false
 CampFarmer.Settings.CombatLooting = true
 CampFarmer.Settings.LootGroundSpawns = false
 CampFarmer.Settings.ClickAATokens = true
@@ -98,9 +99,9 @@ CampFarmer.Settings.SellFabledFor = 'Cash' -- Doublons, Papers, Cash
 CampFarmer.Settings.SellFabledFor_idx = 3
 CampFarmer.Settings.staticZoneID = '173'
 CampFarmer.Settings.staticZoneName = 'maiden'
-CampFarmer.Settings.staticX = '1426.87'
-CampFarmer.Settings.staticY = '955.12'
-CampFarmer.Settings.staticZ = '-152.25'
+CampFarmer.Settings.staticX = '1162.71'
+CampFarmer.Settings.staticY = '1092.98'
+CampFarmer.Settings.staticZ = '-153.34'
 CampFarmer.Settings.targetName = 'treasure'
 CampFarmer.Settings.spawnWildcardSearch = '%s radius %d zradius %d'
 CampFarmer.Settings.scan_Radius = 10000
@@ -680,7 +681,7 @@ function CampFarmer.AggroZone()
     CampFarmer.Aggro(CampFarmer.Settings.aggroItem)
 end
 
-function CampFarmer.LootMobs()
+function CampFarmer.LootCorpse()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
     if not CampFarmer.Settings.CombatLooting and mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() > 0 then return end
@@ -711,6 +712,41 @@ function CampFarmer.LootMobs()
                 mq.delay(CampFarmer.Delays.Warp)
             end
         end
+    end
+end
+
+function CampFarmer.LootAllCorpses()
+    CampFarmer.HandleDisconnect()
+    CampFarmer.CheckZone()
+    if not CampFarmer.Settings.CombatLooting and mq.TLO.SpawnCount(CampFarmer.Settings.spawnSearch)() > 0 then return end
+    while mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0 or (CampFarmer.Settings.lootAll and mq.TLO.SpawnCount(CampFarmer.Settings.spawnWildcardSearch:format('corpse', CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))() > 0) do
+        if CampFarmer.Settings.lootAll then
+            mq.cmdf('/target %s',
+                mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format('corpse',
+                    CampFarmer.Settings.scan_Radius, CampFarmer.Settings.scan_zRadius))())
+        else
+            mq.cmdf('/target %s',
+                mq.TLO.NearestSpawn(CampFarmer.Settings.spawnWildcardSearch:format(
+                    'corpse ' .. CampFarmer.Settings.targetName, CampFarmer.Settings.scan_Radius,
+                    CampFarmer.Settings.scan_zRadius))())
+        end
+        if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
+            mq.cmd('/squelch /warp t')
+            mq.delay(CampFarmer.Delays.Warp)
+            if CampFarmer.Settings.doStand and not mq.TLO.Me.Standing() then
+                mq.cmd('/stand')
+                mq.delay(CampFarmer.Delays.Two)
+            end
+            CampFarmer.LootUtils.lootCorpse(mq.TLO.Target.ID())
+            mq.delay(CampFarmer.Delays.Four)
+            mq.doevents()
+            mq.delay(CampFarmer.Delays.Four)
+            if CampFarmer.Settings.returnHomeAfterLoot then
+                mq.cmdf('/squelch /warp loc %s %s %s', CampFarmer.startY, CampFarmer.startX, CampFarmer.startZ)
+                mq.delay(CampFarmer.Delays.Warp)
+            end
+        end
+        mq.delay(50)
     end
 end
 
@@ -760,10 +796,11 @@ function CampFarmer.CheckTarget()
     end
     CampFarmer.CombatSpells()
     if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and mq.TLO.Me.FreeInventory() then
-        CampFarmer.LootMobs()
+        CampFarmer.LootCorpse()
     end
     if not mq.TLO.NearestSpawn(CampFarmer.Settings.spawnSearch)() and CampFarmer.CheckXTargAggro() == 0 then
         if mq.TLO.SpawnCount(CampFarmer.Settings.mobsSearch)() < CampFarmer.Settings.MinMobsInZone then
+            if CampFarmer.Settings.LootAllCorpsesBeforeRespawn then CampFarmer.LootAllCorpses() end
             CampFarmer.RespawnZone()
             CampFarmer.AggroZone()
             CampFarmer.CheckTarget()
@@ -798,7 +835,7 @@ function CampFarmer.Checks()
     CampFarmer.CheckCorpseCount()
     CampFarmer.CheckAATokens()
     if CampFarmer.Settings.DoLoot and mq.TLO.SpawnCount(CampFarmer.Settings.corpseSearch)() and mq.TLO.Me.FreeInventory() then
-        CampFarmer.LootMobs()
+        CampFarmer.LootCorpse()
     end
     CampFarmer.CheckPet()
 end
@@ -1238,6 +1275,7 @@ function CampFarmer.Main()
         CampFarmer.HandleDisconnect()
         CampFarmer.Checks()
         pcall(CampFarmer.CheckTarget)
+        if CampFarmer.Settings.LootAllCorpsesBeforeRespawn then CampFarmer.LootAllCorpses() end
         if CampFarmer.Settings.bankDeposit and mq.TLO.Me.FreeInventory() <= CampFarmer.Settings.bankAtFreeSlots then
             CampFarmer.needToBank = true
         end
