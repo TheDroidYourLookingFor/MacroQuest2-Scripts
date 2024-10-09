@@ -4,7 +4,7 @@ local mq = require('mq')
 -- Dont edit these settings
 --
 local RB = {
-    version = '1.0.4',
+    version = '1.0.5',
     script_ShortName = 'RebirthMachine',
     command_ShortName = 'rbm',
     command_LongName = 'RebirthMachine',
@@ -32,7 +32,7 @@ local RB = {
     RepopDelay = 1500,
     AggroDelay = 1500,
     settingsFile = mq.configDir ..
-    '\\RebirthMachine.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini',
+        '\\RebirthMachine.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini',
 }
 
 --
@@ -41,7 +41,7 @@ local RB = {
 RB.Settings = {
     Version = RB.version,
     swapClasses = true,                   -- Swap classes when we hit rebirth cap?
-    classType = 'DPS',                    -- Type of classes to rebirth. DPS/TANK
+    classType = 'TANK',                    -- Type of classes to rebirth. DPS/TANK
     farmClassAugs = false,                -- DOESNT WORK CURRENTLY
     farmClassAugsAmount = 2,              -- How many of the class augments should we farm?
     rebirthStopAt = 10,                   -- After how many Rebirths should we stop?
@@ -56,7 +56,7 @@ RB.Settings = {
     corpse_Phrase = '/say #deletecorpse', -- The commands we should use to hide corpses.
     corpseLimit = 200,
     -- corpse_Phrase = '/hidecorpse all',           -- The commands we should use to hide corpses.
-    castSpells = false,                   -- Should we cast spells?
+    castSpells = false, -- Should we cast spells?
     spells = {
         'Cool Spell 01',
         'Cool Spell 02'
@@ -84,7 +84,8 @@ RB.Settings = {
     buffCharmBuffName = 'Talisman of the Panther Rk. III',
     spawnSearch = 'npc radius 60 los targetable noalert 1',
     bankZone = 183,
-    bankNPC = 'Griphook'
+    bankNPC = 'Griphook',
+    classType_idx = 1,
 }
 
 RB.huntZone = {
@@ -176,10 +177,15 @@ RB.UseClassAA = {
 --
 -- Stop editing! :D You know unless you really want to and know what you're doing
 --
-
+RB.classType = {
+    'DPS',
+    'TANK',
+    'ALL'
+}
 RB.RebirthType = {
     DPS = { 'Bard', 'Beastlord', 'Berserker', 'Cleric', 'Druid', 'Enchanter', 'Mage', 'Monk', 'Necromancer', 'Ranger', 'Rogue', 'Shaman', 'Wizard' },
-    TANK = { 'Paladin', 'Shadowknight', 'Warrior' }
+    TANK = { 'Paladin', 'Shadowknight', 'Warrior' },
+    ALL = { 'Bard', 'Beastlord', 'Berserker', 'Cleric', 'Druid', 'Enchanter', 'Mage', 'Monk', 'Necromancer', 'Paladin', 'Ranger', 'Rogue', 'Shadowknight', 'Shaman', 'Wizard', 'Warrior' },
 }
 
 RB.Classes = {
@@ -990,6 +996,7 @@ function RB.KillAllMobs()
         RB.Checks()
         mq.cmd('/squelch /attack on')
         mq.cmd('/squelch /stick')
+        RB.UseClassCombatAAs()
         if mq.TLO.Me.XTarget() <= RB.Settings.reset_At_Mob_Count then
             RB.AggroAllMobs()
             return
@@ -1002,6 +1009,7 @@ function RB.KillAllMobs()
             end
             mq.cmd('/squelch /attack on')
             mq.cmd('/squelch /stick')
+            RB.UseClassCombatAAs()
         end
         if mq.TLO.Target.Distance() >= RB.Settings.returnHomeDistance then
             mq.cmd('/target clear')
@@ -1092,25 +1100,27 @@ end
 RB.CreateComboBox = {
     flags = 0
 }
-function RB.CreateComboBox:draw(cb_label, buffs, current_idx, width)
-    local combo_buffs = buffs[current_idx]
 
-    ImGui.PushItemWidth(width)
+function RB.CreateComboBox:draw(cb_label, buffs, current_idx, width)
+    local combo_buffs = buffs[current_idx] -- Get current selected value
+
+    ImGui.PushItemWidth(width)             -- Limit the width of the combo box
     if ImGui.BeginCombo(cb_label, combo_buffs, ImGuiComboFlags.None) then
         for n = 1, #buffs do
-            local is_selected = current_idx == n
-            if ImGui.Selectable(buffs[n], is_selected) then -- fixme: selectable
-                current_idx = n
+            local is_selected = (current_idx == n)
+            if ImGui.Selectable(buffs[n], is_selected) then
+                current_idx = n -- Update selected index
             end
 
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            -- Set focus on the selected item when opening the combo box
             if is_selected then
                 ImGui.SetItemDefaultFocus()
             end
         end
         ImGui.EndCombo()
     end
-    return current_idx
+    ImGui.PopItemWidth() -- Reset the width
+    return current_idx   -- Return the updated index
 end
 
 local SWAPCLASSES
@@ -1131,17 +1141,18 @@ local CORPSECLEANUP
 local CORPSECLEANUPCOMMAND
 local CORPSELIMIT
 local MOVEONPULL
+local classType_idx
 function RB.InitGUI()
     if RB.Open then
         RB.Open, RB.ShowUI = ImGui.Begin('TheDroid Rebirth Machine v' .. RB.version, RB.Open)
-        local x_size = 620
-        local y_size = 350
+        local x_size = 427
+        local y_size = 280
         ImGui.SetWindowSize(x_size, y_size, ImGuiCond.Once)
         local io = ImGui.GetIO()
-        local center_x = io.DisplaySize.x / 2
-        local center_y = io.DisplaySize.y / 2
+        local center_x = io.DisplaySize.x / 4
+        local center_y = io.DisplaySize.y / 4
         ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
-        ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
+        ImGui.SetWindowPos(center_x - x_size / 4, center_y - y_size / 4, ImGuiCond.FirstUseEver)
         if RB.ShowUI then
             if ImGui.CollapsingHeader("Rebirth Machine") then
                 ImGui.Indent();
@@ -1156,31 +1167,17 @@ function RB.InitGUI()
                 ImGui.BulletText("TheDroidUrLookingFor");
                 ImGui.Unindent();
             end
-            if ImGui.CollapsingHeader("Rebirth Progress") then
-                ImGui.Indent();
-                ImGui.Text("Current Type: " .. RB.Settings.classType);
-                ImGui.Separator();
-                local textCount = 0
-                ImGui.Columns(2)
-                local start_y_Options = ImGui.GetCursorPosY()
-                for className, isDone in pairs(RB.Classes) do
-                    -- local checkMark = isDone and "O" or "X"
-                    local checkMark = isDone and "Complete" or "Incomplete"
-                    local color = isDone and { 0, 1, 0, 1 } or { 1, 0, 0, 1 } -- Green for done, red for not
-                    ImGui.TextColored(color[1], color[2], color[3], color[4], className .. ": " .. checkMark)
-                    textCount = (textCount or 0) + 1
-                    if textCount >= 8 then
-                        ImGui.NextColumn();
-                        ImGui.SetCursorPosY(start_y_Options);
-                        textCount = 0
-                    end
-                end
-                ImGui.Columns(1);
-                ImGui.Separator();
-                ImGui.Unindent();
-            end
             if ImGui.CollapsingHeader("Rebirth Settings") then
                 ImGui.Indent();
+                if ImGui.Button('REBUILD##Save File') then
+                    RB.SaveSettings(RB.settingsFile, RB.Settings);
+                end
+                ImGui.SameLine()
+                ImGui.Text('Settings File')
+                ImGui.SameLine()
+                ImGui.HelpMarker('Overwrites the current ' .. RB.settingsFile)
+                ImGui.Separator();
+
                 RB.Settings.moveOnPull = ImGui.Checkbox('Enable Move On Pull', RB.Settings.moveOnPull);
                 ImGui.SameLine();
                 ImGui.HelpMarker('Should we move automatically when we pull away from the mob stack?');
@@ -1493,6 +1490,51 @@ function RB.InitGUI()
                 ImGui.Unindent();
             end
         end
+        ImGui.Text("Current Type: " .. RB.Settings.classType);
+        ImGui.SameLine(center_y - y_size / 4);
+        RB.Settings.classType_idx = RB.CreateComboBox:draw("##Class Type", RB.classType, RB.Settings.classType_idx, 150);
+        if classType_idx ~= RB.Settings.classType_idx then
+            classType_idx = RB.Settings.classType_idx
+            if classType_idx == 1 then
+                RB.Settings.classType = 'DPS'
+            elseif classType_idx == 2 then
+                RB.Settings.classType = 'TANK'
+            elseif classType_idx == 3 then
+                RB.Settings.classType = 'ALL'
+            end
+            RB.CheckRebirthType()
+            RB.CheckCurrentClassAugs()
+            RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+        end
+        ImGui.Separator();
+        local textCount = 0
+        ImGui.Columns(2)
+        local start_y_Options = ImGui.GetCursorPosY()
+
+        -- Collect class names into a list
+        local classNames = {}
+        for className in pairs(RB.Classes) do
+            table.insert(classNames, className)
+        end
+
+        -- Sort the class names alphabetically
+        table.sort(classNames)
+
+        -- Iterate over the sorted list
+        for _, className in ipairs(classNames) do
+            local isDone = RB.Classes[className]
+            local checkMark = isDone and "Complete" or "Incomplete"
+            local color = isDone and { 0, 1, 0, 1 } or { 1, 0, 0, 1 } -- Green for done, red for not
+            ImGui.TextColored(color[1], color[2], color[3], color[4], className .. ": " .. checkMark)
+            textCount = (textCount or 0) + 1
+            if textCount >= 8 then
+                ImGui.NextColumn()
+                ImGui.SetCursorPosY(start_y_Options)
+                textCount = 0
+            end
+        end
+
+        ImGui.Columns(1)
         ImGui.End()
     end
 end
