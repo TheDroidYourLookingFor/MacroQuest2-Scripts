@@ -211,7 +211,7 @@ function gui.CampFarmerGUI()
             if ImGui.CollapsingHeader('Gains') then
                 ImGui.Indent()
                 local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer
-                    .CurrencyStatus()
+                .CurrencyStatus()
                 local totalAA, aaPerHour = CampFarmer.AAStatus()
                 local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
                 local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
@@ -240,49 +240,62 @@ function gui.CampFarmerGUI()
                 local formattedTotalFabledGoblins = CampFarmer.formatNumberWithCommas(totalFabledGoblins)
                 local formattedFabledGoblinsPerHour = CampFarmer.formatNumberWithCommas(fabledGoblinsPerHour)
 
-                ImGui.Text('AA Gained')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedTotalAA))
-                ImGui.SameLine(400)
-                ImGui.Text('AA / Hour')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedAAPerHour))
+                local totalKills, killsPerHour = CampFarmer.KillsStatus()
+                local formattedTotalKills = CampFarmer.formatNumberWithCommas(totalKills)
+                local formattedKillsPerHour = CampFarmer.formatNumberWithCommas(math.floor(killsPerHour))
+
+                ImGui.Text('AA Gained');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalAA));
+                ImGui.SameLine(400);
+                ImGui.Text('AA / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedAAPerHour));
                 ImGui.Separator();
 
-                ImGui.Text('Doubloons Gained')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedTotalDoubloons))
-                ImGui.SameLine(400)
-                ImGui.Text('Doubloons / Hour')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedDoubloonsPerHour))
+                ImGui.Text('Doubloons Gained');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalDoubloons));
+                ImGui.SameLine(400);
+                ImGui.Text('Doubloons / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedDoubloonsPerHour));
                 ImGui.Separator();
 
-                ImGui.Text('Papers Gained')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedTotalPapers))
-                ImGui.SameLine(400)
-                ImGui.Text('Papers / Hour')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedPaperssPerHour))
+                ImGui.Text('Papers Gained');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalPapers));
+                ImGui.SameLine(400);
+                ImGui.Text('Papers / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedPaperssPerHour));
                 ImGui.Separator();
 
-                ImGui.Text('Cash Gained')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedTotalCash))
-                ImGui.SameLine(400)
-                ImGui.Text('Cash / Hour')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedCashPerHour))
+                ImGui.Text('Cash Gained');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalCash));
+                ImGui.SameLine(400);
+                ImGui.Text('Cash / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedCashPerHour));
                 ImGui.Separator();
 
-                ImGui.Text('Goblins Spawned')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedTotalGoblins))
-                ImGui.SameLine(400)
-                ImGui.Text('Goblins / Hour')
-                ImGui.SameLine()
-                ImGui.Text(tostring(formattedGoblinsPerHour))
+                ImGui.Text('Goblins Spawned');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalGoblins));
+                ImGui.SameLine(400);
+                ImGui.Text('Goblins / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedGoblinsPerHour));
+                ImGui.Separator();
+
+                ImGui.Text('Mobs Killed');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedTotalKills));
+                ImGui.SameLine(400);
+                ImGui.Text('Kills / Hour');
+                ImGui.SameLine();
+                ImGui.Text(tostring(formattedKillsPerHour));
                 ImGui.Separator();
                 if ImGui.CollapsingHeader("Goblin Info") then
                     ImGui.Indent()
@@ -339,6 +352,21 @@ function gui.CampFarmerGUI()
                     ImGui.SameLine()
                     ImGui.Text(tostring(formattedFabledGoblinsPerHour))
                     ImGui.Unindent()
+                end
+                if ImGui.CollapsingHeader('Mob Info') then
+                    ImGui.Indent()
+                    for mobName, killCount in pairs(CampFarmer.SlainMobTypes) do
+                        local mobKillsPerHour = CampFarmer.KillStatus(killCount)
+
+                        ImGui.Text(mobName .. ':')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(killCount))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Kills / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(string.format("%.2f", mobKillsPerHour))
+                        ImGui.Separator()
+                    end
                 end
                 ImGui.Unindent()
             end
@@ -904,7 +932,8 @@ function gui.CampFarmerGUI()
                 end
                 ImGui.Separator();
 
-                CampFarmer.Settings.LootAllCorpsesBeforeRespawn = ImGui.Checkbox('Enable Loot All Corpses Before Respawn', CampFarmer.Settings.LootAllCorpsesBeforeRespawn)
+                CampFarmer.Settings.LootAllCorpsesBeforeRespawn = ImGui.Checkbox(
+                'Enable Loot All Corpses Before Respawn', CampFarmer.Settings.LootAllCorpsesBeforeRespawn)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Should we loot every corpse before we respawn the zone?')
                 if gui.DOSTAND ~= CampFarmer.Settings.LootAllCorpsesBeforeRespawn then

@@ -20,8 +20,7 @@ CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
-CampFarmer.settingsFile = mq.configDir ..
-    '\\CampFarmer.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+CampFarmer.settingsFile = mq.configDir .. '\\CampFarmer\\' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 750
 CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
@@ -42,6 +41,8 @@ CampFarmer.LastReportTime = os.time()
 CampFarmer.reset_Instance_At = 5
 CampFarmer.zone_Wait = 50000
 CampFarmer.rebirth_Wait = 2500
+CampFarmer.MobCounter = 0
+CampFarmer.SlainMobTypes = {}
 
 CampFarmer.Settings = {}
 CampFarmer.Settings.Version = CampFarmer._version
@@ -1000,6 +1001,13 @@ function CampFarmer.CheckPet()
     end
 end
 
+local function event_slainMob_handler(line, mobName)
+    CampFarmer.MobCounter = (CampFarmer.MobCounter or 0) + 1
+    CampFarmer.SlainMobTypes[mobName] = (CampFarmer.SlainMobTypes[mobName] or 0) + 1
+    -- CampFarmer.Messages.Info('%s / %s / %s', mobName, CampFarmer.MobCounter, CampFarmer.SlainMobTypes[mobName])
+end
+mq.event('SlainMob', "#*#You have slain #1#!#*#", event_slainMob_handler)
+
 local function event_tooClose_handler(line)
     mq.cmd('/keypress s hold')
     mq.delay(500)
@@ -1008,7 +1016,8 @@ end
 mq.event('TooClose', "#*#You are too close#*#", event_tooClose_handler)
 
 local function event_aagain_handler(line, gainedPoints)
-    CampFarmer.StartAA = CampFarmer.StartAA + tonumber(gainedPoints)
+    local pointsGained = tonumber(gainedPoints)
+    CampFarmer.StartAA = (CampFarmer.StartAA or 0) + pointsGained
 end
 mq.event('AACheck', "You have gained #1# ability point(s)!#*#", event_aagain_handler)
 
@@ -1187,6 +1196,34 @@ function CampFarmer.AAStatus()
     end
 
     return CampFarmer.StartAA, aaPerHour
+end
+
+function CampFarmer.KillStatus(MobKillCount)
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local killsPerHour = 0
+    if elapsedTimeInHours > 0 then
+        killsPerHour = MobKillCount / elapsedTimeInHours
+    end
+
+    return killsPerHour
+end
+
+function CampFarmer.KillsStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, CampFarmer.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local killsPerHour = 0
+    if elapsedTimeInHours > 0 then
+        killsPerHour = CampFarmer.MobCounter / elapsedTimeInHours
+    end
+
+    return CampFarmer.MobCounter, killsPerHour
 end
 
 function CampFarmer.GoblinStatus()
