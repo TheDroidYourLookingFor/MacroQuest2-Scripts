@@ -4,7 +4,7 @@ local mq = require('mq')
 -- Dont edit these settings
 --
 local RB = {
-    version = '1.0.5',
+    version = '1.0.6',
     script_ShortName = 'RebirthMachine',
     command_ShortName = 'rbm',
     command_LongName = 'RebirthMachine',
@@ -32,7 +32,7 @@ local RB = {
     RepopDelay = 1500,
     AggroDelay = 1500,
     settingsFile = mq.configDir ..
-        '\\RebirthMachine.' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini',
+    '\\RebirthMachine\\' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini',
 }
 
 --
@@ -41,7 +41,7 @@ local RB = {
 RB.Settings = {
     Version = RB.version,
     swapClasses = true,                   -- Swap classes when we hit rebirth cap?
-    classType = 'TANK',                    -- Type of classes to rebirth. DPS/TANK
+    classType = 'ALL',                    -- Type of classes to rebirth. DPS/TANK/ALL
     farmClassAugs = false,                -- DOESNT WORK CURRENTLY
     farmClassAugsAmount = 2,              -- How many of the class augments should we farm?
     rebirthStopAt = 10,                   -- After how many Rebirths should we stop?
@@ -86,30 +86,43 @@ RB.Settings = {
     bankZone = 183,
     bankNPC = 'Griphook',
     classType_idx = 1,
+    huntZone_idx = 3,
 }
 
 RB.huntZone = {
     paw = {
         ID = 18,
-        X = 42.53,
-        Y = 718.35,
+        X = 42,
+        Y = 718,
         Y_Pull = 700,
-        Z = 4.12,
+        X_Pull = 42,
+        Z = 4,
         ignoreTarget = 'an imprisoned gnoll'
     },
     pofire = {
         ID = 217,
-        X = 612.22,
-        Y = 657.17,
-        Y_Pull = 627.17,
-        Z = -166.87,
+        X = 612,
+        Y = 657,
+        Y_Pull = 627,
+        X_Pull = 612,
+        Z = -166,
         ignoreTarget = 'Essence of Fire'
+    },
+    provinggrounds = {
+        ID = 316,
+        X = -980,
+        Y = 400,
+        Y_Pull = 400,
+        X_Pull = -950,
+        Z = -306,
+        ignoreTarget = ''
     },
     maiden = {
         ID = 173,
         X = 1426,
         Y = 955,
         Y_Pull = 925,
+        X_Pull = 1426,
         Z = -152,
         ignoreTarget = ''
     }
@@ -953,7 +966,7 @@ function RB.AggroAllMobs()
         mq.delay(RB.AggroDelay)
         if RB.Settings.moveOnPull and RB.Settings.staticHuntMode then
             mq.cmdf('/squelch /warp loc %s %s %s', RB.huntZone[RB.Settings.huntZoneName].Y_Pull,
-                RB.huntZone[RB.Settings.huntZoneName].X, RB.huntZone[RB.Settings.huntZoneName].Z)
+                RB.huntZone[RB.Settings.huntZoneName].X_Pull, RB.huntZone[RB.Settings.huntZoneName].Z)
             mq.delay(RB.wait_One)
             mq.cmdf('/squelch /face fast %s,%s', RB.huntZone[RB.Settings.huntZoneName].Y,
                 RB.huntZone[RB.Settings.huntZoneName].X)
@@ -1105,14 +1118,25 @@ RB.CreateComboBox = {
     flags = 0
 }
 
-function RB.CreateComboBox:draw(cb_label, buffs, current_idx, width)
-    local combo_buffs = buffs[current_idx] -- Get current selected value
+function RB.CreateComboBox:draw(cb_label, items, current_idx, width)
+    local item_list = {}
+    if #items > 0 then
+        -- Handle array (for RB.classType and similar)
+        item_list = items
+    else
+        -- Handle table with string keys (for RB.huntZone)
+        for key, _ in pairs(items) do
+            table.insert(item_list, key)
+        end
+    end
 
-    ImGui.PushItemWidth(width)             -- Limit the width of the combo box
-    if ImGui.BeginCombo(cb_label, combo_buffs, ImGuiComboFlags.None) then
-        for n = 1, #buffs do
+    local selected_item = item_list[current_idx] -- Get the current selected value
+
+    ImGui.PushItemWidth(width)                   -- Limit the width of the combo box
+    if ImGui.BeginCombo(cb_label, selected_item, ImGuiComboFlags.None) then
+        for n = 1, #item_list do
             local is_selected = (current_idx == n)
-            if ImGui.Selectable(buffs[n], is_selected) then
+            if ImGui.Selectable(item_list[n], is_selected) then
                 current_idx = n -- Update selected index
             end
 
@@ -1146,6 +1170,7 @@ local CORPSECLEANUPCOMMAND
 local CORPSELIMIT
 local MOVEONPULL
 local classType_idx
+local huntZone_idx
 function RB.InitGUI()
     if RB.Open then
         RB.Open, RB.ShowUI = ImGui.Begin('TheDroid Rebirth Machine v' .. RB.version, RB.Open)
@@ -1220,6 +1245,33 @@ function RB.InitGUI()
                     end
                     ImGui.Separator();
 
+                    -- Collect class names into a list
+                    local huntZones = {}
+                    for zoneName in pairs(RB.huntZone) do
+                        table.insert(huntZones, zoneName)
+                    end
+
+                    -- Sort the class names alphabetically
+                    table.sort(huntZones)
+
+                    RB.Settings.huntZone_idx = RB.CreateComboBox:draw("##Hunt Zone", huntZones, RB.Settings.huntZone_idx, 150);
+                    if huntZone_idx ~= RB.Settings.huntZone_idx then
+                        huntZone_idx = RB.Settings.huntZone_idx
+                        if huntZone_idx == 1 then
+                            RB.Settings.huntZoneName = 'maiden'
+                        elseif huntZone_idx == 2 then
+                            RB.Settings.huntZoneName = 'paw'
+                        elseif huntZone_idx == 3 then
+                            RB.Settings.huntZoneName = 'pofire'
+                        elseif huntZone_idx == 4 then
+                            RB.Settings.huntZoneName = 'provinggrounds'
+                        end
+                        RB.CheckRebirthType()
+                        RB.CheckCurrentClassAugs()
+                        RB.Storage.SaveSettings(RB.settingsFile, RB.Settings)
+                    end
+                    ImGui.Separator();
+
                     RB.Settings.huntZoneName = ImGui.InputText('Zone Name', RB.Settings.huntZoneName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The short name of the Static Hunt Zone.')
@@ -1229,8 +1281,7 @@ function RB.InitGUI()
                     end
                     ImGui.Separator();
 
-                    RB.huntZone[RB.Settings.huntZoneName].ID = ImGui.InputInt('Zone ID',
-                        RB.huntZone[RB.Settings.huntZoneName].ID)
+                    RB.huntZone[RB.Settings.huntZoneName].ID = ImGui.InputInt('Zone ID', RB.huntZone[RB.Settings.huntZoneName].ID)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The ID of the static Hunting Zone.')
                     if STATICZONEID ~= RB.huntZone[RB.Settings.huntZoneName].ID then
