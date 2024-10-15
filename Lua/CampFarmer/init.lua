@@ -3,7 +3,7 @@ local mq = require('mq')
 local ImGui = require 'ImGui'
 
 CampFarmer = {
-    _version = '1.0.6',
+    _version = '1.0.7',
     _author = 'TheDroidUrLookingFor'
 }
 CampFarmer.script_ShortName = 'CampFarmer'
@@ -20,7 +20,8 @@ CampFarmer.startY = mq.TLO.Me.Y()
 CampFarmer.startZ = mq.TLO.Me.Z()
 CampFarmer.startZone = mq.TLO.Zone.ID()
 CampFarmer.startZoneName = mq.TLO.Zone.ShortName()
-CampFarmer.settingsFile = mq.configDir .. '\\CampFarmer\\' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
+CampFarmer.settingsFile = mq.configDir ..
+    '\\CampFarmer\\' .. mq.TLO.EverQuest.Server() .. '_' .. mq.TLO.Me.CleanName() .. '.ini'
 CampFarmer.AAReuseDelay = 750
 CampFarmer.ItemReuseDelay = 750
 CampFarmer.RepopDelay = 1500
@@ -72,14 +73,16 @@ CampFarmer.Settings.CombatLooting = true
 CampFarmer.Settings.LootGroundSpawns = false
 CampFarmer.Settings.ClickAATokens = true
 CampFarmer.Settings.GroupAlt = false
+CampFarmer.Settings.AltLooterNames = { 'Binli', 'Jinli' }
 CampFarmer.Settings.buffCharmName = 'Amulet of Ultimate Buffing'
 CampFarmer.Settings.buffCharmBuffName = 'Talisman of the Panther Rk. III'
-CampFarmer.Settings.AltLooterName = 'Binli'
 CampFarmer.Settings.lootINIFile = mq.configDir .. '\\EZLoot\\EZLoot-MINLI.ini'
 CampFarmer.Settings.MinMobsInZone = 10
 CampFarmer.Settings.UberPullMobsInZone = 50
 CampFarmer.Settings.InstanceLeader = mq.TLO.Me.Name()
 CampFarmer.Settings.InstanceType = 'SOLO'
+CampFarmer.Settings.StickCommand = string.format('/squelch /stick moveback %s', 10)
+CampFarmer.Settings.DoStatTrack = true
 
 CampFarmer.Settings.ReturnToHomeDistance = 60
 CampFarmer.Settings.returnHomeAfterLoot = false
@@ -388,35 +391,29 @@ end
 function CampFarmer.KillThis()
     CampFarmer.HandleDisconnect()
     CampFarmer.CheckZone()
-    if mq.TLO.Me.Class() ~= 'Ranger' then
-        if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
-            mq.cmdf('/squelch /stick moveback %s', 10)
+    if mq.TLO.Target() then
+        if mq.TLO.Me.Class() ~= 'Ranger' or (mq.TLO.Me.Class() == 'Ranger' and not mq.TLO.FindItem('Empowered Fang Of The Huntmaster Rk. ')()) then
+            mq.cmd(CampFarmer.Settings.StickCommand)
             mq.delay(CampFarmer.Delays.One)
+            mq.cmd('/squelch /attack on')
+            mq.delay(CampFarmer.Delays.Two)
+            mq.cmd('/squelch /face fast')
+            mq.delay(CampFarmer.Delays.Two)
         else
-            mq.cmd('/squelch /stick')
+            mq.cmd(CampFarmer.Settings.StickCommand)
             mq.delay(CampFarmer.Delays.One)
-        end
-        mq.cmd('/squelch /attack on')
-        mq.delay(CampFarmer.Delays.Two)
-        mq.cmd('/squelch /face fast')
-        mq.delay(CampFarmer.Delays.Two)
-    else
-        if mq.TLO.Target() and mq.TLO.Target.MaxRangeTo() > mq.TLO.Me.MaxRange() and mq.TLO.Target.LineOfSight() then
-            mq.cmd('/squelch /stick')
-            mq.delay(CampFarmer.Delays.One)
-        elseif mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
-            mq.cmdf('/squelch /stick moveback %s', 10)
-            mq.delay(CampFarmer.Delays.One)
+            if not mq.TLO.Me.AutoFire() then
+                mq.cmd('/squelch /autofire')
+                mq.delay(CampFarmer.Delays.Two)
+            end
+            mq.cmd('/squelch /face fast')
+            mq.delay(CampFarmer.Delays.Two)
         end
         mq.cmd('/squelch /face fast')
         mq.delay(CampFarmer.Delays.Two)
-        if not mq.TLO.Me.AutoFire() then
-            mq.cmd('/squelch /autofire')
-            mq.delay(CampFarmer.Delays.One)
+        if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
+            mq.cmd('/squelch /pet attack')
         end
-    end
-    if mq.TLO.Pet() and not mq.TLO.Pet.Combat() then
-        mq.cmd('/squelch /pet attack')
     end
 end
 
@@ -620,10 +617,13 @@ end
 
 function CampFarmer.CheckGroup()
     CampFarmer.HandleDisconnect()
-    if CampFarmer.Settings.GroupAlt and not mq.TLO.Me.Grouped() then
-        if mq.TLO.Spawn(CampFarmer.Settings.AltLooterName).ID() > 0 then
-            mq.cmdf('/invite %s', CampFarmer.Settings.AltLooterName)
-            mq.delay(CampFarmer.Delays.Two)
+    if CampFarmer.Settings.GroupAlt then
+        for _, looterName in ipairs(CampFarmer.Settings.AltLooterNames) do
+            local altSpawn = mq.TLO.Spawn(looterName)
+            if altSpawn.ID() > 0 and not mq.TLO.Group.Member(altSpawn.Name())() then
+                mq.cmdf('/invite %s', looterName)
+                mq.delay(CampFarmer.Delays.Two)
+            end
         end
     end
 end
@@ -795,11 +795,8 @@ function CampFarmer.CheckTarget()
             mq.cmd('/squelch /warp t')
             mq.delay(CampFarmer.Delays.Warp)
         end
-        if mq.TLO.Target() and mq.TLO.Target.Distance() < 10 then
-            mq.cmdf('/squelch /stick moveback %s', 10)
-            mq.delay(CampFarmer.Delays.One)
-        else
-            mq.cmd('/squelch /stick')
+        if mq.TLO.Target() then
+            mq.cmd(CampFarmer.Settings.StickCommand)
             mq.delay(CampFarmer.Delays.One)
         end
         mq.cmd('/squelch /face fast')

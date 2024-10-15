@@ -22,6 +22,7 @@ gui.SELLFABLEDFOR = 'Papers'
 gui.SCANRADIUS = 10000
 gui.SCANZRADIUS = 250
 gui.RETURNTOCAMPDISTANCE = 200
+gui.STICKCOMMAND = '/stick'
 gui.CAMPCHECK = false
 gui.ZONECHECK = true
 gui.LOOTGROUNDSPAWNS = true
@@ -43,6 +44,7 @@ gui.BUFFCHARMNAME = 'Amulet of Ultimate Buffing'
 gui.BUFFCHARMBUFFNAME = 'Talisman of the Panther Rk. III'
 gui.GROUPALT = false
 gui.ALTLOOTERNAME = 'Binli'
+gui.DOSTATTRACK = true
 
 gui.USEPALADINAA = true
 gui.USECLERICAA = true
@@ -209,163 +211,172 @@ function gui.CampFarmerGUI()
                 ImGui.Unindent()
             end
             if ImGui.CollapsingHeader('Gains') then
-                ImGui.Indent()
-                local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer
-                .CurrencyStatus()
-                local totalAA, aaPerHour = CampFarmer.AAStatus()
-                local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
-                local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
-                local formattedDoubloonsPerHour = CampFarmer.formatNumberWithCommas(math.floor(doubloonsPerHour))
-                local formattedPaperssPerHour = CampFarmer.formatNumberWithCommas(math.floor(papersPerHour))
-                local formattedCashPerHour = CampFarmer.formatNumberWithCommas(math.floor(cashPerHour))
-                local formattedTotalDoubloons = CampFarmer.formatNumberWithCommas(totalDoubloons)
-                local formattedTotalPapers = CampFarmer.formatNumberWithCommas(totalPapers)
-                local formattedTotalCash = CampFarmer.formatNumberWithCommas(totalCash)
-
-                local totalGoblins, goblinsPerHour = CampFarmer.GoblinStatus()
-                local formattedTotalGoblins = CampFarmer.formatNumberWithCommas(totalGoblins)
-                local formattedGoblinsPerHour = CampFarmer.formatNumberWithCommas(goblinsPerHour)
-                local totalDoubloonGoblins, doubloonGoblinsPerHour, totalPaperGoblins, paperGoblinsPerHour, totalCashGoblins, cashGoblinsPerHour, totalPlatinumGoblins, platinumGoblinsPerHour, totalRagingGoblins, ragingGoblinsPerHour, totalFabledGoblins, fabledGoblinsPerHour =
-                    CampFarmer.GoblinTypeStatus()
-                local formattedTotalDoubloonGoblins = CampFarmer.formatNumberWithCommas(totalDoubloonGoblins)
-                local formattedDoubloonGoblinsPerHour = CampFarmer.formatNumberWithCommas(doubloonGoblinsPerHour)
-                local formattedTotalPaperGoblins = CampFarmer.formatNumberWithCommas(totalPaperGoblins)
-                local formattedPaperGoblinsPerHour = CampFarmer.formatNumberWithCommas(paperGoblinsPerHour)
-                local formattedTotalCashGoblins = CampFarmer.formatNumberWithCommas(totalCashGoblins)
-                local formattedCashGoblinsPerHour = CampFarmer.formatNumberWithCommas(cashGoblinsPerHour)
-                local formattedTotalPlatinumGoblins = CampFarmer.formatNumberWithCommas(totalPlatinumGoblins)
-                local formattedPlatinumGoblinsPerHour = CampFarmer.formatNumberWithCommas(platinumGoblinsPerHour)
-                local formattedTotalRagingGoblins = CampFarmer.formatNumberWithCommas(totalRagingGoblins)
-                local formattedRagingGoblinsPerHour = CampFarmer.formatNumberWithCommas(ragingGoblinsPerHour)
-                local formattedTotalFabledGoblins = CampFarmer.formatNumberWithCommas(totalFabledGoblins)
-                local formattedFabledGoblinsPerHour = CampFarmer.formatNumberWithCommas(fabledGoblinsPerHour)
-
-                local totalKills, killsPerHour = CampFarmer.KillsStatus()
-                local formattedTotalKills = CampFarmer.formatNumberWithCommas(totalKills)
-                local formattedKillsPerHour = CampFarmer.formatNumberWithCommas(math.floor(killsPerHour))
-
-                ImGui.Text('AA Gained');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalAA));
-                ImGui.SameLine(400);
-                ImGui.Text('AA / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedAAPerHour));
-                ImGui.Separator();
-
-                ImGui.Text('Doubloons Gained');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalDoubloons));
-                ImGui.SameLine(400);
-                ImGui.Text('Doubloons / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedDoubloonsPerHour));
-                ImGui.Separator();
-
-                ImGui.Text('Papers Gained');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalPapers));
-                ImGui.SameLine(400);
-                ImGui.Text('Papers / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedPaperssPerHour));
-                ImGui.Separator();
-
-                ImGui.Text('Cash Gained');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalCash));
-                ImGui.SameLine(400);
-                ImGui.Text('Cash / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedCashPerHour));
-                ImGui.Separator();
-
-                ImGui.Text('Goblins Spawned');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalGoblins));
-                ImGui.SameLine(400);
-                ImGui.Text('Goblins / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedGoblinsPerHour));
-                ImGui.Separator();
-
-                ImGui.Text('Mobs Killed');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedTotalKills));
-                ImGui.SameLine(400);
-                ImGui.Text('Kills / Hour');
-                ImGui.SameLine();
-                ImGui.Text(tostring(formattedKillsPerHour));
-                ImGui.Separator();
-                if ImGui.CollapsingHeader("Goblin Info") then
-                    ImGui.Indent()
-                    ImGui.Text('Doubloon Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalDoubloonGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Doubloon Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedDoubloonGoblinsPerHour))
-                    ImGui.Separator();
-
-                    ImGui.Text('Paper Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalPaperGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Paper Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedPaperGoblinsPerHour))
-                    ImGui.Separator();
-
-                    ImGui.Text('Cash Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalCashGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Cash Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedCashGoblinsPerHour))
-                    ImGui.Separator();
-
-                    ImGui.Text('Platinum Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalPlatinumGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Platinum Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedPlatinumGoblinsPerHour))
-                    ImGui.Separator();
-
-                    ImGui.Text('Raging Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalRagingGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Raging Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedRagingGoblinsPerHour))
-                    ImGui.Separator();
-
-                    ImGui.Text('Fabled Goblins Spawned')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedTotalFabledGoblins))
-                    ImGui.SameLine(400)
-                    ImGui.Text('Fabled Goblins / Hour')
-                    ImGui.SameLine()
-                    ImGui.Text(tostring(formattedFabledGoblinsPerHour))
-                    ImGui.Unindent()
+                ImGui.Indent();
+                CampFarmer.Settings.DoStatTrack = ImGui.Checkbox('Enable Stat Track', CampFarmer.Settings.DoStatTrack)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Track our gains?')
+                if gui.DOSTATTRACK ~= CampFarmer.Settings.DoStatTrack then
+                    gui.DOSTATTRACK = CampFarmer.Settings.DoStatTrack
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
-                if ImGui.CollapsingHeader('Mob Info') then
-                    ImGui.Indent()
-                    for mobName, killCount in pairs(CampFarmer.SlainMobTypes) do
-                        local mobKillsPerHour = CampFarmer.KillStatus(killCount)
+                ImGui.Separator();
+                if CampFarmer.Settings.DoStatTrack then
+                    local totalDoubloons, doubloonsPerHour, totalPapers, papersPerHour, totalCash, cashPerHour = CampFarmer.CurrencyStatus()
+                    local totalAA, aaPerHour = CampFarmer.AAStatus()
+                    local formattedTotalAA = CampFarmer.formatNumberWithCommas(totalAA)
+                    local formattedAAPerHour = CampFarmer.formatNumberWithCommas(math.floor(aaPerHour))
+                    local formattedDoubloonsPerHour = CampFarmer.formatNumberWithCommas(math.floor(doubloonsPerHour))
+                    local formattedPaperssPerHour = CampFarmer.formatNumberWithCommas(math.floor(papersPerHour))
+                    local formattedCashPerHour = CampFarmer.formatNumberWithCommas(math.floor(cashPerHour))
+                    local formattedTotalDoubloons = CampFarmer.formatNumberWithCommas(totalDoubloons)
+                    local formattedTotalPapers = CampFarmer.formatNumberWithCommas(totalPapers)
+                    local formattedTotalCash = CampFarmer.formatNumberWithCommas(totalCash)
 
-                        ImGui.Text(mobName .. ':')
+                    local totalGoblins, goblinsPerHour = CampFarmer.GoblinStatus()
+                    local formattedTotalGoblins = CampFarmer.formatNumberWithCommas(totalGoblins)
+                    local formattedGoblinsPerHour = CampFarmer.formatNumberWithCommas(goblinsPerHour)
+                    local totalDoubloonGoblins, doubloonGoblinsPerHour, totalPaperGoblins, paperGoblinsPerHour, totalCashGoblins, cashGoblinsPerHour, totalPlatinumGoblins, platinumGoblinsPerHour, totalRagingGoblins, ragingGoblinsPerHour, totalFabledGoblins, fabledGoblinsPerHour =
+                        CampFarmer.GoblinTypeStatus()
+                    local formattedTotalDoubloonGoblins = CampFarmer.formatNumberWithCommas(totalDoubloonGoblins)
+                    local formattedDoubloonGoblinsPerHour = CampFarmer.formatNumberWithCommas(doubloonGoblinsPerHour)
+                    local formattedTotalPaperGoblins = CampFarmer.formatNumberWithCommas(totalPaperGoblins)
+                    local formattedPaperGoblinsPerHour = CampFarmer.formatNumberWithCommas(paperGoblinsPerHour)
+                    local formattedTotalCashGoblins = CampFarmer.formatNumberWithCommas(totalCashGoblins)
+                    local formattedCashGoblinsPerHour = CampFarmer.formatNumberWithCommas(cashGoblinsPerHour)
+                    local formattedTotalPlatinumGoblins = CampFarmer.formatNumberWithCommas(totalPlatinumGoblins)
+                    local formattedPlatinumGoblinsPerHour = CampFarmer.formatNumberWithCommas(platinumGoblinsPerHour)
+                    local formattedTotalRagingGoblins = CampFarmer.formatNumberWithCommas(totalRagingGoblins)
+                    local formattedRagingGoblinsPerHour = CampFarmer.formatNumberWithCommas(ragingGoblinsPerHour)
+                    local formattedTotalFabledGoblins = CampFarmer.formatNumberWithCommas(totalFabledGoblins)
+                    local formattedFabledGoblinsPerHour = CampFarmer.formatNumberWithCommas(fabledGoblinsPerHour)
+
+                    local totalKills, killsPerHour = CampFarmer.KillsStatus()
+                    local formattedTotalKills = CampFarmer.formatNumberWithCommas(totalKills)
+                    local formattedKillsPerHour = CampFarmer.formatNumberWithCommas(math.floor(killsPerHour))
+
+                    ImGui.Text('AA Gained');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalAA));
+                    ImGui.SameLine(400);
+                    ImGui.Text('AA / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedAAPerHour));
+                    ImGui.Separator();
+
+                    ImGui.Text('Doubloons Gained');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalDoubloons));
+                    ImGui.SameLine(400);
+                    ImGui.Text('Doubloons / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedDoubloonsPerHour));
+                    ImGui.Separator();
+
+                    ImGui.Text('Papers Gained');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalPapers));
+                    ImGui.SameLine(400);
+                    ImGui.Text('Papers / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedPaperssPerHour));
+                    ImGui.Separator();
+
+                    ImGui.Text('Cash Gained');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalCash));
+                    ImGui.SameLine(400);
+                    ImGui.Text('Cash / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedCashPerHour));
+                    ImGui.Separator();
+
+                    ImGui.Text('Goblins Spawned');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalGoblins));
+                    ImGui.SameLine(400);
+                    ImGui.Text('Goblins / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedGoblinsPerHour));
+                    ImGui.Separator();
+
+                    ImGui.Text('Mobs Killed');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedTotalKills));
+                    ImGui.SameLine(400);
+                    ImGui.Text('Kills / Hour');
+                    ImGui.SameLine();
+                    ImGui.Text(tostring(formattedKillsPerHour));
+                    ImGui.Separator();
+                    if ImGui.CollapsingHeader("Goblin Info") then
+                        ImGui.Indent()
+                        ImGui.Text('Doubloon Goblins Spawned')
                         ImGui.SameLine()
-                        ImGui.Text(tostring(killCount))
+                        ImGui.Text(tostring(formattedTotalDoubloonGoblins))
                         ImGui.SameLine(400)
-                        ImGui.Text('Kills / Hour')
+                        ImGui.Text('Doubloon Goblins / Hour')
                         ImGui.SameLine()
-                        ImGui.Text(string.format("%.2f", mobKillsPerHour))
-                        ImGui.Separator()
+                        ImGui.Text(tostring(formattedDoubloonGoblinsPerHour))
+                        ImGui.Separator();
+
+                        ImGui.Text('Paper Goblins Spawned')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedTotalPaperGoblins))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Paper Goblins / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedPaperGoblinsPerHour))
+                        ImGui.Separator();
+
+                        ImGui.Text('Cash Goblins Spawned')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedTotalCashGoblins))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Cash Goblins / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedCashGoblinsPerHour))
+                        ImGui.Separator();
+
+                        ImGui.Text('Platinum Goblins Spawned')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedTotalPlatinumGoblins))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Platinum Goblins / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedPlatinumGoblinsPerHour))
+                        ImGui.Separator();
+
+                        ImGui.Text('Raging Goblins Spawned')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedTotalRagingGoblins))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Raging Goblins / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedRagingGoblinsPerHour))
+                        ImGui.Separator();
+
+                        ImGui.Text('Fabled Goblins Spawned')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedTotalFabledGoblins))
+                        ImGui.SameLine(400)
+                        ImGui.Text('Fabled Goblins / Hour')
+                        ImGui.SameLine()
+                        ImGui.Text(tostring(formattedFabledGoblinsPerHour))
+                        ImGui.Unindent()
+                    end
+                    if ImGui.CollapsingHeader('Mob Info') then
+                        ImGui.Indent()
+                        for mobName, killCount in pairs(CampFarmer.SlainMobTypes) do
+                            local mobKillsPerHour = CampFarmer.KillStatus(killCount)
+
+                            ImGui.Text(mobName .. ':')
+                            ImGui.SameLine()
+                            ImGui.Text(tostring(killCount))
+                            ImGui.SameLine(400)
+                            ImGui.Text('Kills / Hour')
+                            ImGui.SameLine()
+                            ImGui.Text(string.format("%.2f", mobKillsPerHour))
+                            ImGui.Separator()
+                        end
                     end
                 end
                 ImGui.Unindent()
@@ -459,15 +470,23 @@ function gui.CampFarmerGUI()
                     end
                     ImGui.Separator();
 
-                    CampFarmer.Settings.AltLooterName = ImGui.InputText('Looter Alt Name',
-                        CampFarmer.Settings.AltLooterName)
+                    -- Convert the array to a comma-separated string for input
+                    local altLooterNamesStr = table.concat(CampFarmer.Settings.AltLooterNames, ', ')
+                    altLooterNamesStr = ImGui.InputText('Looter Alt Names (comma-separated)', altLooterNamesStr)
                     ImGui.SameLine()
-                    ImGui.HelpMarker('The name your alt who is looting.')
-                    if gui.ALTLOOTERNAME ~= CampFarmer.Settings.AltLooterName then
-                        gui.ALTLOOTERNAME = CampFarmer.Settings.AltLooterName
+                    ImGui.HelpMarker('Enter the names of alts who will be looting, separated by commas.')
+
+                    -- If the input has changed, split the string back into an array
+                    if gui.ALTLOOTERNAMES ~= altLooterNamesStr then
+                        gui.ALTLOOTERNAMES = altLooterNamesStr
+                        -- Split the string by commas and trim whitespace
+                        CampFarmer.Settings.AltLooterNames = {}
+                        for name in string.gmatch(altLooterNamesStr, '([^,]+)') do
+                            table.insert(CampFarmer.Settings.AltLooterNames, name:match("^%s*(.-)%s*$")) -- Trim spaces
+                        end
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
-                    ImGui.Separator();
+                    ImGui.Separator()
 
                     ImGui.Unindent()
                 end
@@ -816,6 +835,15 @@ function gui.CampFarmerGUI()
                         CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                     end
                     ImGui.Separator();
+
+                    CampFarmer.Settings.StickCommand = ImGui.InputText("Stick Command",
+                        CampFarmer.Settings.StickCommand)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The stick command we will use in the script.')
+                    if gui.STICKCOMMAND ~= CampFarmer.Settings.StickCommand then
+                        gui.STICKCOMMAND = CampFarmer.Settings.StickCommand
+                        CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                    end
                     ImGui.Unindent()
                 end
                 if ImGui.CollapsingHeader("Corpse Cleanup") then
@@ -933,7 +961,7 @@ function gui.CampFarmerGUI()
                 ImGui.Separator();
 
                 CampFarmer.Settings.LootAllCorpsesBeforeRespawn = ImGui.Checkbox(
-                'Enable Loot All Corpses Before Respawn', CampFarmer.Settings.LootAllCorpsesBeforeRespawn)
+                    'Enable Loot All Corpses Before Respawn', CampFarmer.Settings.LootAllCorpsesBeforeRespawn)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Should we loot every corpse before we respawn the zone?')
                 if gui.DOSTAND ~= CampFarmer.Settings.LootAllCorpsesBeforeRespawn then
@@ -941,6 +969,13 @@ function gui.CampFarmerGUI()
                     CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
                 end
                 ImGui.Columns(1);
+                if ImGui.Button('REBUILD##Save File') then
+                    CampFarmer.Storage.SaveSettings(CampFarmer.settingsFile, CampFarmer.Settings)
+                end
+                ImGui.SameLine()
+                ImGui.Text('Settings File')
+                ImGui.SameLine()
+                ImGui.HelpMarker('Overwrites the current ' .. CampFarmer.settingsFile)
                 ImGui.Unindent()
             end
             if ImGui.CollapsingHeader('EZLoot Options') then
