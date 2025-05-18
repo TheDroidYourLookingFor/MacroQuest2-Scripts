@@ -141,7 +141,13 @@ local LootUtils = {
     useZoneLootFile = false,
     useClassLootFile = false,
     useArmorTypeLootFile = false,
-    useMacroLootFile = false
+    useMacroLootFile = false,
+    bankDeposit = true,
+    sellVendor = true,
+    bankAtFreeSlots = 5,
+    bankZone = 202,
+    bankNPC = 'Banker Granger',
+    vendorNPC = 'Merabo Sotath',
 }
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -149,7 +155,7 @@ LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = '\\EZLoot\\EZLoot.ini'
+    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini',
     -- LootLagDelay = 0,
     -- GlobalLootOn = true,
     -- CorpseRotTime = "440s",
@@ -166,7 +172,7 @@ function LootUtils.SetINIType()
         return
     end
     if LootUtils.UseSingleFileForAllCharacters then
-        LootUtils.Settings.LootFile = '\\EZLoot\\EZLoot.ini'
+        LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
@@ -621,6 +627,8 @@ local function lootItem(index, doWhat, button)
     end
     if LootUtils.ReportLoot then
         LootUtils._Macro.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+        -- EZLoot.GUI.addToConsole('Picked Up: %s', corpseItem.Name())
+        -- EZLoot.LootUtils.report('Picked Up: %s', corpseItem.ItemLink('CLICKABLE')())
     end
     -- LootUtils._Macro.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
@@ -669,7 +677,9 @@ function LootUtils.lootCorpse(corpseID)
     if not mq.TLO.Target.ID() == corpseID then
         return
     end
-    mq.delay(1000, function()
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    mq.delay(playerDelay, function()
         return mq.TLO.Window('LootWnd').Open()
     end)
     if not mq.TLO.Window('LootWnd').Open() then
@@ -677,7 +687,7 @@ function LootUtils.lootCorpse(corpseID)
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(1000, function()
+    mq.delay(playerDelay, function()
         return (mq.TLO.Corpse.Items() or 0) > 0
     end)
     local items = mq.TLO.Corpse.Items() or 0
@@ -724,7 +734,7 @@ function LootUtils.lootCorpse(corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
-    mq.delay(1000, function()
+    mq.delay(playerDelay, function()
         return not mq.TLO.Window('LootWnd').Open()
     end)
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
@@ -812,7 +822,9 @@ local function goToVendor()
     if mq.TLO.Target.Distance() > 15 then
         if LootUtils.UseWarp then
             mq.cmdf('%s', '/warp t')
-            mq.delay(500)
+            local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+            local playerDelay = 500 + playerPing
+            mq.delay(playerDelay)
         else
             navToID(mq.TLO.Target.ID())
         end
@@ -824,13 +836,16 @@ local function openVendor(vendorType)
     LootUtils.ConsoleMessage('Debug', 'Opening merchant window')
     mq.cmd('/nomodkey /click right target')
     LootUtils.ConsoleMessage('Debug', 'Waiting for merchant window to populate')
-    mq.delay(1000, function()
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    mq.delay(playerDelay, function()
         return mq.TLO.Window(vendorType).Open()
     end)
     if not mq.TLO.Window(vendorType).Open() then
         return false
     end
-    mq.delay(5000, function()
+    playerDelay = 5000 + playerPing
+    mq.delay(playerDelay, function()
         return mq.TLO.Merchant.ItemsReceived()
     end)
     return mq.TLO.Merchant.ItemsReceived()
@@ -858,7 +873,9 @@ local function sellToVendor(itemToSell)
         if mq.TLO.Window('MerchantWnd').Open() then
             LootUtils.ConsoleMessage('Info', 'Selling %s', itemToSell)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
-            mq.delay(1000, function()
+            local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+            local playerDelay = 1000 + playerPing
+            mq.delay(playerDelay, function()
                 return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell
             end)
             mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
@@ -869,10 +886,35 @@ local function sellToVendor(itemToSell)
                 break
             end
             -- TODO: handle vendor not wanting item / item can't be sold
-            mq.delay(1000, function()
+            mq.delay(playerDelay, function()
                 return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == ''
             end)
         end
+    end
+end
+local function sellBagItemToVendor(itemToSell, itemBag, itemBagSlot)
+    if NEVER_SELL[itemToSell] then
+        return
+    end
+    if mq.TLO.Window('MerchantWnd').Open() then
+        LootUtils.ConsoleMessage('Info', 'Selling %s', itemToSell)
+        mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', itemBag, itemBagSlot)
+        local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+        local playerDelay = 1000 + playerPing
+        mq.delay(playerDelay, function()
+            return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell
+        end)
+        mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
+        mq.doevents('eventNovalue')
+        if itemNoValue == itemToSell then
+            addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
+            itemNoValue = nil
+            return
+        end
+        -- TODO: handle vendor not wanting item / item can't be sold
+        mq.delay(playerDelay, function()
+            return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == ''
+        end)
     end
 end
 
@@ -906,16 +948,16 @@ function LootUtils.sellStuff(closeWindowWhenDone)
         local containerSize = bagSlot.Container()
         if containerSize and containerSize > 0 then
             for j = 1, containerSize do
-                local itemToSell = bagSlot.Item(j).Name()
-                if itemToSell then
+                local itemToSell = bagSlot.Item(j)
+                if itemToSell.Name() then
                     local sellRule = getRule(bagSlot.Item(j))
-                    if sellRule == 'Sell' then
+                    if sellRule == 'Sell' or sellRule == 'NULL' then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
                             LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!',
-                                itemToSell)
+                                itemToSell.Name())
                         else
-                            sellToVendor(itemToSell)
+                            sellBagItemToVendor(itemToSell.Name(), i, j)
                         end
                     end
                 end
@@ -937,7 +979,9 @@ local function sellCashItemsToVendor(itemToSell)
     if mq.TLO.Window('NewPointMerchantWnd').Open() then
         if mq.TLO.SelectedItem() ~= nil and mq.TLO.SelectedItem.Name() == itemToSell then
             LootUtils.ConsoleMessage('Info', 'Selling %s', mq.TLO.SelectedItem.ItemLink('CLICKABLE')())
-            mq.delay(100)
+            local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+            local playerDelay = 100 + playerPing
+            mq.delay(playerDelay)
             mq.cmd('/nomodkey /shiftkey /notify NewPointMerchantWnd NewPointMerchant_SellButton leftmouseup')
             mq.doevents('eventNovalue')
             if cashItemNoValue == itemToSell then
@@ -945,7 +989,8 @@ local function sellCashItemsToVendor(itemToSell)
                 cashItemNoValue = nil
             end
             -- TODO: handle vendor not wanting item / item can't be sold
-            mq.delay(1000, function()
+            playerDelay = 1000 + playerPing
+            mq.delay(playerDelay, function()
                 return not mq.TLO.SelectedItem.Name()
             end)
         end
@@ -978,7 +1023,9 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
     end
 
     mq.cmd('/keypress OPEN_INV_BAGS')
-    mq.delay(250)
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 250 + playerPing
+    mq.delay(playerDelay)
     -- sell any items in bags which are marked as sell
     for i = 1, 10 do
         local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
@@ -990,7 +1037,8 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
                     local sellRule = getRule(bagSlot.Item(j))
                     if sellRule == 'Cash' then
                         mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', i, j)
-                        mq.delay(500, function()
+                        playerDelay = 500 + playerPing
+                        mq.delay(playerDelay, function()
                             return mq.TLO.SelectedItem.Name() ~= nil
                         end)
                         sellCashItemsToVendor(itemToSell)
@@ -1000,7 +1048,7 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
         end
     end
     mq.cmd('/keypress CLOSE_INV_BAGS')
-    mq.delay(250)
+    mq.delay(playerDelay)
 
     mq.flushevents('Sell')
     if mq.TLO.Window('NewPointMerchantWnd').Open() and closeWindowWhenDone then
@@ -1045,6 +1093,8 @@ function LootUtils.bankStuff()
         LootUtils.ConsoleMessage('Warn', 'Bank window must be open!')
         return
     end
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 100 + playerPing
     for i = 1, 10 do
         local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
         if bagSlot.Container() == 0 then
@@ -1053,11 +1103,11 @@ function LootUtils.bankStuff()
                 local bankRule = getRule(bagSlot)
                 if bankRule == 'Bank' then
                     mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
-                    mq.delay(100, function()
+                    mq.delay(playerDelay, function()
                         return mq.TLO.Cursor()
                     end)
                     mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                    mq.delay(100, function()
+                    mq.delay(playerDelay, function()
                         return not mq.TLO.Cursor()
                     end)
                 end
@@ -1075,11 +1125,11 @@ function LootUtils.bankStuff()
                     local bankRule = getRule(bagSlot.Item(j))
                     if bankRule == 'Bank' then
                         mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
-                        mq.delay(100, function()
+                        mq.delay(playerDelay, function()
                             return mq.TLO.Cursor()
                         end)
                         mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                        mq.delay(100, function()
+                        mq.delay(playerDelay, function()
                             return not mq.TLO.Cursor()
                         end)
                     end
@@ -1094,7 +1144,9 @@ end
 function eventForage()
     LootUtils.ConsoleMessage('Debug', 'Enter eventForage')
     -- allow time for item to be on cursor incase message is faster or something?
-    mq.delay(1000, function()
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    mq.delay(playerDelay, function()
         return mq.TLO.Cursor()
     end)
     -- there may be more than one item on cursor so go until its cleared
@@ -1112,7 +1164,8 @@ function eventForage()
                     LootUtils.ConsoleMessage('Info', 'Destroying foraged item %s', foragedItem)
                 end
                 mq.cmd('/destroy')
-                mq.delay(500)
+                playerDelay = 500 + playerPing
+                mq.delay(playerDelay)
             end
             -- will a lore item we already have even show up on cursor?
             -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
@@ -1182,7 +1235,9 @@ while not LootUtils.Settings.Terminate do
         LootUtils.sellCashItems(false)
         doCashSell = false
     end
-    mq.delay(1000)
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    mq.delay(playerDelay)
 end
 
 return LootUtils
