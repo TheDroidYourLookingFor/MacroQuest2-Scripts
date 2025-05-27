@@ -109,8 +109,8 @@ local mq = require 'mq'
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
     Version = "1.0.19",
-    _Macro = EZLoot,
-    UseWarp = true,
+    _Macro = DroidLoot,
+    UseWarp = false,
     AddNewSales = true,
     AddIgnoredItems = true,
     LootForage = true,
@@ -134,6 +134,7 @@ local LootUtils = {
     EmpoweredFabledName = 'Empowered',
     EmpoweredFabledMinHP = 0,
     StackPlatValue = 0,
+    LootByMinHP = 0,
     SaveBagSlots = 3,
     MinSellPrice = 5000,
     StackableOnly = false,
@@ -155,7 +156,7 @@ LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini',
+    LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini',
     -- LootLagDelay = 0,
     -- GlobalLootOn = true,
     -- CorpseRotTime = "440s",
@@ -164,7 +165,7 @@ LootUtils.Settings = {
     -- QuestKeep = 10,
 }
 
--- LootUtils.Settings.logger.prefix = 'EZLoot'
+-- LootUtils.Settings.logger.prefix = 'DroidLoot'
 function LootUtils.SetINIType()
     if LootUtils.useMacroLootFile then
         LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
@@ -172,7 +173,7 @@ function LootUtils.SetINIType()
         return
     end
     if LootUtils.UseSingleFileForAllCharacters then
-        LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.ini'
+        LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
         printf('LootFile: %s', LootUtils.Settings.LootFile)
         return
     end
@@ -182,49 +183,49 @@ function LootUtils.SetINIType()
             my_ArmorType = 'Plate'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
             my_ArmorType = 'Chain'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
             my_ArmorType = 'Cloth'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
             my_ArmorType = 'Leather'
             if LootUtils.useZoneLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         end
     else
         if LootUtils.useZoneLootFile then
             if LootUtils.useClassLootFile then
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\EZLoot\\EZLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
             end
         else
             if LootUtils.useClassLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_Class .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Class .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\EZLoot\\EZLoot.' .. my_Name .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Name .. '.ini'
             end
         end
     end
@@ -465,6 +466,9 @@ local function getRule(item)
                 lootDecision = 'Fabled'
             end
         end
+        if LootUtils.LootByMinHP ~= 0 and itemHP >= LootUtils.LootByMinHP then
+            lootDecision = 'Keep'
+        end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             lootDecision = 'Bank'
         end
@@ -560,7 +564,7 @@ local function setupBinds()
     mq.bind('/loottools', commandHandler)
 end
 
-local reportPrefix = '/%s \a-t]\ax\ayEZLoot\ax\a-t]\ax '
+local reportPrefix = '/%s \a-t]\ax\ayDroidLoot\ax\a-t]\ax '
 function LootUtils.report(message, ...)
     if LootUtils.AnnounceLoot then
         local prefixWithChannel = reportPrefix:format(LootUtils.LootChannel)
@@ -586,7 +590,7 @@ local function lootItem(index, doWhat, button)
     local itemName = mq.TLO.Corpse.Item(index).Name()
     local ruleAction = doWhat
     if doWhat == 'Announce' then
-        mq.cmdf('/%s Found: %s (%s)', EZLoot.AnnounceChannel, itemLink, corpseName)
+        mq.cmdf('/%s Found: %s (%s)', DroidLoot.AnnounceChannel, itemLink, corpseName)
         return
     end
     if string.find(doWhat, "Quest|") == 1 then
@@ -596,7 +600,7 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
-        if EZLoot.debug then
+        if DroidLoot.debug then
             printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount,
                 currentItemAmount)
         end
@@ -627,8 +631,8 @@ local function lootItem(index, doWhat, button)
     end
     if LootUtils.ReportLoot then
         LootUtils._Macro.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
-        -- EZLoot.GUI.addToConsole('Picked Up: %s', corpseItem.Name())
-        -- EZLoot.LootUtils.report('Picked Up: %s', corpseItem.ItemLink('CLICKABLE')())
+        -- DroidLoot.GUI.addToConsole('Picked Up: %s', corpseItem.Name())
+        -- DroidLoot.LootUtils.report('Picked Up: %s', corpseItem.ItemLink('CLICKABLE')())
     end
     -- LootUtils._Macro.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
@@ -715,6 +719,11 @@ function LootUtils.lootCorpse(corpseID)
                     end
                 elseif freeSpace > LootUtils.SaveBagSlots or (stackable and freeStack > 0) then
                     lootItem(i, getRule(corpseItem), 'leftmouseup')
+                else
+                    if LootUtils.AnnounceLoot and LootUtils.ReportSkipped then
+                        mq.cmdf('/%s Skipped loots (%s - %s)', LootUtils.LootChannel, corpseName, corpseID)
+                        LootUtils._Macro.Messages.Warn('Skipped Item: %s', corpseItem.ItemLink('CLICKABLE')())
+                    end
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then
@@ -734,9 +743,7 @@ function LootUtils.lootCorpse(corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
-    mq.delay(playerDelay, function()
-        return not mq.TLO.Window('LootWnd').Open()
-    end)
+    mq.delay(playerDelay, function() return not mq.TLO.Window('LootWnd').Open() end)
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
     -- mark the corpse as not lootable for a bit so we don't keep trying
     if mq.TLO.Spawn(('corpse id %s'):format(corpseID))() then

@@ -1,6 +1,6 @@
 local mq = require('mq')
 local messages = { _version = '1.0', _author = 'TheDroidUrLookingFor' }
-messages.script_ShortName = 'EZLoot'
+messages.script_ShortName = 'DroidLoot'
 messages.debug = false
 
 local Colors = {

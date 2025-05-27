@@ -70,6 +70,7 @@ gui.GLOBALLOOTON = true
 gui.COMBATLOOTING = true
 gui.MINSELLPRICE = -1
 gui.STACKABLEONLY = false
+gui.LOOTBYHPMIN = 0
 gui.STACKPLATVALUE = 0
 gui.CORPSEROTTIME = '440s'
 
@@ -107,7 +108,7 @@ function LoadINI(path)
     return data
 end
 
-iniData = LoadINI(EZLoot.LootUtils.Settings.LootFile)
+iniData = LoadINI(DroidLoot.LootUtils.Settings.LootFile)
 
 local actionBuffers = {}
 
@@ -125,16 +126,16 @@ local function addItemToSection(section, itemName, action)
     iniData[section] = iniData[section] or {}
     iniData[section][itemName] = action or ""
     -- Saving to ini file right away if you want:
-    mq.cmdf('/ini "%s" "%s" "%s" "%s"', EZLoot.LootUtils.Settings.LootFile, section, itemName, action)
+    mq.cmdf('/ini "%s" "%s" "%s" "%s"', DroidLoot.LootUtils.Settings.LootFile, section, itemName, action)
 end
 
 gui.ACTION = ''
 local newItemName
 local newItemAction
 local current_idx
-function gui.EZLootGUI()
+function gui.DroidLootGUI()
     if gui.Open then
-        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid EZ Loot Bot v' .. gui.version, gui.Open)
+        gui.Open, gui.ShowUI = ImGui.Begin('TheDroid Droid Loot Bot v' .. gui.version, gui.Open)
         ImGui.SetWindowSize(620, 680, ImGuiCond.Once)
         local x_size = 620
         local y_size = 680
@@ -146,47 +147,47 @@ function gui.EZLootGUI()
         if gui.ShowUI then
             local buttonWidth, buttonHeight = 120, 30
             local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
-            if EZLoot.doPause then
+            if DroidLoot.doPause then
                 if ImGui.Button('Resume', buttonImVec2) then
-                    EZLoot.doPause = false
+                    DroidLoot.doPause = false
                 end
             else
                 if ImGui.Button('Pause', buttonImVec2) then
-                    EZLoot.doPause = true
+                    DroidLoot.doPause = true
                 end
             end
             ImGui.SameLine(185)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Bank', buttonImVec2) then
-                EZLoot.needToBank = true
+                DroidLoot.needToBank = true
             end
             ImGui.SameLine(315)
             ImGui.Spacing()
             ImGui.SameLine()
             if ImGui.Button('Plat Sell', buttonImVec2) then
-                EZLoot.needToVendorSell = true
+                DroidLoot.needToVendorSell = true
             end
             ImGui.SameLine(485)
             ImGui.Spacing()
             ImGui.SameLine()
             ImGui.SameLine()
-            if ImGui.Button('Quit EZLoot', buttonImVec2) then
-                EZLoot.terminate = true
+            if ImGui.Button('Quit DroidLoot', buttonImVec2) then
+                DroidLoot.terminate = true
             end
             ImGui.Spacing()
 
-            if ImGui.CollapsingHeader("EZ Loot Bot") then
+            if ImGui.CollapsingHeader("Droid Loot Bot") then
                 ImGui.Indent()
                 ImGui.Text("This is a simple script I threw together to help out a few friends.\n" ..
-                    "It will loot anything set in the EZLoot.ini,\n")
+                    "It will loot anything set in the DroidLoot.ini,\n")
                 ImGui.Separator();
 
                 ImGui.Text("COMMANDS:");
-                ImGui.BulletText('/' .. EZLoot.command_ShortName .. ' bank');
-                ImGui.BulletText('/' .. EZLoot.command_ShortName .. ' cash');
-                ImGui.BulletText('/' .. EZLoot.command_ShortName .. ' fabled');
-                ImGui.BulletText('/' .. EZLoot.command_ShortName .. ' quit');
+                ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' bank');
+                ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' cash');
+                ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' fabled');
+                ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' quit');
                 ImGui.Separator();
 
                 ImGui.Text("CREDIT:");
@@ -210,7 +211,7 @@ function gui.EZLootGUI()
                             local is_selected = (current_idx == n)
                             if ImGui.Selectable(itemActions[n], is_selected) then
                                 current_idx = n
-                                newItemAction = itemActions[n]     -- Set newItemAction
+                                newItemAction = itemActions[n] -- Set newItemAction
                             end
                             if is_selected then
                                 ImGui.SetItemDefaultFocus()
@@ -274,7 +275,7 @@ function gui.EZLootGUI()
                                     actionBuffers[key] = newText
                                     iniData[section][itemName] = newText
                                     mq.cmdf('/ini "%s" "%s" "%s" "%s"',
-                                        EZLoot.LootUtils.Settings.LootFile, section, itemName, newText)
+                                        DroidLoot.LootUtils.Settings.LootFile, section, itemName, newText)
                                 end
                                 ImGui.NextColumn()
                             end
@@ -285,325 +286,328 @@ function gui.EZLootGUI()
 
                 ImGui.Unindent()
             end
-            if ImGui.CollapsingHeader('EZLoot Options') then
+            if ImGui.CollapsingHeader('DroidLoot Options') then
                 ImGui.Indent()
                 if ImGui.CollapsingHeader("Hub Operations") then
                     ImGui.Indent()
                     ImGui.Columns(2)
-                    EZLoot.LootUtils.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', EZLoot.LootUtils.bankDeposit)
+                    DroidLoot.LootUtils.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', DroidLoot.LootUtils.bankDeposit)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
-                    if gui.BANKDEPOSIT ~= EZLoot.LootUtils.bankDeposit then
-                        gui.BANKDEPOSIT = EZLoot.LootUtils.bankDeposit
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.BANKDEPOSIT ~= DroidLoot.LootUtils.bankDeposit then
+                        gui.BANKDEPOSIT = DroidLoot.LootUtils.bankDeposit
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.NextColumn();
 
-                    EZLoot.LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling',
-                        EZLoot.LootUtils.sellVendor)
+                    DroidLoot.LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling',
+                        DroidLoot.LootUtils.sellVendor)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Platinum when enabled.')
-                    if gui.SELLVENDOR ~= EZLoot.LootUtils.sellVendor then
-                        gui.SELLVENDOR = EZLoot.LootUtils.sellVendor
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.SELLVENDOR ~= DroidLoot.LootUtils.sellVendor then
+                        gui.SELLVENDOR = DroidLoot.LootUtils.sellVendor
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
                     ImGui.Columns(1)
 
-                    EZLoot.LootUtils.bankZone = ImGui.InputInt('Bank Zone', EZLoot.LootUtils.bankZone)
+                    DroidLoot.LootUtils.bankZone = ImGui.InputInt('Bank Zone', DroidLoot.LootUtils.bankZone)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Zone where we can access banking services.')
-                    if gui.BANKZONE ~= EZLoot.LootUtils.bankZone then
-                        gui.BANKZONE = EZLoot.LootUtils.bankZone
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.BANKZONE ~= DroidLoot.LootUtils.bankZone then
+                        gui.BANKZONE = DroidLoot.LootUtils.bankZone
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.bankNPC = ImGui.InputText('Bank NPC', EZLoot.LootUtils.bankNPC)
+                    DroidLoot.LootUtils.bankNPC = ImGui.InputText('Bank NPC', DroidLoot.LootUtils.bankNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to warp to for banking.')
-                    if gui.BANKNPC ~= EZLoot.LootUtils.bankNPC then
-                        gui.BANKNPC = EZLoot.LootUtils.bankNPC
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.BANKNPC ~= DroidLoot.LootUtils.bankNPC then
+                        gui.BANKNPC = DroidLoot.LootUtils.bankNPC
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.vendorNPC = ImGui.InputText('Vendor NPC', EZLoot.LootUtils.vendorNPC)
+                    DroidLoot.LootUtils.vendorNPC = ImGui.InputText('Vendor NPC', DroidLoot.LootUtils.vendorNPC)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
-                    if gui.VENDORNPC ~= EZLoot.LootUtils.vendorNPC then
-                        gui.VENDORNPC = EZLoot.LootUtils.vendorNPC
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.VENDORNPC ~= DroidLoot.LootUtils.vendorNPC then
+                        gui.VENDORNPC = DroidLoot.LootUtils.vendorNPC
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
-                        EZLoot.LootUtils.bankAtFreeSlots, 1, 20)
+                    DroidLoot.LootUtils.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
+                        DroidLoot.LootUtils.bankAtFreeSlots, 1, 20)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of free slots before we should bank.')
-                    if gui.BANKATFREESLOTS ~= EZLoot.LootUtils.bankAtFreeSlots then
-                        gui.BANKATFREESLOTS = EZLoot.LootUtils.bankAtFreeSlots
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.BANKATFREESLOTS ~= DroidLoot.LootUtils.bankAtFreeSlots then
+                        gui.BANKATFREESLOTS = DroidLoot.LootUtils.bankAtFreeSlots
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
                     ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("WastingTime Options") then
                     ImGui.Indent()
-                    EZLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
-                        EZLoot.LootUtils.LootPlatinumBags)
+                    DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
+                        DroidLoot.LootUtils.LootPlatinumBags)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots platinum bags.')
-                    if gui.LOOTPLATINUMBAGS ~= EZLoot.LootUtils.LootPlatinumBags then
-                        gui.LOOTPLATINUMBAGS = EZLoot.LootUtils.LootPlatinumBags
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.LOOTPLATINUMBAGS ~= DroidLoot.LootUtils.LootPlatinumBags then
+                        gui.LOOTPLATINUMBAGS = DroidLoot.LootUtils.LootPlatinumBags
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
-                        EZLoot.LootUtils.LootTokensOfAdvancement)
+                    DroidLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
+                        DroidLoot.LootUtils.LootTokensOfAdvancement)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots tokens of advancement.')
-                    if gui.LOOTTOKENSOFADVANCEMENT ~= EZLoot.LootUtils.LootTokensOfAdvancement then
-                        gui.LOOTTOKENSOFADVANCEMENT = EZLoot.LootUtils.LootTokensOfAdvancement
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.LOOTTOKENSOFADVANCEMENT ~= DroidLoot.LootUtils.LootTokensOfAdvancement then
+                        gui.LOOTTOKENSOFADVANCEMENT = DroidLoot.LootUtils.LootTokensOfAdvancement
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
-                        EZLoot.LootUtils.LootEmpoweredFabled)
+                    DroidLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
+                        DroidLoot.LootUtils.LootEmpoweredFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots empowered fabled items.')
-                    if gui.LOOTEMPOWEREDFABLED ~= EZLoot.LootUtils.LootEmpoweredFabled then
-                        gui.LOOTEMPOWEREDFABLED = EZLoot.LootUtils.LootEmpoweredFabled
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.LOOTEMPOWEREDFABLED ~= DroidLoot.LootUtils.LootEmpoweredFabled then
+                        gui.LOOTEMPOWEREDFABLED = DroidLoot.LootUtils.LootEmpoweredFabled
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
-                        EZLoot.LootUtils.LootAllFabledAugs)
+                    DroidLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
+                        DroidLoot.LootUtils.LootAllFabledAugs)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots all fabled augments.')
-                    if gui.LOOTALLFABLEDAUGS ~= EZLoot.LootUtils.LootAllFabledAugs then
-                        gui.LOOTALLFABLEDAUGS = EZLoot.LootUtils.LootAllFabledAugs
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.LOOTALLFABLEDAUGS ~= DroidLoot.LootUtils.LootAllFabledAugs then
+                        gui.LOOTALLFABLEDAUGS = DroidLoot.LootUtils.LootAllFabledAugs
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
-                        EZLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                    DroidLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
+                        DroidLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
-                    if gui.EMPOWEREDFABLEDMINHP ~= EZLoot.LootUtils.EmpoweredFabledMinHP then
-                        gui.EMPOWEREDFABLEDMINHP = EZLoot.LootUtils.EmpoweredFabledMinHP
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.EMPOWEREDFABLEDMINHP ~= DroidLoot.LootUtils.EmpoweredFabledMinHP then
+                        gui.EMPOWEREDFABLEDMINHP = DroidLoot.LootUtils.EmpoweredFabledMinHP
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
 
-                    EZLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
-                        EZLoot.LootUtils.EmpoweredFabledName)
+                    DroidLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
+                        DroidLoot.LootUtils.EmpoweredFabledName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Name of the empowered fabled item.')
-                    if gui.EMPOWEREDFABLEDNAME ~= EZLoot.LootUtils.EmpoweredFabledName then
-                        gui.EMPOWEREDFABLEDNAME = EZLoot.LootUtils.EmpoweredFabledName
-                        EZLoot.LootUtils.writeSettings()
+                    if gui.EMPOWEREDFABLEDNAME ~= DroidLoot.LootUtils.EmpoweredFabledName then
+                        gui.EMPOWEREDFABLEDNAME = DroidLoot.LootUtils.EmpoweredFabledName
+                        DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
                     ImGui.Unindent()
                 end
                 ImGui.Columns(2)
                 local start_y = ImGui.GetCursorPosY()
-                EZLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', EZLoot.LootUtils.UseWarp)
+                DroidLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', DroidLoot.LootUtils.UseWarp)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Uses warp when enabled.')
-                if gui.USEWARP ~= EZLoot.LootUtils.UseWarp then
-                    gui.USEWARP = EZLoot.LootUtils.UseWarp
-                    EZLoot.LootUtils.writeSettings()
+                if gui.USEWARP ~= DroidLoot.LootUtils.UseWarp then
+                    gui.USEWARP = DroidLoot.LootUtils.UseWarp
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', EZLoot.LootUtils.AddNewSales)
+                DroidLoot.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', DroidLoot.LootUtils.AddNewSales)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Add new sales when enabled.')
-                if gui.ADDNEWSALES ~= EZLoot.LootUtils.AddNewSales then
-                    gui.ADDNEWSALES = EZLoot.LootUtils.AddNewSales
-                    EZLoot.LootUtils.writeSettings()
+                if gui.ADDNEWSALES ~= DroidLoot.LootUtils.AddNewSales then
+                    gui.ADDNEWSALES = DroidLoot.LootUtils.AddNewSales
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', EZLoot.LootUtils.LootForage)
+                DroidLoot.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', DroidLoot.LootUtils.LootForage)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot forage when enabled.')
-                if gui.LOOTFORAGE ~= EZLoot.LootUtils.LootForage then
-                    gui.LOOTFORAGE = EZLoot.LootUtils.LootForage
-                    EZLoot.LootUtils.writeSettings()
+                if gui.LOOTFORAGE ~= DroidLoot.LootUtils.LootForage then
+                    gui.LOOTFORAGE = DroidLoot.LootUtils.LootForage
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
-                    EZLoot.LootUtils.LootTradeSkill)
+                DroidLoot.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill',
+                    DroidLoot.LootUtils.LootTradeSkill)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot trade skill items when enabled.')
-                if gui.LOOTTRADESKILL ~= EZLoot.LootUtils.LootTradeSkill then
-                    gui.LOOTTRADESKILL = EZLoot.LootUtils.LootTradeSkill
-                    EZLoot.LootUtils.writeSettings()
+                if gui.LOOTTRADESKILL ~= DroidLoot.LootUtils.LootTradeSkill then
+                    gui.LOOTTRADESKILL = DroidLoot.LootUtils.LootTradeSkill
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', EZLoot.LootUtils.DoLoot)
+                DroidLoot.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', DroidLoot.LootUtils.DoLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Enables looting.')
-                if gui.DOLOOT ~= EZLoot.LootUtils.DoLoot then
-                    gui.DOLOOT = EZLoot.LootUtils.DoLoot
-                    EZLoot.LootUtils.writeSettings()
+                if gui.DOLOOT ~= DroidLoot.LootUtils.DoLoot then
+                    gui.DOLOOT = DroidLoot.LootUtils.DoLoot
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
-                    EZLoot.LootUtils.EquipUsable)
+                DroidLoot.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable',
+                    DroidLoot.LootUtils.EquipUsable)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Equips usable items. Buggy at best.')
-                if gui.EQUIPUSABLE ~= EZLoot.LootUtils.EquipUsable then
-                    gui.EQUIPUSABLE = EZLoot.LootUtils.EquipUsable
-                    EZLoot.LootUtils.writeSettings()
+                if gui.EQUIPUSABLE ~= DroidLoot.LootUtils.EquipUsable then
+                    gui.EQUIPUSABLE = DroidLoot.LootUtils.EquipUsable
+                    DroidLoot.LootUtils.writeSettings()
                 end
 
                 ImGui.NextColumn();
                 ImGui.SetCursorPosY(start_y)
-                EZLoot.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot',
-                    EZLoot.LootUtils.AnnounceLoot)
+                DroidLoot.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot',
+                    DroidLoot.LootUtils.AnnounceLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports looted items to announce channel.')
-                if gui.ANNOUNCELOOT ~= EZLoot.LootUtils.AnnounceLoot then
-                    gui.ANNOUNCELOOT = EZLoot.LootUtils.AnnounceLoot
-                    EZLoot.LootUtils.writeSettings()
+                if gui.ANNOUNCELOOT ~= DroidLoot.LootUtils.AnnounceLoot then
+                    gui.ANNOUNCELOOT = DroidLoot.LootUtils.AnnounceLoot
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', EZLoot.LootUtils.ReportLoot)
+                DroidLoot.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', DroidLoot.LootUtils.ReportLoot)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports looted items to console.')
-                if gui.REPORTLOOT ~= EZLoot.LootUtils.ReportLoot then
-                    gui.REPORTLOOT = EZLoot.LootUtils.ReportLoot
-                    EZLoot.LootUtils.writeSettings()
+                if gui.REPORTLOOT ~= DroidLoot.LootUtils.ReportLoot then
+                    gui.REPORTLOOT = DroidLoot.LootUtils.ReportLoot
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
-                    EZLoot.LootUtils.ReportSkipped)
+                DroidLoot.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped',
+                    DroidLoot.LootUtils.ReportSkipped)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Reports skipped loots.')
-                if gui.REPORTSKIPPED ~= EZLoot.LootUtils.ReportSkipped then
-                    gui.REPORTSKIPPED = EZLoot.LootUtils.ReportSkipped
-                    EZLoot.LootUtils.writeSettings()
+                if gui.REPORTSKIPPED ~= DroidLoot.LootUtils.ReportSkipped then
+                    gui.REPORTSKIPPED = DroidLoot.LootUtils.ReportSkipped
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
-                    EZLoot.LootUtils.SpamLootInfo)
+                DroidLoot.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info',
+                    DroidLoot.LootUtils.SpamLootInfo)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot info.')
-                if gui.SPAMLOOTINFO ~= EZLoot.LootUtils.SpamLootInfo then
-                    gui.SPAMLOOTINFO = EZLoot.LootUtils.SpamLootInfo
-                    EZLoot.LootUtils.writeSettings()
+                if gui.SPAMLOOTINFO ~= DroidLoot.LootUtils.SpamLootInfo then
+                    gui.SPAMLOOTINFO = DroidLoot.LootUtils.SpamLootInfo
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
-                    EZLoot.LootUtils.LootForageSpam)
+                DroidLoot.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
+                    DroidLoot.LootUtils.LootForageSpam)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Spams loot forage info.')
-                if gui.LOOTFORAGESPAM ~= EZLoot.LootUtils.LootForageSpam then
-                    gui.LOOTFORAGESPAM = EZLoot.LootUtils.LootForageSpam
-                    EZLoot.LootUtils.writeSettings()
+                if gui.LOOTFORAGESPAM ~= DroidLoot.LootUtils.LootForageSpam then
+                    gui.LOOTFORAGESPAM = DroidLoot.LootUtils.LootForageSpam
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting',
-                    EZLoot.LootUtils.CombatLooting)
+                DroidLoot.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting', DroidLoot.LootUtils.CombatLooting)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots during combat.')
-                if gui.COMBATLOOTING ~= EZLoot.LootUtils.CombatLooting then
-                    gui.COMBATLOOTING = EZLoot.LootUtils.CombatLooting
-                    EZLoot.LootUtils.writeSettings()
+                if gui.COMBATLOOTING ~= DroidLoot.LootUtils.CombatLooting then
+                    gui.COMBATLOOTING = DroidLoot.LootUtils.CombatLooting
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Columns(1)
 
-                EZLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", EZLoot.LootUtils.CorpseRadius,
-                    1, 5000)
+                DroidLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", DroidLoot.LootUtils.CorpseRadius, 1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The radius we should scan for corpses.')
-                if gui.CORPSERADIUS ~= EZLoot.LootUtils.CorpseRadius then
-                    gui.CORPSERADIUS = EZLoot.LootUtils.CorpseRadius
-                    EZLoot.LootUtils.writeSettings()
+                if gui.CORPSERADIUS ~= DroidLoot.LootUtils.CorpseRadius then
+                    gui.CORPSERADIUS = DroidLoot.LootUtils.CorpseRadius
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", EZLoot.LootUtils
-                    .MobsTooClose, 1, 5000)
+                DroidLoot.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", DroidLoot.LootUtils.MobsTooClose, 1, 5000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The range to check for nearby mobs.')
-                if gui.MOBSTOOCLOSE ~= EZLoot.LootUtils.MobsTooClose then
-                    gui.MOBSTOOCLOSE = EZLoot.LootUtils.MobsTooClose
-                    EZLoot.LootUtils.writeSettings()
+                if gui.MOBSTOOCLOSE ~= DroidLoot.LootUtils.MobsTooClose then
+                    gui.MOBSTOOCLOSE = DroidLoot.LootUtils.MobsTooClose
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value",
-                    EZLoot.LootUtils.StackPlatValue, 0, 10000)
+                DroidLoot.LootUtils.LootByMinHP = ImGui.SliderInt("Loot By HP Min Health", DroidLoot.LootUtils.LootByMinHP, 0, 50000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Minimum HP for item to be considered and set to Keep. Any value greater than 0 activates this.')
+                if gui.LOOTBYHPMIN ~= DroidLoot.LootUtils.LootByMinHP then
+                    gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
+                    DroidLoot.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
+                DroidLoot.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value", DroidLoot.LootUtils.StackPlatValue, 0, 10000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The value of platinum stacks.')
-                if gui.STACKPLATVALUE ~= EZLoot.LootUtils.StackPlatValue then
-                    gui.STACKPLATVALUE = EZLoot.LootUtils.StackPlatValue
-                    EZLoot.LootUtils.writeSettings()
+                if gui.STACKPLATVALUE ~= DroidLoot.LootUtils.StackPlatValue then
+                    gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", EZLoot.LootUtils
-                    .SaveBagSlots, 0, 100)
+                DroidLoot.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", DroidLoot.LootUtils.SaveBagSlots, 0, 100)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The number of bag slots to save.')
-                if gui.SAVEBAGSLOTS ~= EZLoot.LootUtils.SaveBagSlots then
-                    gui.SAVEBAGSLOTS = EZLoot.LootUtils.SaveBagSlots
-                    EZLoot.LootUtils.writeSettings()
+                if gui.SAVEBAGSLOTS ~= DroidLoot.LootUtils.SaveBagSlots then
+                    gui.SAVEBAGSLOTS = DroidLoot.LootUtils.SaveBagSlots
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", EZLoot.LootUtils
-                    .MinSellPrice, 1, 100000)
+                DroidLoot.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", DroidLoot.LootUtils.MinSellPrice, 1, 100000)
                 ImGui.SameLine()
                 ImGui.HelpMarker('The minimum price at which items will be sold.')
-                if gui.MINSELLPRICE ~= EZLoot.LootUtils.MinSellPrice then
-                    gui.MINSELLPRICE = EZLoot.LootUtils.MinSellPrice
-                    EZLoot.LootUtils.writeSettings()
+                if gui.MINSELLPRICE ~= DroidLoot.LootUtils.MinSellPrice then
+                    gui.MINSELLPRICE = DroidLoot.LootUtils.MinSellPrice
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.LootChannel = ImGui.InputText('Loot Channel', EZLoot.LootUtils.LootChannel)
+                DroidLoot.LootUtils.LootChannel = ImGui.InputText('Loot Channel', DroidLoot.LootUtils.LootChannel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Channel to report loot to.')
-                if gui.LOOTCHANNEL ~= EZLoot.LootUtils.LootChannel then
-                    gui.LOOTCHANNEL = EZLoot.LootUtils.LootChannel
-                    EZLoot.LootUtils.writeSettings()
+                if gui.LOOTCHANNEL ~= DroidLoot.LootUtils.LootChannel then
+                    gui.LOOTCHANNEL = DroidLoot.LootUtils.LootChannel
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
-                    EZLoot.LootUtils.AnnounceChannel)
+                DroidLoot.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
+                    DroidLoot.LootUtils.AnnounceChannel)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Channel to announce events.')
-                if gui.ANNOUNCECHANNEL ~= EZLoot.LootUtils.AnnounceChannel then
-                    gui.ANNOUNCECHANNEL = EZLoot.LootUtils.AnnounceChannel
-                    EZLoot.LootUtils.writeSettings()
+                if gui.ANNOUNCECHANNEL ~= DroidLoot.LootUtils.AnnounceChannel then
+                    gui.ANNOUNCECHANNEL = DroidLoot.LootUtils.AnnounceChannel
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
 
-                EZLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', EZLoot.LootUtils.Settings.LootFile)
+                DroidLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', DroidLoot.LootUtils.Settings.LootFile)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot file to use.')
-                if gui.LOOTINIFILE ~= EZLoot.LootUtils.Settings.LootFile then
-                    gui.LOOTINIFILE = EZLoot.LootUtils.Settings.LootFile
-                    EZLoot.LootUtils.writeSettings()
+                if gui.LOOTINIFILE ~= DroidLoot.LootUtils.Settings.LootFile then
+                    gui.LOOTINIFILE = DroidLoot.LootUtils.Settings.LootFile
+                    DroidLoot.LootUtils.writeSettings()
                 end
                 ImGui.Separator();
                 ImGui.Unindent();
@@ -640,7 +644,7 @@ function tablelength(tbl)
 end
 
 function gui.initGUI()
-    mq.imgui.init('EZLoot', gui.EZLootGUI)
+    mq.imgui.init('DroidLoot', gui.DroidLootGUI)
     gui.Open = true
 end
 
