@@ -390,6 +390,26 @@ local function navToID(spawnID)
     end
 end
 
+function LootUtils.navToID(spawnID)
+    if LootUtils.UseWarp then
+        mq.cmdf('/target id %s', spawnID)
+        mq.delay(250)
+        mq.cmd('/squelch /warp t')
+    else
+        mq.cmdf('/nav id %d log=off', spawnID)
+        mq.delay(50)
+        if mq.TLO.Navigation.Active() then
+            local startTime = os.time()
+            while mq.TLO.Navigation.Active() do
+                mq.delay(100)
+                if os.difftime(os.time(), startTime) > 5 then
+                    break
+                end
+            end
+        end
+    end
+end
+
 local function addRule(itemName, section, rule)
     if rule == 'Ignore' and not LootUtils.AddIgnoredItems or (not LootUtils.LootEmpoweredFabled and rule == 'Fabled') then
         return
