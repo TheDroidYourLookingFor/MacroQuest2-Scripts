@@ -108,7 +108,7 @@ local mq = require 'mq'
 
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.19",
+    Version = "1.0.20",
     _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -127,9 +127,9 @@ local LootUtils = {
     SpamLootInfo = false,
     LootForageSpam = false,
     CombatLooting = true,
-    LootPlatinumBags = true,
-    LootTokensOfAdvancement = true,
-    LootEmpoweredFabled = true,
+    LootPlatinumBags = false,
+    LootTokensOfAdvancement = false,
+    LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
     EmpoweredFabledName = 'Empowered',
     EmpoweredFabledMinHP = 0,
@@ -148,7 +148,7 @@ local LootUtils = {
     bankAtFreeSlots = 5,
     bankZone = 202,
     bankNPC = 'Banker Granger',
-    vendorNPC = 'Merabo Sotath',
+    vendorNPC = 'Jocelyn Forgerson',
 }
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -466,7 +466,7 @@ local function getRule(item)
                 lootDecision = 'Fabled'
             end
         end
-        if LootUtils.LootByMinHP ~= 0 and itemHP >= LootUtils.LootByMinHP then
+        if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
             lootDecision = 'Keep'
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
@@ -583,16 +583,11 @@ end
 ---@param button string @The mouse button to use to loot the item. Currently only leftmouseup implemented.
 local function lootItem(index, doWhat, button)
     LootUtils.ConsoleMessage('Debug', 'Enter lootItem')
-    local corpseName = mq.TLO.Corpse.Name()
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local corpseItem = mq.TLO.Corpse.Item(index)
-    local itemLink = corpseItem.ItemLink('CLICKABLE')()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     local ruleAction = doWhat
-    if doWhat == 'Announce' then
-        mq.cmdf('/%s Found: %s (%s)', DroidLoot.AnnounceChannel, itemLink, corpseName)
-        return
-    end
+
     if string.find(doWhat, "Quest|") == 1 then
         local lootRule = split(doWhat)
         ruleAction = lootRule[1]       -- what to do with the item
@@ -709,6 +704,12 @@ function LootUtils.lootCorpse(corpseID)
                 -- if corpseItem.NoDrop() then
                 --     --table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
                 -- else
+                if freeSpace < LootUtils.SaveBagSlots then
+                    if LootUtils.ReportSkipped then
+                        mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                        LootUtils._Macro.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    end
+                end
                 if corpseItem.Lore() then
                     local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                     local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
@@ -719,11 +720,17 @@ function LootUtils.lootCorpse(corpseID)
                     end
                 elseif freeSpace > LootUtils.SaveBagSlots or (stackable and freeStack > 0) then
                     lootItem(i, getRule(corpseItem), 'leftmouseup')
-                else
-                    if LootUtils.AnnounceLoot and LootUtils.ReportSkipped then
-                        mq.cmdf('/%s Skipped loots (%s - %s)', LootUtils.LootChannel, corpseName, corpseID)
-                        LootUtils._Macro.Messages.Warn('Skipped Item: %s', corpseItem.ItemLink('CLICKABLE')())
-                    end
+                end
+
+                local lootAction = getRule(corpseItem)
+                if lootAction == 'Ignore' then
+                    mq.cmdf('/%s Skipped: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    LootUtils._Macro.Messages.Warn('Skipped Item: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                end
+                if lootAction == 'Announce' then
+                    mq.cmdf('/%s Found: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    LootUtils._Macro.Messages.Warn('Found: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    return
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then

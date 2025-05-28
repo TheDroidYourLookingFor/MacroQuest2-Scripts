@@ -2,11 +2,17 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.0'
-gui.versionOrder = { "1.0.0" }
+gui.version = '1.0.1'
+gui.versionOrder = { "1.0.0","1.0.1" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
+    },
+    ['1.0.1'] = { 'Announce Changes',
+        '- Changed how the script handles skipped items and ignored items.',
+        '- Added Change log to Info page',
+        '- Added Loot list to GUI',
+        '- Modified default settings (Disabled warp by default)'
     },
 }
 
@@ -62,6 +68,12 @@ gui.CORPSEFIX = false
 gui.MOBSTOOCLOSE = 40
 gui.CORPSERADIUS = 100
 gui.ADDNEWSALES = false
+gui.ADDIGNOREDITEMS = false
+gui.USECLASSLOOTFILE = false
+gui.USEARMORTYPELOOTFILE = false
+gui.USEMACROLOOTFILE = false
+gui.USEZONELOOTFILE = false
+gui.USESINGLEFILEFORALLCHARACTERS = true
 gui.LOOTFORAGE = false
 gui.REPORTLOOT = false
 gui.LOOTCHANNEL = 'dgt'
@@ -192,6 +204,10 @@ function gui.DroidLootGUI()
 
                 ImGui.Text("CREDIT:");
                 ImGui.BulletText("TheDroidUrLookingFor");
+                ImGui.Separator();
+                if ImGui.CollapsingHeader("Change Log") then
+                    gui.ChangeLog()
+                end
                 ImGui.Unindent()
             end
 
@@ -432,6 +448,15 @@ function gui.DroidLootGUI()
                 end
                 ImGui.Separator();
 
+                DroidLoot.LootUtils.AddIgnoredItems = ImGui.Checkbox('Enable Add Ignored Items', DroidLoot.LootUtils.AddIgnoredItems)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Add ignored items to ini when enabled.')
+                if gui.ADDIGNOREDITEMS ~= DroidLoot.LootUtils.AddIgnoredItems then
+                    gui.ADDIGNOREDITEMS = DroidLoot.LootUtils.AddIgnoredItems
+                    DroidLoot.LootUtils.writeSettings()
+                end
+                ImGui.Separator();
+
                 DroidLoot.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', DroidLoot.LootUtils.LootForage)
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loot forage when enabled.')
@@ -602,14 +627,68 @@ function gui.DroidLootGUI()
                 end
                 ImGui.Separator();
 
-                DroidLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', DroidLoot.LootUtils.Settings.LootFile)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loot file to use.')
-                if gui.LOOTINIFILE ~= DroidLoot.LootUtils.Settings.LootFile then
-                    gui.LOOTINIFILE = DroidLoot.LootUtils.Settings.LootFile
-                    DroidLoot.LootUtils.writeSettings()
+                if ImGui.CollapsingHeader("INI") then
+                    ImGui.Indent()
+                    DroidLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', DroidLoot.LootUtils.Settings.LootFile)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loot file to use.')
+                    if gui.LOOTINIFILE ~= DroidLoot.LootUtils.Settings.LootFile then
+                        gui.LOOTINIFILE = DroidLoot.LootUtils.Settings.LootFile
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Separator();
+
+                    ImGui.Columns(2)
+                    local start_y_INI = ImGui.GetCursorPosY()
+
+                    DroidLoot.LootUtils.UseSingleFileForAllCharacters = ImGui.Checkbox('Enable Single INI', DroidLoot.LootUtils.UseSingleFileForAllCharacters)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reads from a single INI file for all characters when enabled.')
+                    if gui.USESINGLEFILEFORALLCHARACTERS ~= DroidLoot.LootUtils.UseSingleFileForAllCharacters then
+                        gui.USESINGLEFILEFORALLCHARACTERS = DroidLoot.LootUtils.UseSingleFileForAllCharacters
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.useZoneLootFile = ImGui.Checkbox('Enable Zone INI', DroidLoot.LootUtils.useZoneLootFile)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reads from a zone based INI file for all characters when enabled.')
+                    if gui.USEZONELOOTFILE ~= DroidLoot.LootUtils.useZoneLootFile then
+                        gui.USEZONELOOTFILE = DroidLoot.LootUtils.useZoneLootFile
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.useClassLootFile = ImGui.Checkbox('Enable Class INI', DroidLoot.LootUtils.useClassLootFile)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reads from a class based INI file for all characters when enabled.')
+                    if gui.USECLASSLOOTFILE ~= DroidLoot.LootUtils.useClassLootFile then
+                        gui.USECLASSLOOTFILE = DroidLoot.LootUtils.useClassLootFile
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Separator();
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_INI)
+
+                    DroidLoot.LootUtils.useArmorTypeLootFile = ImGui.Checkbox('Enable Armor Type INI', DroidLoot.LootUtils.useArmorTypeLootFile)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reads from an armor type based INI file for all characters when enabled.')
+                    if gui.USEARMORTYPELOOTFILE ~= DroidLoot.LootUtils.useArmorTypeLootFile then
+                        gui.USEARMORTYPELOOTFILE = DroidLoot.LootUtils.useArmorTypeLootFile
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.useMacroLootFile = ImGui.Checkbox('Enable Macro INI', DroidLoot.LootUtils.useMacroLootFile)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reads from an INI file provided by the macro for all characters when enabled.')
+                    if gui.USEMACROLOOTFILE ~= DroidLoot.LootUtils.useMacroLootFile then
+                        gui.USEMACROLOOTFILE = DroidLoot.LootUtils.useMacroLootFile
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+                    ImGui.Columns(1)
+                    ImGui.Unindent();
                 end
-                ImGui.Separator();
                 ImGui.Unindent();
             end
             if ImGui.CollapsingHeader("Console") then
