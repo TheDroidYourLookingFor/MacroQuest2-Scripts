@@ -1,114 +1,22 @@
---[[
-lootnscoot.lua v1.0 - aquietone
-
+--[[ LootUtils.lua - TheDroidUrLookingFor
 This is a port of the RedGuides copy of ninjadvLootUtils.inc with some updates as well.
-I may have glossed over some of the events or edge cases so it may have some issues
-around things like:
-- lore items
-- full inventory
-- not full inventory but no slot large enough for an item
-- ...
-Or those things might just work, I just haven't tested it very much using lvl 1 toons
-on project lazarus.
+This is script is a converted NinjaAdvLoot.inc from the early macro days. With many added features. It can be
+ added to any project with a simple require.
 
-This script can be used in two ways:
-    1. Included within a larger script using require, for example if you have some KissAssist-like lua script:
-        To loot mobs, call lootutils.lootMobs():
+Example Require:
+ DroidLoot.LootUtils = require('DroidLoot.lib.LootUtils')
 
-            local mq = require 'mq'
-            local lootutils = require 'lootnscoot'
-            while true do
-                lootutils.lootMobs()
-                mq.delay(1000)
-            end
-
-        lootUtils.lootMobs() will run until it has attempted to loot all corpses within the defined radius.
-
-        To sell to a vendor, call lootutils.sellStuff():
-
-            local mq = require 'mq'
-            local lootutils = require 'lootnscoot'
-            local doSell = false
-            local function binds(...)
-                local args = {...}
-                if args[1] == 'sell' then doSell = true end
-            end
-            mq.bind('/myscript', binds)
-            while true do
-                lootutils.lootMobs()
-                if doSell then lootutils.sellStuff() doSell = false end
-                mq.delay(1000)
-            end
-
-        lootutils.sellStuff() will run until it has attempted to sell all items marked as sell to the targeted vendor.
-
-        Note that in the above example, LootUtils.sellStuff() isn't being called directly from the bind callback.
-        Selling may take some time and includes delays, so it is best to be called from your main loop.
-
-        Optionally, configure settings using:
-            Set the radius within which corpses should be looted (radius from you, not a camp location)
-                lootutils.CorpseRadius = number
-            Set whether LootUtils.ini should be updated based off of sell item events to add manually sold items.
-                lootutils.AddNewSales = boolean
-            Set your own instance of Write.lua to configure a different prefix, log level, etc.
-                lootutils.logger = Write
-            Several other settings can be found in the "loot" table defined in the code.
-
-    2. Run as a standalone script:
-        /lua run lootnscoot standalone
-            Will keep the script running, checking for corpses once per second.
-        /lua run lootnscoot once
-            Will run one iteration of LootUtils.lootMobs().
-        /lua run lootnscoot sell
-            Will run one iteration of LootUtils.sellStuff().
-
-The script will setup a bind for "/lootutils":
-    /lootutils <action> "${Cursor.Name}"
-        Set the loot rule for an item. "action" may be one of:
-            - Keep
-            - Bank
-            - Sell
-            - Tribute (Not Implemented)
-            - Ignore
-            - Destroy
-            - Quest|#
-
-    /lootutils reload
-        Reload the contents of LootUtils.ini
-    /lootutils bank
-        Put all items from inventory marked as Bank into the bank
-    /lootutils tsbank
-        Mark all tradeskill items in inventory as Bank
-
-If running in standalone mode, the bind also supports:
-    /lootutils sell
-        Runs lootutils.sellStuff() one time
-
-The following events are used:
-    - eventCantLoot - #*#may not loot this corpse#*#
-        Add corpse to list of corpses to avoid for a few minutes if someone is already looting it.
-    - eventSell - #*#You receive#*# for the #1#(s)#*#
-        Set item rule to Sell when an item is manually sold to a vendor
-    - eventInventoryFull - #*#Your inventory appears full!#*#
-        Stop attempting to loot once inventory is full. Note that currently this never gets set back to false
-        even if inventory space is made available.
-    - eventNovalue - #*#give you absolutely nothing for the #1#.#*#
-        Warn and move on when attempting to sell an item which the merchant will not buy.
-
-This script depends on having Write.lua in your lua/lib folder.
-    https://gitlab.com/Knightly1/knightlinc/-/blob/master/Write.lua
-
-This does not include the buy routines from ninjadvLootUtils. It does include the sell routines
-but lootly sell routines seem more robust than the code that was in ninjadvLootUtils.inc.
-The forage event handling also does not handle fishing events like ninjadvloot did.
-There is also no flag for combat looting. It will only loot if no mobs are within the radius.
+Examples:
+ DroidLoot.LootUtils.lootMobs()
+ DroidLoot.LootUtils.sellStuff()
+ DroidLoot.LootUtils.bankStuff()
+ DroidLoot.LootUtils.navToID(mq.TLO.Target.ID())
 
 ]] ---@type Mq
 local mq = require 'mq'
 
--- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
-    Version = "1.0.20",
+    Version = "1.0.22",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -128,10 +36,10 @@ local LootUtils = {
     SpamLootInfo = false,
     LootForageSpam = false,
     CombatLooting = true,
-    LootEvolvingItems = true,
+    LootEvolvingItems = false, -- Buggy on Emulator
     LootPlatinumBags = false,
-    LootWildCardItems = false,
-    wildCardTerms = { 'Rk. III', 'Empowered' },
+    LootWildCardItems = true,
+    wildCardTerms = { 'Rk. III', 'Empowered', 'Prize: ' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
@@ -140,13 +48,12 @@ local LootUtils = {
     StackPlatValue = 0,
     LootByMinHP = 0,
     SaveBagSlots = 3,
-    MinSellPrice = 5000,
+    MinSellPrice = 100,
     StackableOnly = false,
     UseSingleFileForAllCharacters = true,
     useZoneLootFile = false,
     useClassLootFile = false,
     useArmorTypeLootFile = false,
-    -- useMacroLootFile = false,
     bankDeposit = true,
     sellVendor = true,
     bankAtFreeSlots = 5,
@@ -154,29 +61,19 @@ local LootUtils = {
     bankNPC = 'Banker Granger',
     vendorNPC = 'Jocelyn Forgerson'
 }
+
 LootUtils.Messages = require('lib.Messages')
+-- LootUtils.Messages = require('utils.Messages')
+
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini',
-    -- LootLagDelay = 0,
-    -- GlobalLootOn = true,
-    -- CorpseRotTime = "440s",
-    -- GMLSelect = true,
-    -- ExcludeBag1 = "Extraplanar Trade Satchel",
-    -- QuestKeep = 10,
+    LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
 }
-
--- LootUtils.Settings.logger.prefix = 'DroidLoot'
 function LootUtils.SetINIType()
-    -- if LootUtils.useMacroLootFile then
-    --     LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
-    --     printf('LootFile: %s', LootUtils.Settings.LootFile)
-    --     return
-    -- end
     if LootUtils.UseSingleFileForAllCharacters then
         LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
         printf('LootFile: %s', LootUtils.Settings.LootFile)
@@ -424,6 +321,9 @@ local function getRule(item)
     local canUse = item.CanUse()
     local noRent = item.NoRent()
     local evolvingItem = item.Evolving()
+    local haveItem = mq.TLO.FindItem(('=%s'):format(itemName))()
+    local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(itemName))()
+    local itemLore = item.Lore()
     mq.delay(1)
 
     local slotNames = {
@@ -452,7 +352,7 @@ local function getRule(item)
         [22] = "Ammo"
     }
 
-    if canUse and LootUtils.EquipUsable then
+    if LootUtils.EquipUsable and canUse then
         if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
             return 'Keep'
         elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() == nil then
@@ -467,36 +367,83 @@ local function getRule(item)
     end
 
     local function AnnounceUpgrade(slotNumber, slotName)
-        if LootUtils.AnnounceLoot then
-            local hpDiff = math.floor(itemHP - mq.TLO.Me.Inventory(slotNumber).HP())
-            mq.cmdf('/%s Found: %s (+%s hp - %s)', LootUtils.AnnounceChannel, itemLink, hpDiff, slotName)
-            LootUtils.Messages.Warn('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
-        end
+        local hpDiff = math.floor(itemHP - mq.TLO.Me.Inventory(slotNumber).HP())
+        mq.cmdf('/%s Found: %s (+%s hp - %s)', LootUtils.AnnounceChannel, itemLink, hpDiff, slotName)
+        LootUtils.Messages.Warn('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
     end
 
-    if LootUtils.LootGearUpgrades and canUse then
-        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            AnnounceUpgrade(wornSlot, 'Left Ear')
-            return 'Keep'
-        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() < itemHP then
-            AnnounceUpgrade(4, 'Right Ear')
-            return 'Keep'
-        elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            AnnounceUpgrade(wornSlot, 'Left Wrist')
-            return 'Keep'
-        elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() < itemHP then
-            AnnounceUpgrade(16, 'Right Wrist')
-            return 'Keep'
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            AnnounceUpgrade(wornSlot, 'Left Finger')
-            return 'Keep'
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() < itemHP then
-            AnnounceUpgrade(16, 'Right Finger')
-            return 'Keep'
-        elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil then
+    if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
+        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(wornSlot, 'Left Ear')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(wornSlot, 'Left Ear')
+                return 'Keep'
+            end
+        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() > 1 and mq.TLO.Me.Inventory(4).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(4, 'Right Ear')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(4, 'Right Ear')
+                return 'Keep'
+            end
+        elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(wornSlot, 'Left Wrist')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(wornSlot, 'Left Wrist')
+                return 'Keep'
+            end
+        elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() > 1 and mq.TLO.Me.Inventory(10).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(10, 'Right Wrist')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(10, 'Right Wrist')
+                return 'Keep'
+            end
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(wornSlot, 'Left Finger')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(wornSlot, 'Left Finger')
+                return 'Keep'
+            end
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() > 1 and mq.TLO.Me.Inventory(16).HP() < itemHP then
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(16, 'Right Finger')
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(16, 'Right Finger')
+                return 'Keep'
+            end
+        elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
             local slotName = slotNames[wornSlot] or "Unknown"
-            AnnounceUpgrade(wornSlot, slotName)
-            return 'Keep'
+            if itemLore then
+                if not haveItem and not haveItemBank then
+                    AnnounceUpgrade(wornSlot, slotName)
+                    return 'Keep'
+                end
+            else
+                AnnounceUpgrade(wornSlot, slotName)
+                return 'Keep'
+            end
         end
     end
 
@@ -530,9 +477,7 @@ local function getRule(item)
             end
         end
         if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
-            lootDecision = 'Keep'
-        end
-        if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
+            LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHP')
             lootDecision = 'Keep'
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
@@ -545,12 +490,14 @@ local function getRule(item)
             lootDecision = 'Bank'
         end
         if evolvingItem and LootUtils.LootEvolvingItems then
+            LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootEvolvingItems')
             lootDecision = 'Keep'
         end
         if LootUtils.LootWildCardItems then
             for _, term in ipairs(LootUtils.wildCardTerms) do
                 if string.find(itemName, term) then
                     lootDecision = 'Keep'
+                    LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'wildCardTerms')
                     break -- No need to check other terms if we already matched
                 end
             end
@@ -771,8 +718,8 @@ function LootUtils.lootCorpse(corpseID)
                 local freeStack = corpseItem.FreeStack()
                 if freeSpace < LootUtils.SaveBagSlots then
                     if LootUtils.ReportSkipped then
-                        mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                        LootUtils.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                        mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                        LootUtils.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                     end
                 end
                 if corpseItem.Lore() then
@@ -788,13 +735,13 @@ function LootUtils.lootCorpse(corpseID)
                 end
 
                 local lootAction = getRule(corpseItem)
-                if lootAction == 'Ignore' then
-                    mq.cmdf('/%s Skipped: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                    LootUtils.Messages.Warn('Skipped Item: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                if lootAction == 'Ignore' or lootAction == 'NULL' then
+                    mq.cmdf('/%s Skipped: %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                    LootUtils.Messages.Warn('Skipped Item: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
                 if lootAction == 'Announce' then
-                    mq.cmdf('/%s Found: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                    LootUtils.Messages.Warn('Found: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    mq.cmdf('/%s Found: %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                    LootUtils.Messages.Warn('Found: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                     return
                 end
             end

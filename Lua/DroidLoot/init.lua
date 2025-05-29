@@ -81,7 +81,7 @@ function DroidLoot.CheckZone()
         if not DroidLoot.needToBank and not DroidLoot.needToCashSell and not DroidLoot.needToFabledSell then
             mq.delay(1000)
             mq.cmd('/say #enter')
-            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.huntZoneID end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID() == DroidLoot.huntZoneID end)
             mq.delay(1000)
         end
     end
@@ -92,7 +92,7 @@ function DroidLoot.BankDropOff()
     if mq.TLO.Me.FreeInventory() <= DroidLoot.LootUtils.bankAtFreeSlots or DroidLoot.needToBank then
         if mq.TLO.Zone.ID() ~= DroidLoot.LootUtils.bankZone then
             mq.cmdf('/say #zone %s', DroidLoot.LootUtils.bankZone)
-            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.LootUtils.bankZone end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone end)
             mq.delay(1000)
         end
         if mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone then
@@ -121,7 +121,7 @@ function DroidLoot.VendorSell()
     if DroidLoot.needToVendorSell then
         if mq.TLO.Zone.ID() ~= DroidLoot.LootUtils.bankZone then
             mq.cmdf('/say #zone %s', DroidLoot.LootUtils.bankZone)
-            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.LootUtils.bankZone end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone end)
             mq.delay(1000)
         end
         if mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone then
