@@ -39,7 +39,7 @@ local LootUtils = {
     LootEvolvingItems = false, -- Buggy on Emulator
     LootPlatinumBags = false,
     LootWildCardItems = true,
-    wildCardTerms = { 'Rk. III', 'Empowered', 'Prize: ' },
+    wildCardTerms = { 'Rk. III', 'Empowered', 'Prize: ', 'Transcendent ' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
@@ -218,6 +218,12 @@ function LootUtils.writeSettings()
         local character = string.char(asciiValue)
         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
+    if #LootUtils.wildCardTerms then
+        mq.cmdf('/ini "%s" "%s" "%s" "%d"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
+        for index, term in ipairs(LootUtils.wildCardTerms) do
+            mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+        end
+    end
 end
 
 local function split(input, sep)
@@ -245,6 +251,17 @@ function LootUtils.loadSettings()
             LootUtils[key] = tonumber(value)
         else
             LootUtils[key] = value
+        end
+    end
+    -- Load wildCardTerms array
+    LootUtils.wildCardTerms = {}
+    local count = tonumber(mq.TLO.Ini(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count')() or 0)
+    if count > 0 then
+        for i = 1, count do
+            local term = mq.TLO.Ini(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. i)()
+            if term then
+                table.insert(LootUtils.wildCardTerms, term)
+            end
         end
     end
 end

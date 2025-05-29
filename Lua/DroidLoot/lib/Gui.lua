@@ -2,8 +2,8 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.3'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3" }
+gui.version = '1.0.4'
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -24,6 +24,10 @@ gui.change_Log = {
         '- Disabled looting of evolving items by default. It was buggy on emulator.',
         '- Fixed an issue in the script when running newer versions of Macroquest.',
         '- Added Update option to make it easier to get latest files. You still need to install them but it will start the download.'
+    },
+    ['1.0.4'] = { 'Initial Release',
+        '- Fixed issue with add/remove in Wildcard Terms',
+        '- Wildcard Terms now saves its array to INI'
     },
 }
 
@@ -223,8 +227,8 @@ function gui.DroidLootGUI()
                 end
                 ImGui.Separator();
                 if ImGui.CollapsingHeader("Update") then
-                    local buttonWidth, buttonHeight = 160, 30
-                    local buttonImVec3 = ImVec2(buttonWidth, buttonHeight)
+                    local buttonWidth3, buttonHeight3 = 160, 30
+                    local buttonImVec3 = ImVec2(buttonWidth3, buttonHeight3)
                     ImGui.Indent()
                     ImGui.Text("Visit GitHub for the latest version.")
                     if ImGui.Button('Open Github', buttonImVec3) then
@@ -622,6 +626,7 @@ function gui.DroidLootGUI()
                             local newTerm, changed = ImGui.InputText("##Term" .. i, term, 256)
                             if changed then
                                 DroidLoot.LootUtils.wildCardTerms[i] = newTerm
+                                DroidLoot.LootUtils.writeSettings()
                             end
                             ImGui.SameLine()
                             if ImGui.Button("Delete") then
@@ -633,16 +638,16 @@ function gui.DroidLootGUI()
                         -- Remove term if requested
                         if removeIndex then
                             table.remove(DroidLoot.LootUtils.wildCardTerms, removeIndex)
+                            DroidLoot.LootUtils.writeSettings()
                         end
 
                         ImGui.Separator()
 
                         -- Add new term
                         DroidLoot.LootUtils.newWildCardTerm = DroidLoot.LootUtils.newWildCardTerm or ""
-                        local changed, newTerm = ImGui.InputText("New Term", DroidLoot.LootUtils.newWildCardTerm, 256)
+                        local newTerm, changed = ImGui.InputText("New Term", DroidLoot.LootUtils.newWildCardTerm, 256)
                         if changed then
                             DroidLoot.LootUtils.newWildCardTerm = newTerm
-                            DroidLoot.LootUtils.writeSettings()
                         end
                         if ImGui.Button("Add Term") then
                             if DroidLoot.LootUtils.newWildCardTerm ~= "" then
