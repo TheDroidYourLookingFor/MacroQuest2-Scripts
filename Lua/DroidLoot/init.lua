@@ -54,9 +54,7 @@ function DroidLoot.HandleDisconnect()
         if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
             mq.TLO.AutoLogin.Profile.ReRun()
             mq.delay(50)
-            mq.delay(25000, function()
-                return mq.TLO.EverQuest.GameState() == 'INGAME'
-            end)
+            mq.delay(25000, function() return mq.TLO.EverQuest.GameState() == 'INGAME' end)
             mq.delay(50)
             mq.cmd('/hidecorpse looted')
         end
@@ -64,17 +62,13 @@ function DroidLoot.HandleDisconnect()
         if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
             mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
             mq.delay(50)
-            mq.delay(25000, function()
-                return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
-            end)
+            mq.delay(25000, function() return mq.TLO.EverQuest.GameState() == 'CHARSELECT' end)
             mq.delay(50)
         end
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
             mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
             mq.delay(50)
-            mq.delay(25000, function()
-                return mq.TLO.EverQuest.GameState() == 'INGAME'
-            end)
+            mq.delay(25000, function() return mq.TLO.EverQuest.GameState() == 'INGAME' end)
             mq.delay(50)
             mq.cmd('/hidecorpse looted')
         end
@@ -87,9 +81,7 @@ function DroidLoot.CheckZone()
         if not DroidLoot.needToBank and not DroidLoot.needToCashSell and not DroidLoot.needToFabledSell then
             mq.delay(1000)
             mq.cmd('/say #enter')
-            mq.delay(50000, function()
-                return mq.TLO.Zone.ID()() == DroidLoot.huntZoneID
-            end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.huntZoneID end)
             mq.delay(1000)
         end
     end
@@ -100,23 +92,17 @@ function DroidLoot.BankDropOff()
     if mq.TLO.Me.FreeInventory() <= DroidLoot.Settings.bankAtFreeSlots or DroidLoot.needToBank then
         if mq.TLO.Zone.ID() ~= DroidLoot.Settings.bankZone then
             mq.cmdf('/say #zone %s', DroidLoot.Settings.bankZone)
-            mq.delay(50000, function()
-                return mq.TLO.Zone.ID()() == DroidLoot.Settings.bankZone
-            end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.Settings.bankZone end)
             mq.delay(1000)
         end
         if mq.TLO.Zone.ID() == DroidLoot.Settings.bankZone then
             mq.cmdf('/target npc %s', DroidLoot.Settings.bankNPC)
             mq.delay(250)
-            mq.delay(5000, function()
-                return mq.TLO.Target()() ~= nil
-            end)
+            mq.delay(5000, function() return mq.TLO.Target()() ~= nil end)
             DroidLoot.LootUtils.navToID(mq.TLO.Target.ID())
             mq.delay(250)
             mq.cmdf('/nomodkey /click right target')
-            mq.delay(5000, function()
-                return mq.TLO.Window('BigBankWnd').Open()
-            end)
+            mq.delay(5000, function() return mq.TLO.Window('BigBankWnd').Open() end)
             mq.delay(50)
             DroidLoot.LootUtils.bankStuff()
             mq.delay(500)
@@ -135,24 +121,18 @@ function DroidLoot.VendorSell()
     if DroidLoot.needToVendorSell then
         if mq.TLO.Zone.ID() ~= DroidLoot.LootUtils.bankZone then
             mq.cmdf('/say #zone %s', DroidLoot.LootUtils.bankZone)
-            mq.delay(50000, function()
-                return mq.TLO.Zone.ID()() == DroidLoot.LootUtils.bankZone
-            end)
+            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.LootUtils.bankZone end)
             mq.delay(1000)
         end
         if mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone then
             mq.delay(500)
             mq.cmdf('/target npc %s', DroidLoot.LootUtils.vendorNPC)
             mq.delay(250)
-            mq.delay(5000, function()
-                return mq.TLO.Target()() ~= nil
-            end)
+            mq.delay(5000, function() return mq.TLO.Target()() ~= nil end)
             DroidLoot.LootUtils.navToID(mq.TLO.Target.ID())
             mq.delay(250)
             mq.cmdf('/nomodkey /click right target')
-            mq.delay(5000, function()
-                return mq.TLO.Window('MerchantWnd').Open()
-            end)
+            mq.delay(5000, function() return mq.TLO.Window('MerchantWnd').Open() end)
             DroidLoot.LootUtils.sellStuff()
             DroidLoot.needToVendorSell = false
         end
@@ -184,11 +164,9 @@ local function binds(...)
             DroidLoot.terminate = true
         else
             DroidLoot.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI',
-                DroidLoot.command_ShortName)
+            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot
-                .command_ShortName)
+            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
         end
     else
@@ -210,23 +188,20 @@ if DroidLoot.returnToHome then
     DroidLoot.home_X = mq.TLO.Me.X()
     DroidLoot.home_Y = mq.TLO.Me.Y()
     DroidLoot.home_Z = mq.TLO.Me.Z()
-    DroidLoot.Messages.CONSOLEMETHOD(false, '++ Home X: \ag%s\aw Y: \ag%s\aw Z: \ag%s\aw ++', DroidLoot.home_X, DroidLoot.home_Y,
-        DroidLoot.home_Z)
+    DroidLoot.Messages.CONSOLEMETHOD(false, '++ Home X: \ag%s\aw Y: \ag%s\aw Z: \ag%s\aw ++', DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
 end
 while not DroidLoot.terminate do
     if not DroidLoot.doPause then
         local deadCount = mq.TLO.SpawnCount(DroidLoot.spawnSearch:format('npccorpse', DroidLoot.LootUtils.CorpseRadius))()
         if DroidLoot.doLoot and deadCount ~= 0 then
-            if DroidLoot.announce and DroidLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!',
-                    DroidLoot.LootUtils.AnnounceChannel, mq.TLO.Time()) end
+            if DroidLoot.announce and DroidLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!', DroidLoot.LootUtils.AnnounceChannel, mq.TLO.Time()) end
             if DroidLoot.doCorpseFix then mq.cmd('/say #corpsefix') end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'TRUE' then
                 mq.cmd('/mqpause on')
                 mq.delay(500)
             end
             DroidLoot.LootUtils.lootMobs()
-            if DroidLoot.debug then DroidLoot.Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s',
-                    GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)) end
+            if DroidLoot.debug then DroidLoot.Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s', GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)) end
             if DroidLoot.returnToHome and GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z) > DroidLoot.home_Dist then
                 NavToXYZ(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
                 mq.delay(500)

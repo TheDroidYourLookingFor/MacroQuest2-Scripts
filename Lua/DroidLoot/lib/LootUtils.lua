@@ -182,32 +182,28 @@ function LootUtils.SetINIType()
         if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
             my_ArmorType = 'Plate'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
             my_ArmorType = 'Chain'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
             my_ArmorType = 'Cloth'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
         elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
             my_ArmorType = 'Leather'
             if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
             else
                 LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
             end
@@ -215,11 +211,9 @@ function LootUtils.SetINIType()
     else
         if LootUtils.useZoneLootFile then
             if LootUtils.useClassLootFile then
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
             else
-                LootUtils.Settings.LootFile = mq.configDir ..
-                    '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
             end
         else
             if LootUtils.useClassLootFile then
@@ -318,8 +312,7 @@ function LootUtils.writeSettings()
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults',
-            LootUtils.Settings.Defaults)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
 end
 
@@ -391,23 +384,7 @@ local function navToID(spawnID)
 end
 
 function LootUtils.navToID(spawnID)
-    if LootUtils.UseWarp then
-        mq.cmdf('/target id %s', spawnID)
-        mq.delay(250)
-        mq.cmd('/squelch /warp t')
-    else
-        mq.cmdf('/nav id %d log=off', spawnID)
-        mq.delay(50)
-        if mq.TLO.Navigation.Active() then
-            local startTime = os.time()
-            while mq.TLO.Navigation.Active() do
-                mq.delay(100)
-                if os.difftime(os.time(), startTime) > 5 then
-                    break
-                end
-            end
-        end
-    end
+    navToID(spawnID)
 end
 
 local function addRule(itemName, section, rule)
@@ -616,8 +593,7 @@ local function lootItem(index, doWhat, button)
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         if DroidLoot.debug then
-            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount,
-                currentItemAmount)
+            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
         end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then
             return
@@ -630,15 +606,11 @@ local function lootItem(index, doWhat, button)
 
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
     -- Looting of no drop items is currently disabled with no flag to enable anyways
-    mq.delay(5000, function()
-        return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop()
-    end)
+    mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
     if mq.TLO.Window('ConfirmationDialogBox').Open() then
         mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup')
     end
-    mq.delay(5000, function()
-        return mq.TLO.Cursor() ~= nil or not mq.TLO.Window('LootWnd').Open()
-    end)
+    mq.delay(5000, function() return mq.TLO.Cursor() ~= nil or not mq.TLO.Window('LootWnd').Open() end)
     mq.delay(1) -- force next frame
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then
@@ -682,9 +654,7 @@ function LootUtils.lootCorpse(corpseID)
             return
         end
         mq.cmd('/loot')
-        mq.delay(1000, function()
-            return mq.TLO.Window('LootWnd').Open()
-        end)
+        mq.delay(1000, function() return mq.TLO.Window('LootWnd').Open() end)
         if mq.TLO.Window('LootWnd').Open() then
             break
         end
@@ -698,17 +668,13 @@ function LootUtils.lootCorpse(corpseID)
     end
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
     local playerDelay = 1000 + playerPing
-    mq.delay(playerDelay, function()
-        return mq.TLO.Window('LootWnd').Open()
-    end)
+    mq.delay(playerDelay, function() return mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.ConsoleMessage('Debug', 'Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(playerDelay, function()
-        return (mq.TLO.Corpse.Items() or 0) > 0
-    end)
+    mq.delay(playerDelay, function() return mq.TLO.Corpse.Items() ~= nil end)
     local items = mq.TLO.Corpse.Items() or 0
     LootUtils.ConsoleMessage('Debug', 'Loot window open. Items: %s', items)
     local corpseName = mq.TLO.Corpse.Name()
@@ -721,9 +687,6 @@ function LootUtils.lootCorpse(corpseID)
             if corpseItem() then
                 local stackable = corpseItem.Stackable()
                 local freeStack = corpseItem.FreeStack()
-                -- if corpseItem.NoDrop() then
-                --     --table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
-                -- else
                 if freeSpace < LootUtils.SaveBagSlots then
                     if LootUtils.ReportSkipped then
                         mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
@@ -757,7 +720,7 @@ function LootUtils.lootCorpse(corpseID)
                 break
             end
         end
-        if LootUtils.AnnounceLoot and LootUtils.ReportSkipped and (#noDropItems > 0 or #loreItems > 0) then
+        if LootUtils.ReportSkipped and (#noDropItems > 0 or #loreItems > 0) then
             local skippedItems = '/%s Skipped loots (%s - %s) '
             for _, noDropItem in ipairs(noDropItems) do
                 skippedItems = skippedItems .. ' ' .. noDropItem .. ' (nodrop) '
@@ -766,7 +729,9 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
-            LootUtils._Macro.Messages.Warn(skippedItems)
+            --LootUtils._Macro.Messages.Warn(skippedItems)
+            mq.cmdf('/%s Skipped: %s', LootUtils.AnnounceChannel, skippedItems)
+            LootUtils._Macro.Messages.Warn('Skipped Item: %s', skippedItems.ItemLink('CLICKABLE')())
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -872,16 +837,12 @@ local function openVendor(vendorType)
     LootUtils.ConsoleMessage('Debug', 'Waiting for merchant window to populate')
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
     local playerDelay = 1000 + playerPing
-    mq.delay(playerDelay, function()
-        return mq.TLO.Window(vendorType).Open()
-    end)
+    mq.delay(playerDelay, function() return mq.TLO.Window(vendorType).Open() end)
     if not mq.TLO.Window(vendorType).Open() then
         return false
     end
     playerDelay = 5000 + playerPing
-    mq.delay(playerDelay, function()
-        return mq.TLO.Merchant.ItemsReceived()
-    end)
+    mq.delay(playerDelay, function() return mq.TLO.Merchant.ItemsReceived() end)
     return mq.TLO.Merchant.ItemsReceived()
 end
 
@@ -909,9 +870,7 @@ local function sellToVendor(itemToSell)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
             local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
             local playerDelay = 1000 + playerPing
-            mq.delay(playerDelay, function()
-                return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell
-            end)
+            mq.delay(playerDelay, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
             mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
             mq.doevents('eventNovalue')
             if itemNoValue == itemToSell then
@@ -920,9 +879,7 @@ local function sellToVendor(itemToSell)
                 break
             end
             -- TODO: handle vendor not wanting item / item can't be sold
-            mq.delay(playerDelay, function()
-                return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == ''
-            end)
+            mq.delay(playerDelay, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == '' end)
         end
     end
 end
@@ -935,9 +892,7 @@ local function sellBagItemToVendor(itemToSell, itemBag, itemBagSlot)
         mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', itemBag, itemBagSlot)
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 1000 + playerPing
-        mq.delay(playerDelay, function()
-            return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell
-        end)
+        mq.delay(playerDelay, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
         mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
         mq.doevents('eventNovalue')
         if itemNoValue == itemToSell then
@@ -946,9 +901,7 @@ local function sellBagItemToVendor(itemToSell, itemBag, itemBagSlot)
             return
         end
         -- TODO: handle vendor not wanting item / item can't be sold
-        mq.delay(playerDelay, function()
-            return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == ''
-        end)
+        mq.delay(playerDelay, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == '' end)
     end
 end
 
@@ -988,8 +941,7 @@ function LootUtils.sellStuff(closeWindowWhenDone)
                     if sellRule == 'Sell' or sellRule == 'NULL' then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
-                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!',
-                                itemToSell.Name())
+                            LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!', itemToSell.Name())
                         else
                             sellBagItemToVendor(itemToSell.Name(), i, j)
                         end
@@ -1024,9 +976,7 @@ local function sellCashItemsToVendor(itemToSell)
             end
             -- TODO: handle vendor not wanting item / item can't be sold
             playerDelay = 1000 + playerPing
-            mq.delay(playerDelay, function()
-                return not mq.TLO.SelectedItem.Name()
-            end)
+            mq.delay(playerDelay, function() return not mq.TLO.SelectedItem.Name() end)
         end
     end
 end
@@ -1072,9 +1022,7 @@ function LootUtils.sellCashItems(closeWindowWhenDone)
                     if sellRule == 'Cash' then
                         mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', i, j)
                         playerDelay = 500 + playerPing
-                        mq.delay(playerDelay, function()
-                            return mq.TLO.SelectedItem.Name() ~= nil
-                        end)
+                        mq.delay(playerDelay, function() return mq.TLO.SelectedItem.Name() ~= nil end)
                         sellCashItemsToVendor(itemToSell)
                     end
                 end
@@ -1137,13 +1085,9 @@ function LootUtils.bankStuff()
                 local bankRule = getRule(bagSlot)
                 if bankRule == 'Bank' then
                     mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
-                    mq.delay(playerDelay, function()
-                        return mq.TLO.Cursor()
-                    end)
+                    mq.delay(playerDelay, function() return mq.TLO.Cursor() end)
                     mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                    mq.delay(playerDelay, function()
-                        return not mq.TLO.Cursor()
-                    end)
+                    mq.delay(playerDelay, function() return not mq.TLO.Cursor() end)
                 end
             end
         end
@@ -1159,13 +1103,9 @@ function LootUtils.bankStuff()
                     local bankRule = getRule(bagSlot.Item(j))
                     if bankRule == 'Bank' then
                         mq.cmdf('/nomodkey /shiftkey /itemnotify in pack%s %s leftmouseup', i, j)
-                        mq.delay(playerDelay, function()
-                            return mq.TLO.Cursor()
-                        end)
+                        mq.delay(playerDelay, function() return mq.TLO.Cursor() end)
                         mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-                        mq.delay(playerDelay, function()
-                            return not mq.TLO.Cursor()
-                        end)
+                        mq.delay(playerDelay, function() return not mq.TLO.Cursor() end)
                     end
                 end
             end
