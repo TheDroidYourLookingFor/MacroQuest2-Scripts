@@ -2,8 +2,8 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.2'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2" }
+gui.version = '1.0.3'
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -19,6 +19,11 @@ gui.change_Log = {
         '- Fixed a delay issue in the loot corpse function which sometimes caused a hang.',
         '- Added wild card looting',
         '- Added flag for auto looting evolving items.'
+    },
+    ['1.0.3'] = { 'Bug Fix',
+        '- Disabled looting of evolving items by default. It was buggy on emulator.',
+        '- Fixed an issue in the script when running newer versions of Macroquest.',
+        '- Added Update option to make it easier to get latest files. You still need to install them but it will start the download.'
     },
 }
 
@@ -216,6 +221,24 @@ function gui.DroidLootGUI()
                 if ImGui.CollapsingHeader("Change Log") then
                     gui.ChangeLog()
                 end
+                ImGui.Separator();
+                if ImGui.CollapsingHeader("Update") then
+                    local buttonWidth, buttonHeight = 160, 30
+                    local buttonImVec3 = ImVec2(buttonWidth, buttonHeight)
+                    ImGui.Indent()
+                    ImGui.Text("Visit GitHub for the latest version.")
+                    if ImGui.Button('Open Github', buttonImVec3) then
+                        os.execute('start https://github.com/TheDroidYourLookingFor/MacroQuest2-Scripts/tree/main/Lua/DroidLoot')
+                    end
+                    ImGui.Separator();
+
+                    ImGui.Text("Download latest from GitHub.")
+                    if ImGui.Button('Download DroidLoot', buttonImVec3) then
+                        os.execute('start https://github.com/TheDroidYourLookingFor/MacroQuest2-Scripts/raw/refs/heads/main/Lua/DroidLoot/DroidLoot.7z')
+                    end
+                    ImGui.Unindent()
+                end
+
                 ImGui.Unindent()
             end
 
