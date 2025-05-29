@@ -89,16 +89,16 @@ end
 
 function DroidLoot.BankDropOff()
     DroidLoot.HandleDisconnect()
-    if mq.TLO.Me.FreeInventory() <= DroidLoot.Settings.bankAtFreeSlots or DroidLoot.needToBank then
-        if mq.TLO.Zone.ID() ~= DroidLoot.Settings.bankZone then
-            mq.cmdf('/say #zone %s', DroidLoot.Settings.bankZone)
-            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.Settings.bankZone end)
+    if mq.TLO.Me.FreeInventory() <= DroidLoot.LootUtils.bankAtFreeSlots or DroidLoot.needToBank then
+        if mq.TLO.Zone.ID() ~= DroidLoot.LootUtils.bankZone then
+            mq.cmdf('/say #zone %s', DroidLoot.LootUtils.bankZone)
+            mq.delay(50000, function() return mq.TLO.Zone.ID()() == DroidLoot.LootUtils.bankZone end)
             mq.delay(1000)
         end
-        if mq.TLO.Zone.ID() == DroidLoot.Settings.bankZone then
-            mq.cmdf('/target npc %s', DroidLoot.Settings.bankNPC)
+        if mq.TLO.Zone.ID() == DroidLoot.LootUtils.bankZone then
+            mq.cmdf('/target npc %s', DroidLoot.LootUtils.bankNPC)
             mq.delay(250)
-            mq.delay(5000, function() return mq.TLO.Target()() ~= nil end)
+            mq.delay(5000, function() return mq.TLO.Target() ~= nil end)
             DroidLoot.LootUtils.navToID(mq.TLO.Target.ID())
             mq.delay(250)
             mq.cmdf('/nomodkey /click right target')
@@ -106,7 +106,7 @@ function DroidLoot.BankDropOff()
             mq.delay(50)
             DroidLoot.LootUtils.bankStuff()
             mq.delay(500)
-            if DroidLoot.Settings.sellVendor then
+            if DroidLoot.LootUtils.sellVendor then
                 DroidLoot.needToVendorSell = true
                 DroidLoot.VendorSell()
                 mq.delay(500)
