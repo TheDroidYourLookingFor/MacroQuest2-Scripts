@@ -109,14 +109,15 @@ local mq = require 'mq'
 -- Public default settings, also read in from LootUtils.ini [Settings] section
 local LootUtils = {
     Version = "1.0.20",
-    _Macro = DroidLoot,
+    -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
     AddIgnoredItems = true,
     LootForage = true,
     LootTradeSkill = false,
     DoLoot = true,
-    EquipUsable = false, -- Buggy at best
+    EquipUsable = false,      -- Buggy at best
+    LootGearUpgrades = false, -- WIP
     CorpseRadius = 5000,
     MobsTooClose = 40,
     ReportLoot = false,
@@ -127,7 +128,10 @@ local LootUtils = {
     SpamLootInfo = false,
     LootForageSpam = false,
     CombatLooting = true,
+    LootEvolvingItems = true,
     LootPlatinumBags = false,
+    LootWildCardItems = false,
+    wildCardTerms = { 'Rk. III', 'Empowered' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
@@ -142,14 +146,15 @@ local LootUtils = {
     useZoneLootFile = false,
     useClassLootFile = false,
     useArmorTypeLootFile = false,
-    useMacroLootFile = false,
+    -- useMacroLootFile = false,
     bankDeposit = true,
     sellVendor = true,
     bankAtFreeSlots = 5,
     bankZone = 202,
     bankNPC = 'Banker Granger',
-    vendorNPC = 'Jocelyn Forgerson',
+    vendorNPC = 'Jocelyn Forgerson'
 }
+LootUtils.Messages = require('lib.Messages')
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
 LootUtils.Settings = {
@@ -167,11 +172,11 @@ LootUtils.Settings = {
 
 -- LootUtils.Settings.logger.prefix = 'DroidLoot'
 function LootUtils.SetINIType()
-    if LootUtils.useMacroLootFile then
-        LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
-        printf('LootFile: %s', LootUtils.Settings.LootFile)
-        return
-    end
+    -- if LootUtils.useMacroLootFile then
+    --     LootUtils.Settings.LootFile = LootUtils._Macro.Settings.lootINIFile
+    --     printf('LootFile: %s', LootUtils.Settings.LootFile)
+    --     return
+    -- end
     if LootUtils.UseSingleFileForAllCharacters then
         LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
         printf('LootFile: %s', LootUtils.Settings.LootFile)
@@ -247,7 +252,8 @@ local shouldLootActions = {
     Destroy = false,
     Ignore = false,
     Quest = false,
-    Announce = true
+    Announce = true,
+    Wildcard = true
 }
 function LootUtils.CheckLootActions()
     if not LootUtils.LootEmpoweredFabled then
@@ -266,7 +272,8 @@ local validActions = {
     ignore = 'Ignore',
     destroy = 'Destroy',
     quest = 'Quest',
-    announce = 'Announce'
+    announce = 'Announce',
+    wildcard = 'Wildcard'
 }
 local saveOptionTypes = {
     string = 1,
@@ -283,23 +290,23 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
     if messageType == 'Debug' then
         -- LootUtils._Macro.Settings.logger.Debug((message):format(...))
         -- LootUtils._Macro.GUI.addToConsole((message):format(...))
-        LootUtils._Macro.Messages.Debug(message, ...)
+        LootUtils.Messages.Debug(message, ...)
     elseif messageType == 'Info' then
         -- LootUtils._Macro.Settings.logger.Info((message):format(...))
         -- LootUtils._Macro.GUI.addToConsole((message):format(...))
-        LootUtils._Macro.Messages.Info(message, ...)
+        LootUtils.Messages.Info(message, ...)
     elseif messageType == 'Warn' then
         -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
         -- LootUtils._Macro.GUI.addToConsole((message):format(...))
-        LootUtils._Macro.Messages.Warn(message, ...)
+        LootUtils.Messages.Warn(message, ...)
     elseif messageType == 'Normal' then
         -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
         -- LootUtils._Macro.GUI.addToConsole((message):format(...))
-        LootUtils._Macro.Messages.Normal(message, ...)
+        LootUtils.Messages.Normal(message, ...)
     else
         -- LootUtils._Macro.Settings.logger.Info((message):format(...))
         -- LootUtils._Macro.GUI.addToConsole((message):format(...))
-        LootUtils._Macro.Messages.Normal(message, ...)
+        LootUtils.Messages.Normal(message, ...)
     end
 end
 
@@ -405,6 +412,7 @@ end
 local function getRule(item)
     local itemName = item.Name()
     local itemHP = item.HP()
+    local itemLink = item.ItemLink('CLICKABLE')()
     local lootDecision = 'Ignore'
     local tradeskill = item.Tradeskills()
     local sellPrice = item.Value() and item.Value() / 1000 or 0
@@ -414,22 +422,80 @@ local function getRule(item)
     local noDrop = item.NoDrop()
     local wornSlot = item.WornSlot(1)
     local canUse = item.CanUse()
+    local noRent = item.NoRent()
+    local evolvingItem = item.Evolving()
+    mq.delay(1)
+
+    local slotNames = {
+        [0] = "Charm",
+        [1] = "Left Ear",
+        [2] = "Head",
+        [3] = "Face",
+        [4] = "Right Ear",
+        [5] = "Neck",
+        [6] = "Shoulder",
+        [7] = "Arms",
+        [8] = "Back",
+        [9] = "Left Wrist",
+        [10] = "Right Wrist",
+        [11] = "Ranged",
+        [12] = "Hands",
+        [13] = "Main Hand",
+        [14] = "Off Hand",
+        [15] = "Left Finger",
+        [16] = "Right Finger",
+        [17] = "Chest",
+        [18] = "Legs",
+        [19] = "Feet",
+        [20] = "Waist",
+        [21] = "Power Source",
+        [22] = "Ammo"
+    }
 
     if canUse and LootUtils.EquipUsable then
         if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
-            print('Looting missing left ear item!')
             return 'Keep'
         elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() == nil then
-            print('Looting missing right ear item!')
             return 'Keep'
         elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() == nil then
-            print('Looting missing left wrist item!')
             return 'Keep'
         elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() == nil then
-            print('Looting missing right wrist item!')
             return 'Keep'
         elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
-            print('Looting missing worn item!')
+            return 'Keep'
+        end
+    end
+
+    local function AnnounceUpgrade(slotNumber, slotName)
+        if LootUtils.AnnounceLoot then
+            local hpDiff = math.floor(itemHP - mq.TLO.Me.Inventory(slotNumber).HP())
+            mq.cmdf('/%s Found: %s (+%s hp - %s)', LootUtils.AnnounceChannel, itemLink, hpDiff, slotName)
+            LootUtils.Messages.Warn('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
+        end
+    end
+
+    if LootUtils.LootGearUpgrades and canUse then
+        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            AnnounceUpgrade(wornSlot, 'Left Ear')
+            return 'Keep'
+        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() < itemHP then
+            AnnounceUpgrade(4, 'Right Ear')
+            return 'Keep'
+        elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            AnnounceUpgrade(wornSlot, 'Left Wrist')
+            return 'Keep'
+        elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() < itemHP then
+            AnnounceUpgrade(16, 'Right Wrist')
+            return 'Keep'
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            AnnounceUpgrade(wornSlot, 'Left Finger')
+            return 'Keep'
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() < itemHP then
+            AnnounceUpgrade(16, 'Right Finger')
+            return 'Keep'
+        elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil then
+            local slotName = slotNames[wornSlot] or "Unknown"
+            AnnounceUpgrade(wornSlot, slotName)
             return 'Keep'
         end
     end
@@ -443,13 +509,13 @@ local function getRule(item)
         if LootUtils.LootTradeSkill and tradeskill then
             lootDecision = 'Bank'
         end
-        if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice then
+        if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice and not noDrop and not noRent then
             lootDecision = 'Sell'
         end
         if not stackable and LootUtils.StackableOnly then
             lootDecision = 'Ignore'
         end
-        if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue then
+        if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue and not noDrop and not noRent then
             lootDecision = 'Sell'
         end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
@@ -466,6 +532,9 @@ local function getRule(item)
         if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
             lootDecision = 'Keep'
         end
+        if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
+            lootDecision = 'Keep'
+        end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             lootDecision = 'Bank'
         end
@@ -474,6 +543,17 @@ local function getRule(item)
         end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then
             lootDecision = 'Bank'
+        end
+        if evolvingItem and LootUtils.LootEvolvingItems then
+            lootDecision = 'Keep'
+        end
+        if LootUtils.LootWildCardItems then
+            for _, term in ipairs(LootUtils.wildCardTerms) do
+                if string.find(itemName, term) then
+                    lootDecision = 'Keep'
+                    break -- No need to check other terms if we already matched
+                end
+            end
         end
         addRule(itemName, firstLetter, lootDecision)
     end
@@ -494,7 +574,7 @@ end
 LootUtils.CorpseFixCounter = 0
 LootUtils.LastCorpseFixID = 0
 local function event_CantLoot_handler(line)
-    LootUtils._Macro.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
+    LootUtils.Messages.CONSOLEMETHOD(true, 'function event_CantLoot_handler(line)')
     if not mq.TLO.Target() then
         return
     end
@@ -503,7 +583,7 @@ local function event_CantLoot_handler(line)
         LootUtils.CorpseFixCounter = 0
         mq.cmdf('%s', '/say #corpsefix')
         mq.delay(50)
-        LootUtils._Macro.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
+        LootUtils.Messages.Info('Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
         if LootUtils.LastCorpseFixID == mq.TLO.Target.ID() then
             cantLootList[mq.TLO.Target.ID()] = os.time()
         end
@@ -598,6 +678,8 @@ local function lootItem(index, doWhat, button)
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then
             return
         end
+    elseif ruleAction == 'Wildcard' then
+
     else
         if not shouldLootActions[ruleAction] then
             return
@@ -617,7 +699,7 @@ local function lootItem(index, doWhat, button)
         return
     end
     if LootUtils.ReportLoot then
-        LootUtils._Macro.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+        LootUtils.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
         -- DroidLoot.GUI.addToConsole('Picked Up: %s', corpseItem.Name())
         -- DroidLoot.LootUtils.report('Picked Up: %s', corpseItem.ItemLink('CLICKABLE')())
     end
@@ -690,7 +772,7 @@ function LootUtils.lootCorpse(corpseID)
                 if freeSpace < LootUtils.SaveBagSlots then
                     if LootUtils.ReportSkipped then
                         mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                        LootUtils._Macro.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                        LootUtils.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
                     end
                 end
                 if corpseItem.Lore() then
@@ -708,11 +790,11 @@ function LootUtils.lootCorpse(corpseID)
                 local lootAction = getRule(corpseItem)
                 if lootAction == 'Ignore' then
                     mq.cmdf('/%s Skipped: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                    LootUtils._Macro.Messages.Warn('Skipped Item: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    LootUtils.Messages.Warn('Skipped Item: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
                 end
                 if lootAction == 'Announce' then
                     mq.cmdf('/%s Found: %s (%s-%s)', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
-                    LootUtils._Macro.Messages.Warn('Found: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
+                    LootUtils.Messages.Warn('Found: %s (%s-%s)', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID)
                     return
                 end
             end
@@ -729,9 +811,9 @@ function LootUtils.lootCorpse(corpseID)
                 skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
             end
             mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
-            --LootUtils._Macro.Messages.Warn(skippedItems)
+            --LootUtils.Messages.Warn(skippedItems)
             mq.cmdf('/%s Skipped: %s', LootUtils.AnnounceChannel, skippedItems)
-            LootUtils._Macro.Messages.Warn('Skipped Item: %s', skippedItems.ItemLink('CLICKABLE')())
+            LootUtils.Messages.Warn('Skipped Item: %s', skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
