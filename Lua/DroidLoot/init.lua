@@ -204,7 +204,7 @@ while not DroidLoot.terminate do
                 mq.delay(500)
             end
             if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
-                mq.cmd('/e3p on')
+                mq.cmd('/squelch /e3p on')
                 mq.delay(500)
             end
             DroidLoot.LootUtils.lootMobs()
@@ -214,7 +214,7 @@ while not DroidLoot.terminate do
                 mq.delay(500)
             end
             if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
-                mq.cmd('/e3p on')
+                mq.cmd('/squelch /e3p off')
                 mq.delay(500)
             end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end

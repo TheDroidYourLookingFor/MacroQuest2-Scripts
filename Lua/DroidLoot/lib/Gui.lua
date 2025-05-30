@@ -2,8 +2,8 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.5'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5" }
+gui.version = '1.0.6'
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -36,6 +36,9 @@ gui.change_Log = {
         '- Deleted some unused and unneeded code form past projects.',
         '- Added debug messages into loot decisions. So youcan turn it on and see whats going on easily.',
         '- Changed the sell function to give item links instead of just item name.'
+    },
+    ['1.0.6'] = { 'LootByMinHP Changes',
+        '- Added option to loot no drop items with LootByMinHP.'
     },
 }
 
@@ -82,34 +85,81 @@ function gui.addToConsole(text, ...)
     table.insert(gui.outputLog, logEntry)
 end
 
-gui.DEBUG = false
-gui.RETURNTOHOME = false
-gui.DOSELL = false
-gui.DOLOOT = false
-gui.CORPSEFIX = false
-gui.LOOTEVOLVINGITEMS = true
-gui.MOBSTOOCLOSE = 40
-gui.CORPSERADIUS = 100
-gui.ADDNEWSALES = false
-gui.ADDIGNOREDITEMS = false
-gui.USECLASSLOOTFILE = false
-gui.USEARMORTYPELOOTFILE = false
-gui.USEMACROLOOTFILE = false
-gui.USEZONELOOTFILE = false
-gui.USESINGLEFILEFORALLCHARACTERS = true
-gui.LOOTFORAGE = false
-gui.REPORTLOOT = false
-gui.LOOTCHANNEL = 'dgt'
-gui.SPAMLOOTINFO = false
-gui.GLOBALLOOTON = true
-gui.COMBATLOOTING = true
-gui.LOOTGEARUPGRADES = false
-gui.LOOTWILDCARDITEMS = false
-gui.MINSELLPRICE = -1
-gui.STACKABLEONLY = false
-gui.LOOTBYHPMIN = 0
-gui.STACKPLATVALUE = 0
-gui.CORPSEROTTIME = '440s'
+local LootUtils = {
+    Version = "1.0.24",
+    -- _Macro = DroidLoot,
+    UseWarp = false,
+    AddNewSales = true,
+    AddIgnoredItems = true,
+    LootForage = true,
+    LootTradeSkill = false,
+    DoLoot = true,
+    EquipUsable = false,     -- Buggy at best
+    LootGearUpgrades = true, -- WIP
+    CorpseRadius = 250,
+    MobsTooClose = 40,
+    AnnounceLoot = false,
+    ReportLoot = true,
+    ReportSkipped = true,
+    LootChannel = "dgt",
+    AnnounceChannel = 'dgt',
+    SpamLootInfo = false,
+    LootForageSpam = false,
+    CombatLooting = true,
+    LootEvolvingItems = false, -- Buggy on Emulator
+    LootPlatinumBags = false,
+    LootWildCardItems = true,
+    wildCardTerms = { 'Rk. I', 'Empowered', 'Prize:', 'Transcendent', 'Rough Consigned' },
+    LootTokensOfAdvancement = false,
+    LootEmpoweredFabled = false,
+    LootAllFabledAugs = false,
+    EmpoweredFabledName = 'Empowered',
+    EmpoweredFabledMinHP = 0,
+    StackPlatValue = 0,
+    LootByMinHP = 0,
+    LootByMinHPNoDrop = false,
+    SaveBagSlots = 3,
+    MinSellPrice = 100,
+    StackableOnly = false,
+    UseSingleFileForAllCharacters = true,
+    useZoneLootFile = false,
+    useClassLootFile = false,
+    useArmorTypeLootFile = false,
+    bankDeposit = true,
+    sellVendor = true,
+    bankAtFreeSlots = 5,
+    bankZone = 202,
+    bankNPC = 'Banker Granger',
+    vendorNPC = 'Jocelyn Forgerson'
+}
+
+DroidLoot.LootUtils.loadSettings()
+gui.DEBUG = DroidLoot.debug
+gui.DOSELL = DroidLoot.doSell
+gui.DOLOOT = DroidLoot.doLoot
+gui.CORPSEFIX = DroidLoot.doCorpseFix
+gui.LOOTEVOLVINGITEMS = DroidLoot.LootUtils.LootEvolvingItems
+gui.MOBSTOOCLOSE = DroidLoot.LootUtils.MobsTooClose
+gui.CORPSERADIUS = DroidLoot.LootUtils.CorpseRadius
+gui.ADDNEWSALES = DroidLoot.LootUtils.AddNewSales
+gui.ADDIGNOREDITEMS = DroidLoot.LootUtils.AddIgnoredItems
+gui.USECLASSLOOTFILE = DroidLoot.LootUtils.useClassLootFile
+gui.USEARMORTYPELOOTFILE = DroidLoot.LootUtils.useArmorTypeLootFile
+gui.USEMACROLOOTFILE = DroidLoot.LootUtils.useMacroLootFile
+gui.USEZONELOOTFILE = DroidLoot.LootUtils.useZoneLootFile
+gui.USESINGLEFILEFORALLCHARACTERS = DroidLoot.LootUtils.UseSingleFileForAllCharacters
+gui.LOOTFORAGE = DroidLoot.LootUtils.LootForage
+gui.REPORTLOOT = DroidLoot.LootUtils.ReportLoot
+gui.LOOTCHANNEL = DroidLoot.LootUtils.LootChannel
+gui.SPAMLOOTINFO = DroidLoot.LootUtils.SpamLootInfo
+gui.COMBATLOOTING = DroidLoot.LootUtils.CombatLooting
+gui.LOOTGEARUPGRADES = DroidLoot.LootUtils.LootGearUpgrades
+gui.LOOTWILDCARDITEMS = DroidLoot.LootUtils.LootWildCardItems
+gui.MINSELLPRICE = DroidLoot.LootUtils.MinSellPrice
+gui.STACKABLEONLY = DroidLoot.LootUtils.StackableOnly
+gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
+gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
+gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
 
 gui.CurrentStatus = ' '
 gui.Open = false
@@ -473,6 +523,75 @@ function gui.DroidLootGUI()
                     ImGui.Separator();
                     ImGui.Unindent()
                 end
+                if ImGui.CollapsingHeader("Wild Card Looting Options") then
+                    ImGui.Indent()
+                    local settingsChanged = false -- Track if any settings changed
+
+                    -- Checkbox for enabling wildcard looting
+                    local lootWildCardItems = DroidLoot.LootUtils.LootWildCardItems
+                    local changed
+                    lootWildCardItems, changed = ImGui.Checkbox('Enable Wildcard Looting', lootWildCardItems)
+                    if changed then
+                        DroidLoot.LootUtils.LootWildCardItems = lootWildCardItems
+                        gui.LOOTWILDCARDITEMS = lootWildCardItems
+                        settingsChanged = true
+                    end
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots items matching wildcard names.')
+                    ImGui.Separator()
+
+                    -- Wildcard Terms Management
+                    DroidLoot.LootUtils.wildCardTerms = DroidLoot.LootUtils.wildCardTerms or {}
+                    if ImGui.CollapsingHeader("Wildcard Terms") then
+                        ImGui.Indent()
+                        local removeIndex = nil
+
+                        for i, term in ipairs(DroidLoot.LootUtils.wildCardTerms) do
+                            ImGui.PushID(i)
+                            local newTerm, termChanged = ImGui.InputText("##Term" .. i, term, 256)
+                            if termChanged then
+                                DroidLoot.LootUtils.wildCardTerms[i] = newTerm
+                                settingsChanged = true
+                            end
+                            ImGui.SameLine()
+                            if ImGui.Button("Delete") then
+                                removeIndex = i
+                            end
+                            ImGui.PopID()
+                        end
+
+                        if removeIndex then
+                            table.remove(DroidLoot.LootUtils.wildCardTerms, removeIndex)
+                            settingsChanged = true
+                        end
+
+                        ImGui.Separator()
+
+                        -- Add new term
+                        DroidLoot.LootUtils.newWildCardTerm = DroidLoot.LootUtils.newWildCardTerm or ""
+                        local newTermInput
+                        newTermInput, changed = ImGui.InputText("New Term", DroidLoot.LootUtils.newWildCardTerm, 256)
+                        if changed then
+                            DroidLoot.LootUtils.newWildCardTerm = newTermInput
+                        end
+                        if ImGui.Button("Add Term") then
+                            if DroidLoot.LootUtils.newWildCardTerm ~= "" then
+                                table.insert(DroidLoot.LootUtils.wildCardTerms, DroidLoot.LootUtils.newWildCardTerm)
+                                DroidLoot.LootUtils.newWildCardTerm = ""
+                                settingsChanged = true
+                            end
+                        end
+
+                        ImGui.Unindent()
+                    end
+
+                    -- If any settings changed, write them once
+                    if settingsChanged then
+                        DroidLoot.LootUtils.writeSettings()
+                    end
+
+                    ImGui.Unindent()
+                end
                 ImGui.Columns(2)
                 local start_y = ImGui.GetCursorPosY()
                 DroidLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', DroidLoot.LootUtils.UseWarp)
@@ -610,67 +729,16 @@ function gui.DroidLootGUI()
                     gui.LOOTGEARUPGRADES = DroidLoot.LootUtils.LootGearUpgrades
                     DroidLoot.LootUtils.writeSettings()
                 end
-                ImGui.Columns(1)
+                ImGui.Separator();
 
-                if ImGui.CollapsingHeader("Wild Card Looting Options") then
-                    ImGui.Indent()
-                    DroidLoot.LootUtils.LootWildCardItems = ImGui.Checkbox('Enable Wildcard Looting', DroidLoot.LootUtils.LootWildCardItems)
-                    ImGui.SameLine()
-                    ImGui.HelpMarker('Loots items matching wildcard names.')
-                    if gui.LOOTWILDCARDITEMS ~= DroidLoot.LootUtils.LootWildCardItems then
-                        gui.LOOTWILDCARDITEMS = DroidLoot.LootUtils.LootWildCardItems
-                        DroidLoot.LootUtils.writeSettings()
-                    end
-                    ImGui.Separator();
-
-                    -- Ensure DroidLoot.LootUtils.wildCardTerms is initialized
-                    DroidLoot.LootUtils.wildCardTerms = DroidLoot.LootUtils.wildCardTerms or {}
-
-                    -- Start ImGui UI block (inside your existing ImGui window code)
-                    if ImGui.CollapsingHeader("Wildcard Terms") then
-                        ImGui.Indent()
-                        -- Show each term with a text input and delete button
-                        local removeIndex = nil
-                        for i, term in ipairs(DroidLoot.LootUtils.wildCardTerms) do
-                            ImGui.PushID(i) -- Prevent ImGui ID conflicts
-                            local newTerm, changed = ImGui.InputText("##Term" .. i, term, 256)
-                            if changed then
-                                DroidLoot.LootUtils.wildCardTerms[i] = newTerm
-                                DroidLoot.LootUtils.writeSettings()
-                            end
-                            ImGui.SameLine()
-                            if ImGui.Button("Delete") then
-                                removeIndex = i
-                            end
-                            ImGui.PopID()
-                        end
-
-                        -- Remove term if requested
-                        if removeIndex then
-                            table.remove(DroidLoot.LootUtils.wildCardTerms, removeIndex)
-                            DroidLoot.LootUtils.writeSettings()
-                        end
-
-                        ImGui.Separator()
-
-                        -- Add new term
-                        DroidLoot.LootUtils.newWildCardTerm = DroidLoot.LootUtils.newWildCardTerm or ""
-                        local newTerm, changed = ImGui.InputText("New Term", DroidLoot.LootUtils.newWildCardTerm, 256)
-                        if changed then
-                            DroidLoot.LootUtils.newWildCardTerm = newTerm
-                        end
-                        if ImGui.Button("Add Term") then
-                            if DroidLoot.LootUtils.newWildCardTerm ~= "" then
-                                table.insert(DroidLoot.LootUtils.wildCardTerms, DroidLoot.LootUtils.newWildCardTerm)
-                                DroidLoot.LootUtils.newWildCardTerm = ""
-                                DroidLoot.LootUtils.writeSettings()
-                            end
-                        end
-                        ImGui.Unindent()
-                    end
-
-                    ImGui.Unindent()
+                DroidLoot.LootUtils.LootByMinHPNoDrop = ImGui.Checkbox('Enable No Drop', DroidLoot.LootUtils.LootByMinHPNoDrop)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots No Drop items you can use when looting by MinHP.')
+                if gui.LOOTBYHPMINNODROP ~= DroidLoot.LootUtils.LootByMinHPNoDrop then
+                    gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
+                    DroidLoot.LootUtils.writeSettings()
                 end
+                ImGui.Columns(1)
 
                 DroidLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", DroidLoot.LootUtils.CorpseRadius, 1, 5000)
                 ImGui.SameLine()

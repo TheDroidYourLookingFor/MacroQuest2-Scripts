@@ -16,7 +16,7 @@ Examples:
 local mq = require 'mq'
 
 local LootUtils = {
-    Version = "1.0.23",
+    Version = "1.0.24",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -26,7 +26,7 @@ local LootUtils = {
     DoLoot = true,
     EquipUsable = false,     -- Buggy at best
     LootGearUpgrades = true, -- WIP
-    CorpseRadius = 5000,
+    CorpseRadius = 250,
     MobsTooClose = 40,
     AnnounceLoot = false,
     ReportLoot = true,
@@ -39,7 +39,7 @@ local LootUtils = {
     LootEvolvingItems = false, -- Buggy on Emulator
     LootPlatinumBags = false,
     LootWildCardItems = true,
-    wildCardTerms = { 'Rk. I', 'Empowered', 'Prize: ', 'Transcendent ' },
+    wildCardTerms = { 'Rk. I', 'Empowered', 'Prize:', 'Transcendent', 'Rough Consigned' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
@@ -47,6 +47,7 @@ local LootUtils = {
     EmpoweredFabledMinHP = 0,
     StackPlatValue = 0,
     LootByMinHP = 0,
+    LootByMinHPNoDrop = false,
     SaveBagSlots = 3,
     MinSellPrice = 100,
     StackableOnly = false,
@@ -207,12 +208,12 @@ function LootUtils.writeSettings()
         local character = string.char(asciiValue)
         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
-    if #LootUtils.wildCardTerms then
-        mq.cmdf('/ini "%s" "%s" "%s" "%d"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
-        for index, term in ipairs(LootUtils.wildCardTerms) do
-            mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
-        end
-    end
+    -- if #LootUtils.wildCardTerms then
+    --     mq.cmdf('/ini "%s" "%s" "%s" "%d"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
+    --     for index, term in ipairs(LootUtils.wildCardTerms) do
+    --         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+    --     end
+    -- end
 end
 
 local function split(input, sep)
@@ -488,8 +489,16 @@ local function getRule(item)
             end
         end
         if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
-            LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHP')
-            lootDecision = 'Keep'
+            if LootUtils.LootByMinHPNoDrop and noDrop and canUse then
+                LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHPNoDrop')
+                lootDecision = 'Keep'
+            elseif not LootUtils.LootByMinHPNoDrop and noDrop then
+                LootUtils.ConsoleMessage('Debug', 'Skipping because: %s', 'LootByMinHPNoDrop')
+                lootDecision = 'Ignore'
+            elseif not noDrop then
+                LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHP')
+                lootDecision = 'Keep'
+            end
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootAllFabledAugs')
@@ -974,6 +983,7 @@ function LootUtils.sellStuff(closeWindowWhenDone)
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
                             LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!', itemToSell.Name())
+                            -- addRule(itemToSell, itemToSell:sub(1, 1), 'Ignore')
                         else
                             sellBagItemToVendor(itemToSell.Name(), i, j)
                         end
