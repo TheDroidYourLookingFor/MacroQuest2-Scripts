@@ -240,12 +240,16 @@ function gui.DroidLootGUI()
                     if ImGui.Button('Open Github', buttonImVec3) then
                         os.execute('start https://github.com/TheDroidYourLookingFor/MacroQuest2-Scripts/tree/main/Lua/DroidLoot')
                     end
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Opens the Github page for this project.')
                     ImGui.Separator();
 
                     ImGui.Text("Download latest from GitHub.")
                     if ImGui.Button('Download DroidLoot', buttonImVec3) then
                         os.execute('start https://github.com/TheDroidYourLookingFor/MacroQuest2-Scripts/raw/refs/heads/main/Lua/DroidLoot/DroidLoot.7z')
                     end
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Downloads the latest 7zip from github. You will need to extract it and update yourself.')
                     ImGui.Unindent()
                 end
 
