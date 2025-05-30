@@ -777,6 +777,8 @@ function gui.DroidLootGUI()
                     end
                     ImGui.Separator();
 
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y_INI)
                     DroidLoot.LootUtils.useClassLootFile = ImGui.Checkbox('Enable Class INI', DroidLoot.LootUtils.useClassLootFile)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Reads from a class based INI file for all characters when enabled.')
@@ -785,23 +787,12 @@ function gui.DroidLootGUI()
                         DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Separator();
-                    ImGui.NextColumn();
-                    ImGui.SetCursorPosY(start_y_INI)
 
                     DroidLoot.LootUtils.useArmorTypeLootFile = ImGui.Checkbox('Enable Armor Type INI', DroidLoot.LootUtils.useArmorTypeLootFile)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Reads from an armor type based INI file for all characters when enabled.')
                     if gui.USEARMORTYPELOOTFILE ~= DroidLoot.LootUtils.useArmorTypeLootFile then
                         gui.USEARMORTYPELOOTFILE = DroidLoot.LootUtils.useArmorTypeLootFile
-                        DroidLoot.LootUtils.writeSettings()
-                    end
-                    ImGui.Separator();
-
-                    DroidLoot.LootUtils.useMacroLootFile = ImGui.Checkbox('Enable Macro INI', DroidLoot.LootUtils.useMacroLootFile)
-                    ImGui.SameLine()
-                    ImGui.HelpMarker('Reads from an INI file provided by the macro for all characters when enabled.')
-                    if gui.USEMACROLOOTFILE ~= DroidLoot.LootUtils.useMacroLootFile then
-                        gui.USEMACROLOOTFILE = DroidLoot.LootUtils.useMacroLootFile
                         DroidLoot.LootUtils.writeSettings()
                     end
                     ImGui.Columns(1)

@@ -211,6 +211,7 @@ function LootUtils.writeSettings()
         mq.cmdf('/ini "%s" "%s" "%s" "%d"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
         for index, term in ipairs(LootUtils.wildCardTerms) do
             mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+            mq.delay(25)
         end
     end
 end
