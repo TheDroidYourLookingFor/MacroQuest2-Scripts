@@ -160,6 +160,9 @@ local function binds(...)
                 DroidLoot.Messages.CONSOLEMETHOD('Please specify a radius value: /%s radius 100', DroidLoot.command_ShortName)
             end
         elseif args[1] == 'quit' then
+            mq.unbind('/' .. DroidLoot.command_ShortName)
+            mq.unbind('/' .. DroidLoot.command_LongName)
+            mq.unbind('/DroidLootUtils')
             mq.cmdf('/lua stop %s', 'DroidLoot')
             DroidLoot.terminate = true
         else
@@ -228,5 +231,6 @@ end
 
 mq.unbind('/' .. DroidLoot.command_ShortName)
 mq.unbind('/' .. DroidLoot.command_LongName)
+mq.unbind('/DroidLootUtils')
 
 return DroidLoot

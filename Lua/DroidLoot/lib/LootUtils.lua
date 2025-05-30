@@ -16,7 +16,7 @@ Examples:
 local mq = require 'mq'
 
 local LootUtils = {
-    Version = "1.0.22",
+    Version = "1.0.23",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -24,12 +24,12 @@ local LootUtils = {
     LootForage = true,
     LootTradeSkill = false,
     DoLoot = true,
-    EquipUsable = false,      -- Buggy at best
-    LootGearUpgrades = false, -- WIP
+    EquipUsable = false,     -- Buggy at best
+    LootGearUpgrades = true, -- WIP
     CorpseRadius = 5000,
     MobsTooClose = 40,
-    ReportLoot = false,
-    AnnounceLoot = true,
+    AnnounceLoot = false,
+    ReportLoot = true,
     ReportSkipped = true,
     LootChannel = "dgt",
     AnnounceChannel = 'dgt',
@@ -62,8 +62,7 @@ local LootUtils = {
     vendorNPC = 'Jocelyn Forgerson'
 }
 
-LootUtils.Messages = require('lib.Messages')
--- LootUtils.Messages = require('utils.Messages')
+LootUtils.Messages = require('DroidLoot.lib.Messages')
 
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -185,24 +184,14 @@ local eventForage, eventSell, eventCantLoot
 -- UTILITIES
 function LootUtils.ConsoleMessage(messageType, message, ...)
     if messageType == 'Debug' then
-        -- LootUtils._Macro.Settings.logger.Debug((message):format(...))
-        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
         LootUtils.Messages.Debug(message, ...)
     elseif messageType == 'Info' then
-        -- LootUtils._Macro.Settings.logger.Info((message):format(...))
-        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
         LootUtils.Messages.Info(message, ...)
     elseif messageType == 'Warn' then
-        -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
-        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
         LootUtils.Messages.Warn(message, ...)
     elseif messageType == 'Normal' then
-        -- LootUtils._Macro.Settings.logger.Warn((message):format(...))
-        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
         LootUtils.Messages.Normal(message, ...)
     else
-        -- LootUtils._Macro.Settings.logger.Info((message):format(...))
-        -- LootUtils._Macro.GUI.addToConsole((message):format(...))
         LootUtils.Messages.Normal(message, ...)
     end
 end
@@ -253,7 +242,6 @@ function LootUtils.loadSettings()
             LootUtils[key] = value
         end
     end
-    -- Load wildCardTerms array
     LootUtils.wildCardTerms = {}
     local count = tonumber(mq.TLO.Ini(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count')() or 0)
     if count > 0 then
@@ -269,8 +257,6 @@ end
 local function checkCursor()
     local currentItem = nil
     while mq.TLO.Cursor() do
-        -- can't do anything if there's nowhere to put the item, either due to no free inventory space
-        -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
             if LootUtils.SpamLootInfo then
                 LootUtils.ConsoleMessage('Debug', 'Inventory full, item stuck on cursor')
@@ -468,28 +454,36 @@ local function getRule(item)
     lootData[firstLetter][itemName] = lootData[firstLetter][itemName] or lookupIniLootRule(firstLetter, itemName)
     if lootData[firstLetter][itemName] == 'NULL' then
         if noDrop and not canUse then
+            LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'noDrop and not canUse')
             lootDecision = 'Ignore'
         end
         if LootUtils.LootTradeSkill and tradeskill then
+            LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTradeSkill')
             lootDecision = 'Bank'
         end
         if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice and not noDrop and not noRent then
+            LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'MinSellPrice')
             lootDecision = 'Sell'
         end
         if not stackable and LootUtils.StackableOnly then
+            LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'StackableOnly')
             lootDecision = 'Ignore'
         end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue and not noDrop and not noRent then
+            LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'StackPlatValue')
             lootDecision = 'Sell'
         end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
+                LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
+                LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'EmpoweredFabledMinHP')
                 lootDecision = 'Bank'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP <= LootUtils.EmpoweredFabledMinHP then
+                LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
         end
@@ -498,12 +492,15 @@ local function getRule(item)
             lootDecision = 'Keep'
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
+            LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootAllFabledAugs')
             lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then
+            LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'LootPlatinumBags')
             lootDecision = 'Sell'
         end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then
+            LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTokensOfAdvancement')
             lootDecision = 'Bank'
         end
         if evolvingItem and LootUtils.LootEvolvingItems then
@@ -515,7 +512,7 @@ local function getRule(item)
                 if string.find(itemName, term) then
                     lootDecision = 'Keep'
                     LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'wildCardTerms')
-                    break -- No need to check other terms if we already matched
+                    break
                 end
             end
         end
@@ -572,9 +569,7 @@ end
 -- BINDS
 
 local function commandHandler(...)
-    local args = {
-        ...
-    }
+    local args = { ... }
     if #args == 1 then
         if args[1] == 'sell' and not LootUtils.Settings.Terminate then
             doSell = true
@@ -602,14 +597,25 @@ local function commandHandler(...)
 end
 
 local function setupBinds()
-    mq.bind('/loottools', commandHandler)
+    mq.bind('/DroidLootUtils', commandHandler)
 end
 
-local reportPrefix = '/%s \a-t]\ax\ayDroidLoot\ax\a-t]\ax '
 function LootUtils.report(message, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
+    local reportPrefixAnnounceGeneric = '/%s ' .. timestamp .. '[DroidLoot] '
     if LootUtils.AnnounceLoot then
-        local prefixWithChannel = reportPrefix:format(LootUtils.LootChannel)
-        mq.cmdf(prefixWithChannel .. message, ...)
+        local lootChannelCheck = string.lower(LootUtils.LootChannel)
+        if lootChannelCheck == '/g' or lootChannelCheck == '/rs' or lootChannelCheck == '/say' then
+            local prefixWithChannel = reportPrefixAnnounceGeneric:format(LootUtils.LootChannel)
+            mq.cmdf(prefixWithChannel .. message, ...)
+        else
+            local prefixWithChannel = reportPrefixAnnounce:format(LootUtils.LootChannel)
+            mq.cmdf(prefixWithChannel .. message, ...)
+        end
+    end
+    if LootUtils.ReportLoot then
+        LootUtils.Messages.Normal(message, ...)
     end
 end
 
@@ -662,13 +668,8 @@ local function lootItem(index, doWhat, button)
     if not mq.TLO.Window('LootWnd').Open() then
         return
     end
-    if LootUtils.ReportLoot then
-        LootUtils.Messages.Normal('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
-        -- DroidLoot.GUI.addToConsole('Picked Up: %s', corpseItem.Name())
-        -- DroidLoot.LootUtils.report('Picked Up: %s', corpseItem.ItemLink('CLICKABLE')())
-    end
-    -- LootUtils._Macro.GUI.addToConsole('Looted: ' .. corpseItem.Name() .. '[' .. doWhat .. ']')
     LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
         mq.cmd('/destroy')
     end
@@ -735,8 +736,7 @@ function LootUtils.lootCorpse(corpseID)
                 local freeStack = corpseItem.FreeStack()
                 if freeSpace < LootUtils.SaveBagSlots then
                     if LootUtils.ReportSkipped then
-                        mq.cmdf('/%s Skipped(Low Bag Space): %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
-                        LootUtils.Messages.Warn('Skipped Item(Low Bag Space): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                        LootUtils.report('Skipped Item(Low Bag Space): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                     end
                 end
                 if corpseItem.Lore() then
@@ -753,31 +753,15 @@ function LootUtils.lootCorpse(corpseID)
 
                 local lootAction = getRule(corpseItem)
                 if lootAction == 'Ignore' or lootAction == 'NULL' then
-                    mq.cmdf('/%s Skipped: %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
-                    LootUtils.Messages.Warn('Skipped Item: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                    LootUtils.report('Skipped Item: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
                 if lootAction == 'Announce' then
-                    mq.cmdf('/%s Found: %s (%s-%s)[%s]', LootUtils.AnnounceChannel, corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
-                    LootUtils.Messages.Warn('Found: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
-                    return
+                    LootUtils.report('Found: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then
                 break
             end
-        end
-        if LootUtils.ReportSkipped and (#noDropItems > 0 or #loreItems > 0) then
-            local skippedItems = '/%s Skipped loots (%s - %s) '
-            for _, noDropItem in ipairs(noDropItems) do
-                skippedItems = skippedItems .. ' ' .. noDropItem .. ' (nodrop) '
-            end
-            for _, loreItem in ipairs(loreItems) do
-                skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
-            end
-            mq.cmdf(skippedItems, LootUtils.LootChannel, corpseName, corpseID)
-            --LootUtils.Messages.Warn(skippedItems)
-            mq.cmdf('/%s Skipped: %s', LootUtils.AnnounceChannel, skippedItems)
-            LootUtils.Messages.Warn('Skipped Item: %s', skippedItems)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -813,7 +797,6 @@ function LootUtils.lootMobs(limit)
     for i = 1, math.max(deadCount, limit or 0) do
         local corpse = mq.TLO.NearestSpawn(('%d,' .. spawnSearch):format(i, 'npccorpse', LootUtils.CorpseRadius))
         table.insert(corpseList, corpse)
-        -- why is there a deity check?
     end
     local didLoot = false
     LootUtils.ConsoleMessage('Debug', 'Trying to loot %d corpses.', #corpseList)
@@ -910,9 +893,10 @@ local function sellToVendor(itemToSell)
     if NEVER_SELL[itemToSell] then
         return
     end
+    local itemLink = itemToSell.ItemLink('CLICKABLE')()
     while mq.TLO.FindItemCount('=' .. itemToSell)() > 0 do
         if mq.TLO.Window('MerchantWnd').Open() then
-            LootUtils.ConsoleMessage('Info', 'Selling %s', itemToSell)
+            LootUtils.ConsoleMessage('Info', 'Selling %s', itemLink)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
             local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
             local playerDelay = 1000 + playerPing
@@ -933,8 +917,10 @@ local function sellBagItemToVendor(itemToSell, itemBag, itemBagSlot)
     if NEVER_SELL[itemToSell] then
         return
     end
+    local sellItem = mq.TLO.FindItem('=' .. itemToSell)
+    local itemLink = sellItem.ItemLink('CLICKABLE')()
     if mq.TLO.Window('MerchantWnd').Open() then
-        LootUtils.ConsoleMessage('Info', 'Selling %s', itemToSell)
+        LootUtils.ConsoleMessage('Info', 'Selling %s', itemLink)
         mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', itemBag, itemBagSlot)
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 1000 + playerPing
@@ -1127,7 +1113,6 @@ function LootUtils.bankStuff()
         local bagSlot = mq.TLO.InvSlot('pack' .. i).Item
         if bagSlot.Container() == 0 then
             if bagSlot.ID() then
-                local itemToBank = bagSlot.Name()
                 local bankRule = getRule(bagSlot)
                 if bankRule == 'Bank' then
                     mq.cmdf('/nomodkey /shiftkey /itemnotify pack%s leftmouseup', i)
@@ -1239,9 +1224,7 @@ local function init(args)
     processArgs(args)
 end
 
-init({
-    ...
-})
+init({ ... })
 
 while not LootUtils.Settings.Terminate do
     if LootUtils.DoLoot then

@@ -2,8 +2,8 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.4'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4" }
+gui.version = '1.0.5'
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -25,9 +25,17 @@ gui.change_Log = {
         '- Fixed an issue in the script when running newer versions of Macroquest.',
         '- Added Update option to make it easier to get latest files. You still need to install them but it will start the download.'
     },
-    ['1.0.4'] = { 'Initial Release',
+    ['1.0.4'] = { 'Bug Fix',
         '- Fixed issue with add/remove in Wildcard Terms',
         '- Wildcard Terms now saves its array to INI'
+    },
+    ['1.0.5'] = { 'Bug Fix',
+        '- Added time stamps to all loot messages.',
+        '- Added clean messages for announce when using /g and /rsay. Dannet and others will still get unicode characters.',
+        '- Cleaned up report loot function to make messaging more consistant throughout the script.',
+        '- Deleted some unused and unneeded code form past projects.',
+        '- Added debug messages into loot decisions. So youcan turn it on and see whats going on easily.',
+        '- Changed the sell function to give item links instead of just item name.'
     },
 }
 
@@ -107,10 +115,8 @@ gui.CurrentStatus = ' '
 gui.Open = false
 gui.ShowUI = false
 
-local openSections = {}
 local iniData = {}
 local itemActions = { "Keep", "Ignore", "Announce", "Destroy", "Sell", "Fabled", "Cash" }
-local comboIndexCache = {}
 
 function LoadINI(path)
     local data = {}

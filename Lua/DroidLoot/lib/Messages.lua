@@ -56,11 +56,10 @@ function messages.CONSOLEMETHOD(isDebugMessage, consoleMessage, ...)
     local timestamp = os.date("[%H:%M:%S]")
     if isDebugMessage then
         if messages.debug then
-            printf("%s" .. Colors.g .. "[%s]" .. Colors.r .. consoleMessage .. Colors.x, timestamp, messages.ScriptInfo(),
-                ...)
+            printf("%s" .. Colors.g .. "[%s]" .. Colors.r .. consoleMessage .. Colors.x, timestamp, messages.ScriptInfo(), ...)
         end
     else
-        printf("%s" .. Colors.w .. consoleMessage .. Colors.x, timestamp, ...)
+        printf(Colors.W .. timestamp .. Colors.w .. consoleMessage .. Colors.x, ...)
     end
 end
 
@@ -69,35 +68,31 @@ function messages.POPUPMETHOD(popupMessage, ...)
 end
 
 function messages.Normal(consoleMessage, ...)
-    messages.CONSOLEMETHOD(false, "[" .. messages.script_ShortName .. "]" .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. '] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Info(consoleMessage, ...)
-    messages.CONSOLEMETHOD(false,
-        "[" .. messages.script_ShortName .. "]" .. Colors.p .. '[INFO] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.p .. '[INFO] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Warn(consoleMessage, ...)
-    messages.CONSOLEMETHOD(false,
-        "[" .. messages.script_ShortName .. "]" .. Colors.y .. '[WARN] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.y .. '[WARN] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Debug(consoleMessage, ...)
-    messages.CONSOLEMETHOD(true, Colors.r .. '[DEBUG] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(true, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.p .. '[DEBUG] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Error(consoleMessage, ...)
-    messages.CONSOLEMETHOD(false,
-        "[" .. messages.script_ShortName .. "]" .. Colors.Y .. '[ERROR] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.Y .. '[ERROR] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Fatal(consoleMessage, ...)
-    messages.CONSOLEMETHOD(true, Colors.R .. '[FATAL] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(true, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.R .. '[FATAL] ' .. Colors.w .. consoleMessage, ...)
 end
 
 function messages.Trace(consoleMessage, ...)
-    messages.CONSOLEMETHOD(false,
-        "[" .. messages.script_ShortName .. "]" .. Colors.P .. '[TRACE] ' .. Colors.w .. consoleMessage, ...)
+    messages.CONSOLEMETHOD(false, Colors.T .. '[' .. Colors.y .. messages.script_ShortName .. Colors.T .. ']' .. Colors.P .. '[TRACE] ' .. Colors.w .. consoleMessage, ...)
 end
 
 return messages
