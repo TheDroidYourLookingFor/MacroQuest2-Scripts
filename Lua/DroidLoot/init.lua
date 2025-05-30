@@ -203,7 +203,7 @@ while not DroidLoot.terminate do
                 mq.cmd('/mqpause on')
                 mq.delay(500)
             end
-            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'e3_Online')() == '${e3_Online}' then
+            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
                 mq.cmd('/e3p on')
                 mq.delay(500)
             end
@@ -213,7 +213,7 @@ while not DroidLoot.terminate do
                 NavToXYZ(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
                 mq.delay(500)
             end
-            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'e3_Online')() == '${e3_Online}' then
+            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
                 mq.cmd('/e3p on')
                 mq.delay(500)
             end
