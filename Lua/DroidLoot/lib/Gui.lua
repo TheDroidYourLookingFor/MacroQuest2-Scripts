@@ -40,7 +40,9 @@ gui.change_Log = {
     ['1.0.6'] = { 'Bug Fix',
         '- Added option to loot no drop items with LootByMinHP.',
         '- Changed items to be combo boxes instead of text boxes to be easier to change.',
-        '- Revamped saving.'
+        '- Revamped saving.',
+        '- Fixed AnnouceUpgrade to use the standard reporting function.',
+        '- Changed loot upgrades to loot for empty slots.'
     },
 }
 

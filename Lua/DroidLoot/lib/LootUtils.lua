@@ -196,9 +196,11 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
         LootUtils.Messages.Normal(message, ...)
     end
 end
+
 function LootUtils.saveSetting(fileName, categoryName, itemName, itemValue)
     mq.cmdf('/ini "%s" "%s" "%s" "%s"', fileName, categoryName, itemName, itemValue)
 end
+
 function LootUtils.writeSettings()
     for option, value in pairs(LootUtils) do
         local valueType = type(value)
@@ -377,73 +379,90 @@ local function getRule(item)
     end
 
     local function AnnounceUpgrade(slotNumber, slotName)
-        local hpDiff = math.floor(itemHP - mq.TLO.Me.Inventory(slotNumber).HP())
-        mq.cmdf('/%s Found: %s (+%s hp - %s)', LootUtils.AnnounceChannel, itemLink, hpDiff, slotName)
-        LootUtils.Messages.Warn('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
+        local hpDiff
+        if mq.TLO.Me.Inventory(wornSlot)() ~= nil then
+            hpDiff = math.floor(itemHP - mq.TLO.Me.Inventory(slotNumber).HP())
+        else
+            hpDiff = itemHP
+        end
+        LootUtils.ReportLoot('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
     end
 
     if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
-        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+        if mq.TLO.Me.Inventory(wornSlot)() ~= nil then
+            if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(wornSlot, 'Left Ear')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(wornSlot, 'Left Ear')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(wornSlot, 'Left Ear')
-                return 'Keep'
-            end
-        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() > 1 and mq.TLO.Me.Inventory(4).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() > 1 and mq.TLO.Me.Inventory(4).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(4, 'Right Ear')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(4, 'Right Ear')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(4, 'Right Ear')
-                return 'Keep'
-            end
-        elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(wornSlot, 'Left Wrist')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(wornSlot, 'Left Wrist')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(wornSlot, 'Left Wrist')
-                return 'Keep'
-            end
-        elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() > 1 and mq.TLO.Me.Inventory(10).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() > 1 and mq.TLO.Me.Inventory(10).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(10, 'Right Wrist')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(10, 'Right Wrist')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(10, 'Right Wrist')
-                return 'Keep'
-            end
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(wornSlot, 'Left Finger')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(wornSlot, 'Left Finger')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(wornSlot, 'Left Finger')
-                return 'Keep'
-            end
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() > 1 and mq.TLO.Me.Inventory(16).HP() < itemHP then
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() > 1 and mq.TLO.Me.Inventory(16).HP() < itemHP then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(16, 'Right Finger')
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(16, 'Right Finger')
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(16, 'Right Finger')
-                return 'Keep'
+            elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+                local slotName = slotNames[wornSlot] or "Unknown"
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(wornSlot, slotName)
+                        return 'Keep'
+                    end
+                else
+                    AnnounceUpgrade(wornSlot, slotName)
+                    return 'Keep'
+                end
             end
-        elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+        else
             local slotName = slotNames[wornSlot] or "Unknown"
             if itemLore then
                 if not haveItem and not haveItemBank then
