@@ -37,8 +37,10 @@ gui.change_Log = {
         '- Added debug messages into loot decisions. So youcan turn it on and see whats going on easily.',
         '- Changed the sell function to give item links instead of just item name.'
     },
-    ['1.0.6'] = { 'LootByMinHP Changes',
-        '- Added option to loot no drop items with LootByMinHP.'
+    ['1.0.6'] = { 'Bug Fix',
+        '- Added option to loot no drop items with LootByMinHP.',
+        '- Changed items to be combo boxes instead of text boxes to be easier to change.',
+        '- Revamped saving.'
     },
 }
 
@@ -85,55 +87,7 @@ function gui.addToConsole(text, ...)
     table.insert(gui.outputLog, logEntry)
 end
 
-local LootUtils = {
-    Version = "1.0.24",
-    -- _Macro = DroidLoot,
-    UseWarp = false,
-    AddNewSales = true,
-    AddIgnoredItems = true,
-    LootForage = true,
-    LootTradeSkill = false,
-    DoLoot = true,
-    EquipUsable = false,     -- Buggy at best
-    LootGearUpgrades = true, -- WIP
-    CorpseRadius = 250,
-    MobsTooClose = 40,
-    AnnounceLoot = false,
-    ReportLoot = true,
-    ReportSkipped = true,
-    LootChannel = "dgt",
-    AnnounceChannel = 'dgt',
-    SpamLootInfo = false,
-    LootForageSpam = false,
-    CombatLooting = true,
-    LootEvolvingItems = false, -- Buggy on Emulator
-    LootPlatinumBags = false,
-    LootWildCardItems = true,
-    wildCardTerms = { 'Rk. I', 'Empowered', 'Prize:', 'Transcendent', 'Rough Consigned' },
-    LootTokensOfAdvancement = false,
-    LootEmpoweredFabled = false,
-    LootAllFabledAugs = false,
-    EmpoweredFabledName = 'Empowered',
-    EmpoweredFabledMinHP = 0,
-    StackPlatValue = 0,
-    LootByMinHP = 0,
-    LootByMinHPNoDrop = false,
-    SaveBagSlots = 3,
-    MinSellPrice = 100,
-    StackableOnly = false,
-    UseSingleFileForAllCharacters = true,
-    useZoneLootFile = false,
-    useClassLootFile = false,
-    useArmorTypeLootFile = false,
-    bankDeposit = true,
-    sellVendor = true,
-    bankAtFreeSlots = 5,
-    bankZone = 202,
-    bankNPC = 'Banker Granger',
-    vendorNPC = 'Jocelyn Forgerson'
-}
-
-DroidLoot.LootUtils.loadSettings()
+-- DroidLoot.LootUtils.loadSettings()
 gui.DEBUG = DroidLoot.debug
 gui.DOSELL = DroidLoot.doSell
 gui.DOLOOT = DroidLoot.doLoot
@@ -363,7 +317,7 @@ function gui.DroidLootGUI()
                 local sortedSections = sortedKeys(iniData)
                 for _, section in ipairs(sortedSections) do
                     local items = iniData[section]
-                    if section ~= "Settings" then
+                    if section ~= "Settings" and section ~= "wildCardTerms" then
                         if ImGui.CollapsingHeader(string.format("[%s] (%d items)", section, tablelength(items))) then
                             ImGui.Columns(2, "LootColumns", true)
                             ImGui.Text("Item")
@@ -379,15 +333,47 @@ function gui.DroidLootGUI()
                                 ImGui.NextColumn()
 
                                 local key = section .. "_" .. itemName
-                                actionBuffers[key] = actionBuffers[key] or action or ""
 
-                                local newText, changed = ImGui.InputText("##" .. key, actionBuffers[key])
-                                if changed then
-                                    actionBuffers[key] = newText
-                                    iniData[section][itemName] = newText
-                                    mq.cmdf('/ini "%s" "%s" "%s" "%s"',
-                                        DroidLoot.LootUtils.Settings.LootFile, section, itemName, newText)
+                                -- Initialize current index for combo selection if not already done
+                                if not actionBuffers[key] then
+                                    actionBuffers[key] = action
                                 end
+
+                                if not actionIndices then
+                                    actionIndices = {}
+                                end
+
+                                if actionBuffers[key] ~= nil and actionIndices[key] == nil then
+                                    -- Find index for the current action value
+                                    for i = 1, #itemActions do
+                                        if itemActions[i] == actionBuffers[key] then
+                                            actionIndices[key] = i
+                                            break
+                                        end
+                                    end
+                                    -- If not found, default to 1
+                                    if not actionIndices[key] then
+                                        actionIndices[key] = 1
+                                    end
+                                end
+
+                                -- Combo Box for Action
+                                if ImGui.BeginCombo("##" .. key, itemActions[actionIndices[key]]) then
+                                    for n = 1, #itemActions do
+                                        local is_selected = (actionIndices[key] == n)
+                                        if ImGui.Selectable(itemActions[n], is_selected) then
+                                            actionIndices[key] = n
+                                            actionBuffers[key] = itemActions[n]
+                                            iniData[section][itemName] = itemActions[n]
+                                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, section, itemName, itemActions[n])
+                                        end
+                                        if is_selected then
+                                            ImGui.SetItemDefaultFocus()
+                                        end
+                                    end
+                                    ImGui.EndCombo()
+                                end
+
                                 ImGui.NextColumn()
                             end
                             ImGui.Columns(1)
@@ -407,17 +393,16 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
                     if gui.BANKDEPOSIT ~= DroidLoot.LootUtils.bankDeposit then
                         gui.BANKDEPOSIT = DroidLoot.LootUtils.bankDeposit
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'bankDeposit', DroidLoot.LootUtils.bankDeposit)
                     end
                     ImGui.NextColumn();
 
-                    DroidLoot.LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling',
-                        DroidLoot.LootUtils.sellVendor)
+                    DroidLoot.LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling', DroidLoot.LootUtils.sellVendor)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Sells items for Platinum when enabled.')
                     if gui.SELLVENDOR ~= DroidLoot.LootUtils.sellVendor then
                         gui.SELLVENDOR = DroidLoot.LootUtils.sellVendor
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'sellVendor', DroidLoot.LootUtils.sellVendor)
                     end
                     ImGui.Separator();
                     ImGui.Columns(1)
@@ -427,7 +412,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Zone where we can access banking services.')
                     if gui.BANKZONE ~= DroidLoot.LootUtils.bankZone then
                         gui.BANKZONE = DroidLoot.LootUtils.bankZone
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'bankZone', DroidLoot.LootUtils.bankZone)
                     end
                     ImGui.Separator();
 
@@ -436,7 +421,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('The name of the npc to warp to for banking.')
                     if gui.BANKNPC ~= DroidLoot.LootUtils.bankNPC then
                         gui.BANKNPC = DroidLoot.LootUtils.bankNPC
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'bankNPC', DroidLoot.LootUtils.bankNPC)
                     end
                     ImGui.Separator();
 
@@ -445,80 +430,73 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
                     if gui.VENDORNPC ~= DroidLoot.LootUtils.vendorNPC then
                         gui.VENDORNPC = DroidLoot.LootUtils.vendorNPC
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'vendorNPC', DroidLoot.LootUtils.vendorNPC)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots",
-                        DroidLoot.LootUtils.bankAtFreeSlots, 1, 20)
+                    DroidLoot.LootUtils.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots", DroidLoot.LootUtils.bankAtFreeSlots, 1, 20)
                     ImGui.SameLine()
                     ImGui.HelpMarker('The amount of free slots before we should bank.')
                     if gui.BANKATFREESLOTS ~= DroidLoot.LootUtils.bankAtFreeSlots then
                         gui.BANKATFREESLOTS = DroidLoot.LootUtils.bankAtFreeSlots
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'bankAtFreeSlots', DroidLoot.LootUtils.bankAtFreeSlots)
                     end
                     ImGui.Separator();
                     ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("WastingTime Options") then
                     ImGui.Indent()
-                    DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags',
-                        DroidLoot.LootUtils.LootPlatinumBags)
+                    DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', DroidLoot.LootUtils.LootPlatinumBags)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots platinum bags.')
                     if gui.LOOTPLATINUMBAGS ~= DroidLoot.LootUtils.LootPlatinumBags then
                         gui.LOOTPLATINUMBAGS = DroidLoot.LootUtils.LootPlatinumBags
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootPlatinumBags', DroidLoot.LootUtils.LootPlatinumBags)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement',
-                        DroidLoot.LootUtils.LootTokensOfAdvancement)
+                    DroidLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots tokens of advancement.')
                     if gui.LOOTTOKENSOFADVANCEMENT ~= DroidLoot.LootUtils.LootTokensOfAdvancement then
                         gui.LOOTTOKENSOFADVANCEMENT = DroidLoot.LootUtils.LootTokensOfAdvancement
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootTokensOfAdvancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled',
-                        DroidLoot.LootUtils.LootEmpoweredFabled)
+                    DroidLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled', DroidLoot.LootUtils.LootEmpoweredFabled)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots empowered fabled items.')
                     if gui.LOOTEMPOWEREDFABLED ~= DroidLoot.LootUtils.LootEmpoweredFabled then
                         gui.LOOTEMPOWEREDFABLED = DroidLoot.LootUtils.LootEmpoweredFabled
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootEmpoweredFabled', DroidLoot.LootUtils.LootEmpoweredFabled)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments',
-                        DroidLoot.LootUtils.LootAllFabledAugs)
+                    DroidLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments', DroidLoot.LootUtils.LootAllFabledAugs)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Loots all fabled augments.')
                     if gui.LOOTALLFABLEDAUGS ~= DroidLoot.LootUtils.LootAllFabledAugs then
                         gui.LOOTALLFABLEDAUGS = DroidLoot.LootUtils.LootAllFabledAugs
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootAllFabledAugs', DroidLoot.LootUtils.LootAllFabledAugs)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP",
-                        DroidLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                    DroidLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP", DroidLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
                     if gui.EMPOWEREDFABLEDMINHP ~= DroidLoot.LootUtils.EmpoweredFabledMinHP then
                         gui.EMPOWEREDFABLEDMINHP = DroidLoot.LootUtils.EmpoweredFabledMinHP
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledMinHP', DroidLoot.LootUtils.EmpoweredFabledMinHP)
                     end
                     ImGui.Separator();
 
-                    DroidLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name',
-                        DroidLoot.LootUtils.EmpoweredFabledName)
+                    DroidLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name', DroidLoot.LootUtils.EmpoweredFabledName)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Name of the empowered fabled item.')
                     if gui.EMPOWEREDFABLEDNAME ~= DroidLoot.LootUtils.EmpoweredFabledName then
                         gui.EMPOWEREDFABLEDNAME = DroidLoot.LootUtils.EmpoweredFabledName
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledName', DroidLoot.LootUtils.EmpoweredFabledName)
                     end
                     ImGui.Separator();
                     ImGui.Unindent()
@@ -587,232 +565,236 @@ function gui.DroidLootGUI()
 
                     -- If any settings changed, write them once
                     if settingsChanged then
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveWildCardTerms()
                     end
 
                     ImGui.Unindent()
                 end
-                ImGui.Columns(2)
-                local start_y = ImGui.GetCursorPosY()
-                DroidLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', DroidLoot.LootUtils.UseWarp)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Uses warp when enabled.')
-                if gui.USEWARP ~= DroidLoot.LootUtils.UseWarp then
-                    gui.USEWARP = DroidLoot.LootUtils.UseWarp
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                if ImGui.CollapsingHeader("Booleans") then
+                    ImGui.Indent()
+                    ImGui.Columns(2)
+                    local start_y = ImGui.GetCursorPosY()
+                    DroidLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', DroidLoot.LootUtils.UseWarp)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Uses warp when enabled.')
+                    if gui.USEWARP ~= DroidLoot.LootUtils.UseWarp then
+                        gui.USEWARP = DroidLoot.LootUtils.UseWarp
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'UseWarp', DroidLoot.LootUtils.UseWarp)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', DroidLoot.LootUtils.AddNewSales)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Add new sales when enabled.')
-                if gui.ADDNEWSALES ~= DroidLoot.LootUtils.AddNewSales then
-                    gui.ADDNEWSALES = DroidLoot.LootUtils.AddNewSales
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', DroidLoot.LootUtils.AddNewSales)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Add new sales when enabled.')
+                    if gui.ADDNEWSALES ~= DroidLoot.LootUtils.AddNewSales then
+                        gui.ADDNEWSALES = DroidLoot.LootUtils.AddNewSales
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'AddNewSales', DroidLoot.LootUtils.AddNewSales)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.AddIgnoredItems = ImGui.Checkbox('Enable Add Ignored Items', DroidLoot.LootUtils.AddIgnoredItems)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Add ignored items to ini when enabled.')
-                if gui.ADDIGNOREDITEMS ~= DroidLoot.LootUtils.AddIgnoredItems then
-                    gui.ADDIGNOREDITEMS = DroidLoot.LootUtils.AddIgnoredItems
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.AddIgnoredItems = ImGui.Checkbox('Enable Add Ignored Items', DroidLoot.LootUtils.AddIgnoredItems)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Add ignored items to ini when enabled.')
+                    if gui.ADDIGNOREDITEMS ~= DroidLoot.LootUtils.AddIgnoredItems then
+                        gui.ADDIGNOREDITEMS = DroidLoot.LootUtils.AddIgnoredItems
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'AddIgnoredItems', DroidLoot.LootUtils.AddIgnoredItems)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', DroidLoot.LootUtils.LootForage)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loot forage when enabled.')
-                if gui.LOOTFORAGE ~= DroidLoot.LootUtils.LootForage then
-                    gui.LOOTFORAGE = DroidLoot.LootUtils.LootForage
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', DroidLoot.LootUtils.LootForage)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loot forage when enabled.')
+                    if gui.LOOTFORAGE ~= DroidLoot.LootUtils.LootForage then
+                        gui.LOOTFORAGE = DroidLoot.LootUtils.LootForage
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootForage', DroidLoot.LootUtils.LootForage)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill', DroidLoot.LootUtils.LootTradeSkill)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loot trade skill items when enabled.')
-                if gui.LOOTTRADESKILL ~= DroidLoot.LootUtils.LootTradeSkill then
-                    gui.LOOTTRADESKILL = DroidLoot.LootUtils.LootTradeSkill
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill', DroidLoot.LootUtils.LootTradeSkill)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loot trade skill items when enabled.')
+                    if gui.LOOTTRADESKILL ~= DroidLoot.LootUtils.LootTradeSkill then
+                        gui.LOOTTRADESKILL = DroidLoot.LootUtils.LootTradeSkill
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootTradeSkill', DroidLoot.LootUtils.LootTradeSkill)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', DroidLoot.LootUtils.DoLoot)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Enables looting.')
-                if gui.DOLOOT ~= DroidLoot.LootUtils.DoLoot then
-                    gui.DOLOOT = DroidLoot.LootUtils.DoLoot
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', DroidLoot.LootUtils.DoLoot)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Enables looting.')
+                    if gui.DOLOOT ~= DroidLoot.LootUtils.DoLoot then
+                        gui.DOLOOT = DroidLoot.LootUtils.DoLoot
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'DoLoot', DroidLoot.LootUtils.DoLoot)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable', DroidLoot.LootUtils.EquipUsable)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Equips usable items. Buggy at best.')
-                if gui.EQUIPUSABLE ~= DroidLoot.LootUtils.EquipUsable then
-                    gui.EQUIPUSABLE = DroidLoot.LootUtils.EquipUsable
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable', DroidLoot.LootUtils.EquipUsable)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Equips usable items. Buggy at best.')
+                    if gui.EQUIPUSABLE ~= DroidLoot.LootUtils.EquipUsable then
+                        gui.EQUIPUSABLE = DroidLoot.LootUtils.EquipUsable
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EquipUsable', DroidLoot.LootUtils.EquipUsable)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootEvolvingItems = ImGui.Checkbox('Enable Loot Evolving', DroidLoot.LootUtils.LootEvolvingItems)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loots Evolving Items')
-                if gui.LOOTEVOLVINGITEMS ~= DroidLoot.LootUtils.LootEvolvingItems then
-                    gui.LOOTEVOLVINGITEMS = DroidLoot.LootUtils.LootEvolvingItems
-                    DroidLoot.LootUtils.writeSettings()
-                end
+                    DroidLoot.LootUtils.LootEvolvingItems = ImGui.Checkbox('Enable Loot Evolving', DroidLoot.LootUtils.LootEvolvingItems)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots Evolving Items')
+                    if gui.LOOTEVOLVINGITEMS ~= DroidLoot.LootUtils.LootEvolvingItems then
+                        gui.LOOTEVOLVINGITEMS = DroidLoot.LootUtils.LootEvolvingItems
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootEvolvingItems', DroidLoot.LootUtils.LootEvolvingItems)
+                    end
 
-                ImGui.NextColumn();
-                ImGui.SetCursorPosY(start_y)
-                DroidLoot.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', DroidLoot.LootUtils.AnnounceLoot)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Reports looted items to announce channel.')
-                if gui.ANNOUNCELOOT ~= DroidLoot.LootUtils.AnnounceLoot then
-                    gui.ANNOUNCELOOT = DroidLoot.LootUtils.AnnounceLoot
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y)
+                    DroidLoot.LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', DroidLoot.LootUtils.AnnounceLoot)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reports looted items to announce channel.')
+                    if gui.ANNOUNCELOOT ~= DroidLoot.LootUtils.AnnounceLoot then
+                        gui.ANNOUNCELOOT = DroidLoot.LootUtils.AnnounceLoot
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'AnnounceLoot', DroidLoot.LootUtils.AnnounceLoot)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', DroidLoot.LootUtils.ReportLoot)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Reports looted items to console.')
-                if gui.REPORTLOOT ~= DroidLoot.LootUtils.ReportLoot then
-                    gui.REPORTLOOT = DroidLoot.LootUtils.ReportLoot
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot', DroidLoot.LootUtils.ReportLoot)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reports looted items to console.')
+                    if gui.REPORTLOOT ~= DroidLoot.LootUtils.ReportLoot then
+                        gui.REPORTLOOT = DroidLoot.LootUtils.ReportLoot
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'ReportLoot', DroidLoot.LootUtils.ReportLoot)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped', DroidLoot.LootUtils.ReportSkipped)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Reports skipped loots.')
-                if gui.REPORTSKIPPED ~= DroidLoot.LootUtils.ReportSkipped then
-                    gui.REPORTSKIPPED = DroidLoot.LootUtils.ReportSkipped
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped', DroidLoot.LootUtils.ReportSkipped)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Reports skipped loots.')
+                    if gui.REPORTSKIPPED ~= DroidLoot.LootUtils.ReportSkipped then
+                        gui.REPORTSKIPPED = DroidLoot.LootUtils.ReportSkipped
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'ReportSkipped', DroidLoot.LootUtils.ReportSkipped)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info', DroidLoot.LootUtils.SpamLootInfo)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Spams loot info.')
-                if gui.SPAMLOOTINFO ~= DroidLoot.LootUtils.SpamLootInfo then
-                    gui.SPAMLOOTINFO = DroidLoot.LootUtils.SpamLootInfo
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info', DroidLoot.LootUtils.SpamLootInfo)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Spams loot info.')
+                    if gui.SPAMLOOTINFO ~= DroidLoot.LootUtils.SpamLootInfo then
+                        gui.SPAMLOOTINFO = DroidLoot.LootUtils.SpamLootInfo
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'SpamLootInfo', DroidLoot.LootUtils.SpamLootInfo)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam',
-                    DroidLoot.LootUtils.LootForageSpam)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Spams loot forage info.')
-                if gui.LOOTFORAGESPAM ~= DroidLoot.LootUtils.LootForageSpam then
-                    gui.LOOTFORAGESPAM = DroidLoot.LootUtils.LootForageSpam
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam', DroidLoot.LootUtils.LootForageSpam)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Spams loot forage info.')
+                    if gui.LOOTFORAGESPAM ~= DroidLoot.LootUtils.LootForageSpam then
+                        gui.LOOTFORAGESPAM = DroidLoot.LootUtils.LootForageSpam
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootForageSpam', DroidLoot.LootUtils.LootForageSpam)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting', DroidLoot.LootUtils.CombatLooting)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loots during combat.')
-                if gui.COMBATLOOTING ~= DroidLoot.LootUtils.CombatLooting then
-                    gui.COMBATLOOTING = DroidLoot.LootUtils.CombatLooting
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting', DroidLoot.LootUtils.CombatLooting)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots during combat.')
+                    if gui.COMBATLOOTING ~= DroidLoot.LootUtils.CombatLooting then
+                        gui.COMBATLOOTING = DroidLoot.LootUtils.CombatLooting
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'CombatLooting', DroidLoot.LootUtils.CombatLooting)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', DroidLoot.LootUtils.LootGearUpgrades)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loots items with more HP than currently worn items.')
-                if gui.LOOTGEARUPGRADES ~= DroidLoot.LootUtils.LootGearUpgrades then
-                    gui.LOOTGEARUPGRADES = DroidLoot.LootUtils.LootGearUpgrades
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
+                    DroidLoot.LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', DroidLoot.LootUtils.LootGearUpgrades)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots items with more HP than currently worn items.')
+                    if gui.LOOTGEARUPGRADES ~= DroidLoot.LootUtils.LootGearUpgrades then
+                        gui.LOOTGEARUPGRADES = DroidLoot.LootUtils.LootGearUpgrades
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootGearUpgrades', DroidLoot.LootUtils.LootGearUpgrades)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.LootByMinHPNoDrop = ImGui.Checkbox('Enable No Drop', DroidLoot.LootUtils.LootByMinHPNoDrop)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loots No Drop items you can use when looting by MinHP.')
-                if gui.LOOTBYHPMINNODROP ~= DroidLoot.LootUtils.LootByMinHPNoDrop then
-                    gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
-                    DroidLoot.LootUtils.writeSettings()
+                    DroidLoot.LootUtils.LootByMinHPNoDrop = ImGui.Checkbox('Enable Loot MinHP No Drop', DroidLoot.LootUtils.LootByMinHPNoDrop)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots No Drop items you can use when looting by MinHP.')
+                    if gui.LOOTBYHPMINNODROP ~= DroidLoot.LootUtils.LootByMinHPNoDrop then
+                        gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByMinHPNoDrop', DroidLoot.LootUtils.LootByMinHPNoDrop)
+                    end
+                    ImGui.Columns(1)
+                    ImGui.Unindent();
                 end
-                ImGui.Columns(1)
+                if ImGui.CollapsingHeader("Strings") then
+                    ImGui.Indent()
+                    DroidLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", DroidLoot.LootUtils.CorpseRadius, 1, 5000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The radius we should scan for corpses.')
+                    if gui.CORPSERADIUS ~= DroidLoot.LootUtils.CorpseRadius then
+                        gui.CORPSERADIUS = DroidLoot.LootUtils.CorpseRadius
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'CorpseRadius', DroidLoot.LootUtils.CorpseRadius)
+                    end
+                    ImGui.Separator();
 
-                DroidLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", DroidLoot.LootUtils.CorpseRadius, 1, 5000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The radius we should scan for corpses.')
-                if gui.CORPSERADIUS ~= DroidLoot.LootUtils.CorpseRadius then
-                    gui.CORPSERADIUS = DroidLoot.LootUtils.CorpseRadius
-                    DroidLoot.LootUtils.writeSettings()
+                    DroidLoot.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", DroidLoot.LootUtils.MobsTooClose, 1, 5000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The range to check for nearby mobs.')
+                    if gui.MOBSTOOCLOSE ~= DroidLoot.LootUtils.MobsTooClose then
+                        gui.MOBSTOOCLOSE = DroidLoot.LootUtils.MobsTooClose
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'MobsTooClose', DroidLoot.LootUtils.MobsTooClose)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.LootByMinHP = ImGui.SliderInt("Loot By HP Min Health", DroidLoot.LootUtils.LootByMinHP, 0, 50000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Minimum HP for item to be considered and set to Keep. Any value greater than 0 activates this.')
+                    if gui.LOOTBYHPMIN ~= DroidLoot.LootUtils.LootByMinHP then
+                        gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByMinHP', DroidLoot.LootUtils.LootByMinHP)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value", DroidLoot.LootUtils.StackPlatValue, 0, 10000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The value of platinum stacks.')
+                    if gui.STACKPLATVALUE ~= DroidLoot.LootUtils.StackPlatValue then
+                        gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'StackPlatValue', DroidLoot.LootUtils.StackPlatValue)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", DroidLoot.LootUtils.SaveBagSlots, 0, 100)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The number of bag slots to save.')
+                    if gui.SAVEBAGSLOTS ~= DroidLoot.LootUtils.SaveBagSlots then
+                        gui.SAVEBAGSLOTS = DroidLoot.LootUtils.SaveBagSlots
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'SaveBagSlots', DroidLoot.LootUtils.SaveBagSlots)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", DroidLoot.LootUtils.MinSellPrice, 1, 1000000000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('The minimum price at which items will be sold.')
+                    if gui.MINSELLPRICE ~= DroidLoot.LootUtils.MinSellPrice then
+                        gui.MINSELLPRICE = DroidLoot.LootUtils.MinSellPrice
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'MinSellPrice', DroidLoot.LootUtils.MinSellPrice)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.LootChannel = ImGui.InputText('Loot Channel', DroidLoot.LootUtils.LootChannel)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Channel to report loot to.')
+                    if gui.LOOTCHANNEL ~= DroidLoot.LootUtils.LootChannel then
+                        gui.LOOTCHANNEL = DroidLoot.LootUtils.LootChannel
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootChannel', DroidLoot.LootUtils.LootChannel)
+                    end
+                    ImGui.Separator();
+
+                    DroidLoot.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel', DroidLoot.LootUtils.AnnounceChannel)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Channel to announce events.')
+                    if gui.ANNOUNCECHANNEL ~= DroidLoot.LootUtils.AnnounceChannel then
+                        gui.ANNOUNCECHANNEL = DroidLoot.LootUtils.AnnounceChannel
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'AnnounceChannel', DroidLoot.LootUtils.AnnounceChannel)
+                    end
+                    ImGui.Separator();
+                    ImGui.Unindent();
                 end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", DroidLoot.LootUtils.MobsTooClose, 1, 5000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The range to check for nearby mobs.')
-                if gui.MOBSTOOCLOSE ~= DroidLoot.LootUtils.MobsTooClose then
-                    gui.MOBSTOOCLOSE = DroidLoot.LootUtils.MobsTooClose
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.LootByMinHP = ImGui.SliderInt("Loot By HP Min Health", DroidLoot.LootUtils.LootByMinHP, 0, 50000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Minimum HP for item to be considered and set to Keep. Any value greater than 0 activates this.')
-                if gui.LOOTBYHPMIN ~= DroidLoot.LootUtils.LootByMinHP then
-                    gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value", DroidLoot.LootUtils.StackPlatValue, 0, 10000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The value of platinum stacks.')
-                if gui.STACKPLATVALUE ~= DroidLoot.LootUtils.StackPlatValue then
-                    gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", DroidLoot.LootUtils.SaveBagSlots, 0, 100)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The number of bag slots to save.')
-                if gui.SAVEBAGSLOTS ~= DroidLoot.LootUtils.SaveBagSlots then
-                    gui.SAVEBAGSLOTS = DroidLoot.LootUtils.SaveBagSlots
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", DroidLoot.LootUtils.MinSellPrice, 1, 100000)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The minimum price at which items will be sold.')
-                if gui.MINSELLPRICE ~= DroidLoot.LootUtils.MinSellPrice then
-                    gui.MINSELLPRICE = DroidLoot.LootUtils.MinSellPrice
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.LootChannel = ImGui.InputText('Loot Channel', DroidLoot.LootUtils.LootChannel)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Channel to report loot to.')
-                if gui.LOOTCHANNEL ~= DroidLoot.LootUtils.LootChannel then
-                    gui.LOOTCHANNEL = DroidLoot.LootUtils.LootChannel
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
-                DroidLoot.LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel',
-                    DroidLoot.LootUtils.AnnounceChannel)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Channel to announce events.')
-                if gui.ANNOUNCECHANNEL ~= DroidLoot.LootUtils.AnnounceChannel then
-                    gui.ANNOUNCECHANNEL = DroidLoot.LootUtils.AnnounceChannel
-                    DroidLoot.LootUtils.writeSettings()
-                end
-                ImGui.Separator();
-
                 if ImGui.CollapsingHeader("INI") then
                     ImGui.Indent()
                     DroidLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', DroidLoot.LootUtils.Settings.LootFile)
@@ -820,7 +802,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Loot file to use.')
                     if gui.LOOTINIFILE ~= DroidLoot.LootUtils.Settings.LootFile then
                         gui.LOOTINIFILE = DroidLoot.LootUtils.Settings.LootFile
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootFile', DroidLoot.LootUtils.LootFile)
                     end
                     ImGui.Separator();
 
@@ -832,7 +814,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Reads from a single INI file for all characters when enabled.')
                     if gui.USESINGLEFILEFORALLCHARACTERS ~= DroidLoot.LootUtils.UseSingleFileForAllCharacters then
                         gui.USESINGLEFILEFORALLCHARACTERS = DroidLoot.LootUtils.UseSingleFileForAllCharacters
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'UseSingleFileForAllCharacters', DroidLoot.LootUtils.UseSingleFileForAllCharacters)
                     end
                     ImGui.Separator();
 
@@ -841,7 +823,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Reads from a zone based INI file for all characters when enabled.')
                     if gui.USEZONELOOTFILE ~= DroidLoot.LootUtils.useZoneLootFile then
                         gui.USEZONELOOTFILE = DroidLoot.LootUtils.useZoneLootFile
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'useZoneLootFile', DroidLoot.LootUtils.useZoneLootFile)
                     end
                     ImGui.Separator();
 
@@ -852,7 +834,7 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Reads from a class based INI file for all characters when enabled.')
                     if gui.USECLASSLOOTFILE ~= DroidLoot.LootUtils.useClassLootFile then
                         gui.USECLASSLOOTFILE = DroidLoot.LootUtils.useClassLootFile
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'useClassLootFile', DroidLoot.LootUtils.useClassLootFile)
                     end
                     ImGui.Separator();
 
@@ -861,9 +843,12 @@ function gui.DroidLootGUI()
                     ImGui.HelpMarker('Reads from an armor type based INI file for all characters when enabled.')
                     if gui.USEARMORTYPELOOTFILE ~= DroidLoot.LootUtils.useArmorTypeLootFile then
                         gui.USEARMORTYPELOOTFILE = DroidLoot.LootUtils.useArmorTypeLootFile
-                        DroidLoot.LootUtils.writeSettings()
+                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'useArmorTypeLootFile', DroidLoot.LootUtils.useArmorTypeLootFile)
                     end
                     ImGui.Columns(1)
+                    if ImGui.Button('Save Config', buttonImVec2) then
+                        DroidLoot.LootUtils.writeSettings()
+                    end
                     ImGui.Unindent();
                 end
                 ImGui.Unindent();

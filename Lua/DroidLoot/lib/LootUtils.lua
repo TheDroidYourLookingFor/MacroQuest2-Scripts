@@ -16,7 +16,7 @@ Examples:
 local mq = require 'mq'
 
 local LootUtils = {
-    Version = "1.0.24",
+    Version = "1.0.25",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -39,7 +39,7 @@ local LootUtils = {
     LootEvolvingItems = false, -- Buggy on Emulator
     LootPlatinumBags = false,
     LootWildCardItems = true,
-    wildCardTerms = { 'Rk. I', 'Empowered', 'Prize:', 'Transcendent', 'Rough Consigned' },
+    wildCardTerms = { 'Rk. I', 'Empowered', 'Transcendent', 'Rough Consigned' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
     LootAllFabledAugs = false,
@@ -49,7 +49,7 @@ local LootUtils = {
     LootByMinHP = 0,
     LootByMinHPNoDrop = false,
     SaveBagSlots = 3,
-    MinSellPrice = 100,
+    MinSellPrice = 100000,
     StackableOnly = false,
     UseSingleFileForAllCharacters = true,
     useZoneLootFile = false,
@@ -196,24 +196,30 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
         LootUtils.Messages.Normal(message, ...)
     end
 end
-
+function LootUtils.saveSetting(fileName, categoryName, itemName, itemValue)
+    mq.cmdf('/ini "%s" "%s" "%s" "%s"', fileName, categoryName, itemName, itemValue)
+end
 function LootUtils.writeSettings()
     for option, value in pairs(LootUtils) do
         local valueType = type(value)
         if saveOptionTypes[valueType] then
-            mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'Settings', option, value)
+            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', option, value)
         end
     end
     for asciiValue = 65, 90 do
         local character = string.char(asciiValue)
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
+        LootUtils.saveSetting(LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
-    -- if #LootUtils.wildCardTerms then
-    --     mq.cmdf('/ini "%s" "%s" "%s" "%d"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
-    --     for index, term in ipairs(LootUtils.wildCardTerms) do
-    --         mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
-    --     end
-    -- end
+    LootUtils.saveWildCardTerms()
+end
+
+function LootUtils.saveWildCardTerms()
+    if #LootUtils.wildCardTerms then
+        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
+        for index, term in ipairs(LootUtils.wildCardTerms) do
+            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+        end
+    end
 end
 
 local function split(input, sep)
@@ -316,7 +322,7 @@ local function getRule(item)
     local itemLink = item.ItemLink('CLICKABLE')()
     local lootDecision = 'Ignore'
     local tradeskill = item.Tradeskills()
-    local sellPrice = item.Value() and item.Value() / 1000 or 0
+    local sellPrice = item.Value() or 0
     local stackable = item.Stackable()
     local firstLetter = itemName:sub(1, 1):upper()
     local stackSize = item.StackSize()
