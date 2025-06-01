@@ -16,7 +16,7 @@ Examples:
 local mq = require 'mq'
 
 local LootUtils = {
-    Version = "1.0.25",
+    Version = "1.0.27",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -29,6 +29,7 @@ local LootUtils = {
     CorpseRadius = 250,
     MobsTooClose = 40,
     AnnounceLoot = false,
+    AnnounceUpgrades = true,
     ReportLoot = true,
     ReportSkipped = true,
     LootChannel = "dgt",
@@ -64,6 +65,7 @@ local LootUtils = {
 }
 
 LootUtils.Messages = require('DroidLoot.lib.Messages')
+LootUtils.Storage = require('DroidLoot.lib.Storage')
 
 local my_Class = mq.TLO.Me.Class() or ''
 local my_Name = mq.TLO.Me.Name() or ''
@@ -73,62 +75,7 @@ LootUtils.Settings = {
     logger = Write,
     LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
 }
-function LootUtils.SetINIType()
-    if LootUtils.UseSingleFileForAllCharacters then
-        LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
-        printf('LootFile: %s', LootUtils.Settings.LootFile)
-        return
-    end
-    local my_ArmorType
-    if LootUtils.useArmorTypeLootFile then
-        if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
-            my_ArmorType = 'Plate'
-            if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
-            end
-        elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
-            my_ArmorType = 'Chain'
-            if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
-            end
-        elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
-            my_ArmorType = 'Cloth'
-            if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
-            end
-        elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
-            my_ArmorType = 'Leather'
-            if LootUtils.useZoneLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
-            end
-        end
-    else
-        if LootUtils.useZoneLootFile then
-            if LootUtils.useClassLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
-            end
-        else
-            if LootUtils.useClassLootFile then
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Class .. '.ini'
-            else
-                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Name .. '.ini'
-            end
-        end
-    end
-    printf('LootFile: %s', LootUtils.Settings.LootFile)
-end
 
-LootUtils.SetINIType()
 -- Internal settings
 local lootData = {}
 local doSell = false
@@ -197,8 +144,69 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
     end
 end
 
+function LootUtils.SetINIType()
+    if LootUtils.UseSingleFileForAllCharacters then
+        LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
+        LootUtils.ConsoleMessage('Debug', 'LootFile: %s', LootUtils.Settings.LootFile)
+        LootUtils.ConsoleMessage('Normal', '++ \agDROID LOOT UTILS STARTED\aw ++')
+        LootUtils.ConsoleMessage('Normal', '++ \ag %s \aw ++', LootUtils.Settings.LootFile)
+        return
+    end
+    local my_ArmorType
+    if LootUtils.useArmorTypeLootFile then
+        if my_Class == 'Bard' or my_Class == 'Cleric' or my_Class == 'Paladin' or my_Class == 'Shadow Knight' or my_Class == 'Warrior' then
+            my_ArmorType = 'Plate'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Berserker' or my_Class == 'Rogue' or my_Class == 'Shaman' then
+            my_ArmorType = 'Chain'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Enchanter' or my_Class == 'Magician' or my_Class == 'Necromancer' or my_Class == 'Wizard' then
+            my_ArmorType = 'Cloth'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
+            end
+        elseif my_Class == 'Beastlord' or my_Class == 'Druid' or my_Class == 'Monk' then
+            my_ArmorType = 'Leather'
+            if LootUtils.useZoneLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_ArmorType .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_ArmorType .. '.ini'
+            end
+        end
+    else
+        if LootUtils.useZoneLootFile then
+            if LootUtils.useClassLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Class .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. mq.TLO.Zone.ShortName() .. '.' .. my_Name .. '.ini'
+            end
+        else
+            if LootUtils.useClassLootFile then
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Class .. '.ini'
+            else
+                LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Name .. '.ini'
+            end
+        end
+    end
+    LootUtils.ConsoleMessage('Debug', 'LootFile: %s', LootUtils.Settings.LootFile)
+    LootUtils.ConsoleMessage('Normal', '++ \agDROID LOOT UTILS STARTED\aw ++')
+    LootUtils.ConsoleMessage('Normal', '++ \agINI: %s \aw ++', LootUtils.Settings.LootFile)
+end
+
+LootUtils.SetINIType()
+
 function LootUtils.saveSetting(fileName, categoryName, itemName, itemValue)
-    mq.cmdf('/ini "%s" "%s" "%s" "%s"', fileName, categoryName, itemName, itemValue)
+    LootUtils.Storage.SetINIValue(fileName, categoryName, itemName, itemValue)
 end
 
 function LootUtils.writeSettings()
@@ -236,7 +244,7 @@ local function split(input, sep)
 end
 
 function LootUtils.loadSettings()
-    local iniSettings = mq.TLO.Ini.File(LootUtils.Settings.LootFile).Section('Settings')
+    local iniSettings = LootUtils.Storage.ReadINISection(LootUtils.Settings.LootFile, 'Settings')
     local keyCount = iniSettings.Key.Count()
     for i = 1, keyCount do
         local key = iniSettings.Key.KeyAtIndex(i)()
@@ -252,10 +260,11 @@ function LootUtils.loadSettings()
         end
     end
     LootUtils.wildCardTerms = {}
-    local count = tonumber(mq.TLO.Ini(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count')() or 0)
+    LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count')
+    local count = tonumber(LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count') or 0)
     if count > 0 then
         for i = 1, count do
-            local term = mq.TLO.Ini(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. i)()
+            local term = LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. i)
             if term then
                 table.insert(LootUtils.wildCardTerms, term)
             end
@@ -280,9 +289,12 @@ local function checkCursor()
 end
 
 local function navToID(spawnID)
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    local playerLoopDelay = 100 + playerPing
     if LootUtils.UseWarp then
         mq.cmdf('/target id %s', spawnID)
-        mq.delay(250)
+        mq.delay(playerDelay, function() return mq.TLO.Target() ~= nil end)
         mq.cmd('/squelch /warp t')
     else
         mq.cmdf('/nav id %d log=off', spawnID)
@@ -290,7 +302,7 @@ local function navToID(spawnID)
         if mq.TLO.Navigation.Active() then
             local startTime = os.time()
             while mq.TLO.Navigation.Active() do
-                mq.delay(100)
+                mq.delay(playerLoopDelay)
                 if os.difftime(os.time(), startTime) > 5 then
                     break
                 end
@@ -311,7 +323,7 @@ local function addRule(itemName, section, rule)
         lootData[section] = {}
     end
     lootData[section][itemName] = rule
-    mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, section, itemName, rule)
+    LootUtils.Storage.SetINIValue(LootUtils.Settings.LootFile, section, itemName, rule)
 end
 
 local function lookupIniLootRule(section, key)
@@ -385,7 +397,9 @@ local function getRule(item)
         else
             hpDiff = itemHP
         end
-        LootUtils.ReportLoot('Found: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
+        if LootUtils.AnnounceUpgrades then
+            LootUtils.report('Found Upgrade: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
+        end
     end
 
     if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
@@ -638,15 +652,13 @@ function LootUtils.report(message, ...)
     local timestamp = os.date("[%H:%M:%S]")
     local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
     local reportPrefixAnnounceGeneric = '/%s ' .. timestamp .. '[DroidLoot] '
-    if LootUtils.AnnounceLoot then
-        local lootChannelCheck = string.lower(LootUtils.LootChannel)
-        if lootChannelCheck == '/g' or lootChannelCheck == '/rs' or lootChannelCheck == '/say' then
-            local prefixWithChannel = reportPrefixAnnounceGeneric:format(LootUtils.LootChannel)
-            mq.cmdf(prefixWithChannel .. message, ...)
-        else
-            local prefixWithChannel = reportPrefixAnnounce:format(LootUtils.LootChannel)
-            mq.cmdf(prefixWithChannel .. message, ...)
-        end
+    local lootChannelCheck = string.lower(LootUtils.LootChannel)
+    if lootChannelCheck == 'g' or lootChannelCheck == 'rs' or lootChannelCheck == 'say' then
+        local prefixWithChannel = reportPrefixAnnounceGeneric:format(LootUtils.LootChannel)
+        mq.cmdf(prefixWithChannel .. message, ...)
+    else
+        local prefixWithChannel = reportPrefixAnnounce:format(LootUtils.LootChannel)
+        mq.cmdf(prefixWithChannel .. message, ...)
     end
     if LootUtils.ReportLoot then
         LootUtils.Messages.Normal(message, ...)
@@ -702,7 +714,9 @@ local function lootItem(index, doWhat, button)
     if not mq.TLO.Window('LootWnd').Open() then
         return
     end
-    LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+    if LootUtils.AnnounceLoot then
+        LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+    end
 
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
         mq.cmd('/destroy')
@@ -714,8 +728,10 @@ end
 
 function LootUtils.lootCorpse(corpseID)
     LootUtils.ConsoleMessage('Debug', 'Enter lootCorpse')
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
     mq.cmdf('/target id %s', corpseID)
-    mq.delay(100)
+    mq.delay(playerDelay, function() return mq.TLO.Target() ~= nil end)
     if not mq.TLO.Target() then
         LootUtils.ConsoleMessage('Debug', 'Can\'t loot no target was selected.')
         return
@@ -728,6 +744,7 @@ function LootUtils.lootCorpse(corpseID)
     end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
         LootUtils.ConsoleMessage('Warn', 'My bags are full, I can\'t loot anymore!')
+        return
     end
     for i = 1, 3 do
         if not mq.TLO.Target() then
@@ -735,7 +752,7 @@ function LootUtils.lootCorpse(corpseID)
             return
         end
         mq.cmd('/loot')
-        mq.delay(1000, function() return mq.TLO.Window('LootWnd').Open() end)
+        mq.delay(playerDelay, function() return mq.TLO.Window('LootWnd').Open() end)
         if mq.TLO.Window('LootWnd').Open() then
             break
         end
@@ -747,8 +764,6 @@ function LootUtils.lootCorpse(corpseID)
     if not mq.TLO.Target.ID() == corpseID then
         return
     end
-    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
-    local playerDelay = 1000 + playerPing
     mq.delay(playerDelay, function() return mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
         LootUtils.ConsoleMessage('Debug', 'Can\'t loot %s(%s) right now', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
@@ -760,39 +775,48 @@ function LootUtils.lootCorpse(corpseID)
     LootUtils.ConsoleMessage('Debug', 'Loot window open. Items: %s', items)
     local corpseName = mq.TLO.Corpse.Name()
     if mq.TLO.Window('LootWnd').Open() and items > 0 then
-        local noDropItems = {}
-        local loreItems = {}
         for i = 1, items do
             local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
             if corpseItem() then
+                local lootAction = getRule(corpseItem)
                 local stackable = corpseItem.Stackable()
                 local freeStack = corpseItem.FreeStack()
+                local itemName = corpseItem.Name()
+                local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
+                local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
+                mq.delay(1)
+                LootUtils.ConsoleMessage('Debug', 'itemName: %s / lootAction: %s / stackable: %s / freeStack: %s / haveItem: %s / haveItemBank: %s', itemName, lootAction, stackable, freeStack, haveItem, haveItemBank)
                 if freeSpace < LootUtils.SaveBagSlots then
                     if LootUtils.ReportSkipped then
-                        LootUtils.report('Skipped Item(Low Bag Space): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                        LootUtils.report('Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                        goto continue
                     end
                 end
                 if corpseItem.Lore() then
-                    local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
-                    local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
-                    if haveItem or haveItemBank or freeSpace <= LootUtils.SaveBagSlots then
-                        table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())
+                    if haveItem or haveItemBank then
+                        if LootUtils.ReportSkipped then
+                            LootUtils.report('Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                            goto continue
+                        end
                     else
                         lootItem(i, getRule(corpseItem), 'leftmouseup')
                     end
-                elseif freeSpace > LootUtils.SaveBagSlots or (stackable and freeStack > 0) then
-                    lootItem(i, getRule(corpseItem), 'leftmouseup')
+                else
+                    if freeSpace > LootUtils.SaveBagSlots or (stackable and freeStack > 0) then
+                        lootItem(i, getRule(corpseItem), 'leftmouseup')
+                    end
                 end
 
-                local lootAction = getRule(corpseItem)
-                if lootAction == 'Ignore' or lootAction == 'NULL' then
+                if LootUtils.ReportSkipped and (lootAction == 'Ignore' or lootAction == 'NULL') then
                     LootUtils.report('Skipped Item: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
-                if lootAction == 'Announce' then
-                    LootUtils.report('Found: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                if lootAction == 'Announce' and LootUtils.AnnounceLoot then
+                    LootUtils.report('Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
             end
+            ::continue::
+            mq.delay(25)
             if not mq.TLO.Window('LootWnd').Open() then
                 break
             end
@@ -869,7 +893,7 @@ function eventSell(line, itemName)
             lootData[firstLetter] = {}
         end
         lootData[firstLetter][itemName] = 'Sell'
-        mq.cmdf('/ini "%s" "%s" "%s" "%s"', LootUtils.Settings.LootFile, firstLetter, itemName, 'Sell')
+        LootUtils.Storage.SetINIValue(LootUtils.Settings.LootFile, firstLetter, itemName, 'Sell')
     end
 end
 

@@ -3,11 +3,15 @@ local mq = require('mq')
 
 local storage = {}
 
-function storage.ReadINI(filename, section, option)
+function storage.ReadINIValue(filename, section, option)
 	return mq.TLO.Ini.File(filename).Section(section).Key(option).Value()
 end
 
-function storage.SetINI(filename, section, option, value)
+function storage.ReadINISection(filename, section)
+	return mq.TLO.Ini.File(filename).Section(section)
+end
+
+function storage.SetINIValue(filename, section, option, value)
 	print(filename, section, option, value)
 	mq.cmdf('/ini "%s" "%s" "%s" "%s"', filename, section, option, value)
 end

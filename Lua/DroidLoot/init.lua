@@ -28,7 +28,7 @@ DroidLoot.LootUtils = require('DroidLoot.lib.LootUtils')
 DroidLoot.Messages = require('DroidLoot.lib.Messages')
 DroidLoot.GUI = require('DroidLoot.lib.Gui')
 DroidLoot.Storage = require('DroidLoot.lib.Storage')
-if not DroidLoot.Storage.dir_exists(mq.configDir .. '\\DroidLoot') then DroidLoot.Storage.make_dir(mq.configDir, 'DroidLoot') end
+if not DroidLoot.Storage.dir_exists(mq.configDir .. '\\DroidLoot') then DroidLoot.Storage.make_dir(mq.configDir .. '\\DroidLoot') end
 local function GetDistance(X, Y, Z)
     local deltaX = X - mq.TLO.Me.X()
     local deltaY = Y - mq.TLO.Me.Y()
@@ -203,18 +203,10 @@ while not DroidLoot.terminate do
                 mq.cmd('/mqpause on')
                 mq.delay(500)
             end
-            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
-                mq.cmd('/squelch /e3p on')
-                mq.delay(500)
-            end
             DroidLoot.LootUtils.lootMobs()
             if DroidLoot.debug then DroidLoot.Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s', GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)) end
             if DroidLoot.returnToHome and GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z) > DroidLoot.home_Dist then
                 NavToXYZ(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
-                mq.delay(500)
-            end
-            if mq.TLO.Plugin('MQ2Mono').IsLoaded() and mq.TLO.MQ2Mono.Query('e3', 'InCombat')() then
-                mq.cmd('/squelch /e3p off')
                 mq.delay(500)
             end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end
