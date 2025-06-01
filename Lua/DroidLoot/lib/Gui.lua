@@ -2,8 +2,8 @@
 local mq = require('mq')
 local gui = {}
 
-gui.version = '1.0.6'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6" }
+gui.version = '1.0.7'
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -48,7 +48,12 @@ gui.change_Log = {
     },
     ['1.0.7'] = { 'Bug Fix + Feature',
         '- Changed delays in loot corpse to account for player ping.',
-        '- Added minimized mode to save screen space.'
+        '- Added minimized mode to save screen space.',
+        '- Added Healing options',
+        '- Added Camp Options.',
+        '- Added option to move back to camp if too far',
+        '- Added option to move back to camp after looting',
+        '- Moved Wasting Time options under Server Specific Options.'
     },
 }
 
@@ -123,6 +128,21 @@ gui.STACKABLEONLY = DroidLoot.LootUtils.StackableOnly
 gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
 gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
 gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
+
+gui.RETURNHOMEAFTERLOOT = DroidLoot.LootUtils.returnHomeAfterLoot
+gui.CAMPCHECK = DroidLoot.LootUtils.camp_Check
+gui.ZONECHECK = DroidLoot.LootUtils.zone_Check
+gui.RETURNTOCAMPDISTANCE = DroidLoot.LootUtils.returnToCampDistance
+gui.STATICHUNT = DroidLoot.LootUtils.staticHunt
+gui.STATICZONEID = DroidLoot.LootUtils.staticZoneID
+gui.STATICZONENAME = DroidLoot.LootUtils.staticZoneName
+gui.STATICX = DroidLoot.LootUtils.staticX
+gui.STATICY = DroidLoot.LootUtils.staticY
+gui.STATICZ = DroidLoot.LootUtils.staticZ
+gui.HEALTHCHECK = DroidLoot.LootUtils.health_Check
+gui.HEALAT = DroidLoot.LootUtils.heal_At
+gui.HEALSPELL = DroidLoot.LootUtils.heal_Spell
+gui.HEALGEM = DroidLoot.LootUtils.heal_Gem
 
 gui.CurrentStatus = ' '
 gui.Open = false
@@ -467,62 +487,166 @@ function gui.DroidLootGUI()
                         ImGui.Separator();
                         ImGui.Unindent();
                     end
-                    if ImGui.CollapsingHeader("WastingTime Options") then
+                    if ImGui.CollapsingHeader("Health Operations") then
+                        ImGui.Indent();
+                        DroidLoot.LootUtils.health_Check = ImGui.Checkbox('Enable Healing', DroidLoot.LootUtils.health_Check)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('Enables healing with our heal spell when below our heal at limit.')
+                        if gui.HEALTHCHECK ~= DroidLoot.LootUtils.health_Check then
+                            gui.HEALTHCHECK = DroidLoot.LootUtils.health_Check
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'health_Check', DroidLoot.LootUtils.health_Check)
+                        end
+                        ImGui.Separator();
+
+                        DroidLoot.LootUtils.heal_Spell = ImGui.InputText('Heal Spell', DroidLoot.LootUtils.heal_Spell)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The name of the spell to cast to heal.')
+                        if gui.HEALSPELL ~= DroidLoot.LootUtils.heal_Spell then
+                            gui.HEALSPELL = DroidLoot.LootUtils.heal_Spell
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'heal_Spell', DroidLoot.LootUtils.heal_Spell)
+                        end
+                        ImGui.Separator();
+
+                        DroidLoot.LootUtils.heal_Gem = ImGui.SliderInt("Heal Gem", DroidLoot.LootUtils.heal_Gem, 1, 12)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The gem number our heal spell is on.')
+                        if gui.HEALAT ~= DroidLoot.LootUtils.heal_Gem then
+                            gui.HEALAT = DroidLoot.LootUtils.heal_Gem
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'heal_Gem', DroidLoot.LootUtils.heal_Gem)
+                        end
+                        ImGui.Separator();
+
+                        DroidLoot.LootUtils.heal_At = ImGui.SliderInt("Heal At", DroidLoot.LootUtils.heal_At, 1, 99)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The amount of health we cast our heal spell at.')
+                        if gui.HEALAT ~= DroidLoot.LootUtils.heal_At then
+                            gui.HEALAT = DroidLoot.LootUtils.heal_At
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'heal_At', DroidLoot.LootUtils.heal_At)
+                        end
+                        ImGui.Separator();
+                        ImGui.Unindent();
+                    end
+                    if ImGui.CollapsingHeader("Movement Operations") then
                         ImGui.Indent()
-                        DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', DroidLoot.LootUtils.LootPlatinumBags)
+                        ImGui.Columns(2)
+                        local start_y_Options = ImGui.GetCursorPosY()
+                        DroidLoot.LootUtils.camp_Check = ImGui.Checkbox('Enable Camp Check', DroidLoot.LootUtils.camp_Check)
                         ImGui.SameLine()
-                        ImGui.HelpMarker('Loots platinum bags.')
-                        if gui.LOOTPLATINUMBAGS ~= DroidLoot.LootUtils.LootPlatinumBags then
-                            gui.LOOTPLATINUMBAGS = DroidLoot.LootUtils.LootPlatinumBags
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootPlatinumBags', DroidLoot.LootUtils.LootPlatinumBags)
+                        ImGui.HelpMarker('Return home if we get too far away?')
+                        if gui.CAMPCHECK ~= DroidLoot.LootUtils.camp_Check then
+                            gui.CAMPCHECK = DroidLoot.LootUtils.camp_Check
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'camp_Check', DroidLoot.LootUtils.camp_Check)
                         end
                         ImGui.Separator();
 
-                        DroidLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
+                        DroidLoot.LootUtils.zone_Check = ImGui.Checkbox('Enable Zone Check', DroidLoot.LootUtils.zone_Check)
                         ImGui.SameLine()
-                        ImGui.HelpMarker('Loots tokens of advancement.')
-                        if gui.LOOTTOKENSOFADVANCEMENT ~= DroidLoot.LootUtils.LootTokensOfAdvancement then
-                            gui.LOOTTOKENSOFADVANCEMENT = DroidLoot.LootUtils.LootTokensOfAdvancement
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootTokensOfAdvancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
+                        ImGui.HelpMarker('Return to start zone if we leave it?')
+                        if gui.ZONECHECK ~= DroidLoot.LootUtils.zone_Check then
+                            gui.ZONECHECK = DroidLoot.LootUtils.zone_Check
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'zone_Check', DroidLoot.LootUtils.zone_Check)
                         end
                         ImGui.Separator();
 
-                        DroidLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled', DroidLoot.LootUtils.LootEmpoweredFabled)
+                        ImGui.NextColumn();
+                        ImGui.SetCursorPosY(start_y_Options)
+                        DroidLoot.LootUtils.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot', DroidLoot.LootUtils.returnHomeAfterLoot)
                         ImGui.SameLine()
-                        ImGui.HelpMarker('Loots empowered fabled items.')
-                        if gui.LOOTEMPOWEREDFABLED ~= DroidLoot.LootUtils.LootEmpoweredFabled then
-                            gui.LOOTEMPOWEREDFABLED = DroidLoot.LootUtils.LootEmpoweredFabled
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootEmpoweredFabled', DroidLoot.LootUtils.LootEmpoweredFabled)
+                        ImGui.HelpMarker('Return to start X/Y/Z after looting?')
+                        if gui.RETURNHOMEAFTERLOOT ~= DroidLoot.LootUtils.returnHomeAfterLoot then
+                            gui.RETURNHOMEAFTERLOOT = DroidLoot.LootUtils.returnHomeAfterLoot
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'returnHomeAfterLoot', DroidLoot.LootUtils.returnHomeAfterLoot)
                         end
                         ImGui.Separator();
+                        ImGui.Columns(1)
 
-                        DroidLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments', DroidLoot.LootUtils.LootAllFabledAugs)
+                        DroidLoot.LootUtils.returnToCampDistance = ImGui.SliderInt("Return To Camp Distance", DroidLoot.LootUtils.returnToCampDistance, 1, 100000)
                         ImGui.SameLine()
-                        ImGui.HelpMarker('Loots all fabled augments.')
-                        if gui.LOOTALLFABLEDAUGS ~= DroidLoot.LootUtils.LootAllFabledAugs then
-                            gui.LOOTALLFABLEDAUGS = DroidLoot.LootUtils.LootAllFabledAugs
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootAllFabledAugs', DroidLoot.LootUtils.LootAllFabledAugs)
-                        end
-                        ImGui.Separator();
-
-                        DroidLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP", DroidLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
-                        ImGui.SameLine()
-                        ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
-                        if gui.EMPOWEREDFABLEDMINHP ~= DroidLoot.LootUtils.EmpoweredFabledMinHP then
-                            gui.EMPOWEREDFABLEDMINHP = DroidLoot.LootUtils.EmpoweredFabledMinHP
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledMinHP', DroidLoot.LootUtils.EmpoweredFabledMinHP)
-                        end
-                        ImGui.Separator();
-
-                        DroidLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name', DroidLoot.LootUtils.EmpoweredFabledName)
-                        ImGui.SameLine()
-                        ImGui.HelpMarker('Name of the empowered fabled item.')
-                        if gui.EMPOWEREDFABLEDNAME ~= DroidLoot.LootUtils.EmpoweredFabledName then
-                            gui.EMPOWEREDFABLEDNAME = DroidLoot.LootUtils.EmpoweredFabledName
-                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledName', DroidLoot.LootUtils.EmpoweredFabledName)
+                        ImGui.HelpMarker('The distance we can get before we trigger return to camp.')
+                        if gui.RETURNTOCAMPDISTANCE ~= DroidLoot.LootUtils.returnToCampDistance then
+                            gui.RETURNTOCAMPDISTANCE = DroidLoot.LootUtils.returnToCampDistance
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'returnToCampDistance', DroidLoot.LootUtils.returnToCampDistance)
                         end
                         ImGui.Separator();
                         ImGui.Unindent()
+                    end
+                    if ImGui.CollapsingHeader("Camp Settings") then
+                        ImGui.Indent()
+                        DroidLoot.LootUtils.staticHunt = ImGui.Checkbox('Enable Static Hunt', DroidLoot.LootUtils.staticHunt)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('Always use the same Hunting Zone.')
+                        if gui.STATICHUNT ~= DroidLoot.LootUtils.staticHunt then
+                            gui.STATICHUNT = DroidLoot.LootUtils.staticHunt
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticHunt', DroidLoot.LootUtils.staticHunt)
+                        end
+                        ImGui.Separator();
+
+                        DroidLoot.LootUtils.staticZoneName = ImGui.InputText('Zone Name', DroidLoot.LootUtils.staticZoneName)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The short name of the Static Hunt Zone.')
+                        if gui.STATICZONENAME ~= DroidLoot.LootUtils.staticZoneName then
+                            gui.STATICZONENAME = DroidLoot.LootUtils.staticZoneName
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticZoneName', DroidLoot.LootUtils.staticZoneName)
+                        end
+                        ImGui.Separator();
+
+                        DroidLoot.LootUtils.staticZoneID = ImGui.InputText('Zone ID', DroidLoot.LootUtils.staticZoneID)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The ID of the static Hunting Zone.')
+                        if gui.STATICZONEID ~= DroidLoot.LootUtils.staticZoneID then
+                            gui.STATICZONEID = DroidLoot.LootUtils.staticZoneID
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticZoneID', DroidLoot.LootUtils.staticZoneID)
+                        end
+                        ImGui.Separator();
+
+                        local start_y_Options = ImGui.GetCursorPosY()
+                        ImGui.SetCursorPosY(start_y_Options + 3)
+                        ImGui.Text('X')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        DroidLoot.LootUtils.staticX = ImGui.InputText('##Zone X', DroidLoot.LootUtils.staticX)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
+                        if gui.STATICX ~= DroidLoot.LootUtils.staticX then
+                            gui.STATICX = DroidLoot.LootUtils.staticX
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticX', DroidLoot.LootUtils.staticX)
+                        end
+                        ImGui.SameLine();
+
+                        ImGui.SetCursorPosY(start_y_Options + 1)
+                        ImGui.Text('Y')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        DroidLoot.LootUtils.staticY = ImGui.InputText('##Zone Y', DroidLoot.LootUtils.staticY)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
+                        if gui.STATICY ~= DroidLoot.LootUtils.staticY then
+                            gui.STATICY = DroidLoot.LootUtils.staticY
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticY', DroidLoot.LootUtils.staticY)
+                        end
+                        ImGui.SameLine();
+
+                        ImGui.SetCursorPosY(start_y_Options + 1)
+                        ImGui.Text('Z')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        DroidLoot.LootUtils.staticZ = ImGui.InputText('##Zone Z', DroidLoot.LootUtils.staticZ)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
+                        if gui.STATICZ ~= DroidLoot.LootUtils.staticZ then
+                            gui.STATICZ = DroidLoot.LootUtils.staticZ
+                            DroidLoot.CheckCampInfo()
+                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticZ', DroidLoot.LootUtils.staticZ)
+                        end
+                        ImGui.Unindent();
                     end
                     if ImGui.CollapsingHeader("Wild Card Looting Options") then
                         ImGui.Indent()
@@ -880,6 +1004,67 @@ function gui.DroidLootGUI()
                         ImGui.Columns(1)
                         if ImGui.Button('Save Config', buttonImVec2) then
                             DroidLoot.LootUtils.writeSettings()
+                        end
+                        ImGui.Unindent();
+                    end
+                    if ImGui.CollapsingHeader("Server Specific Options") then
+                        ImGui.Indent();
+                        if ImGui.CollapsingHeader("WastingTime Options") then
+                            ImGui.Indent()
+                            DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', DroidLoot.LootUtils.LootPlatinumBags)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Loots platinum bags.')
+                            if gui.LOOTPLATINUMBAGS ~= DroidLoot.LootUtils.LootPlatinumBags then
+                                gui.LOOTPLATINUMBAGS = DroidLoot.LootUtils.LootPlatinumBags
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootPlatinumBags', DroidLoot.LootUtils.LootPlatinumBags)
+                            end
+                            ImGui.Separator();
+
+                            DroidLoot.LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Loots tokens of advancement.')
+                            if gui.LOOTTOKENSOFADVANCEMENT ~= DroidLoot.LootUtils.LootTokensOfAdvancement then
+                                gui.LOOTTOKENSOFADVANCEMENT = DroidLoot.LootUtils.LootTokensOfAdvancement
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootTokensOfAdvancement', DroidLoot.LootUtils.LootTokensOfAdvancement)
+                            end
+                            ImGui.Separator();
+
+                            DroidLoot.LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled', DroidLoot.LootUtils.LootEmpoweredFabled)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Loots empowered fabled items.')
+                            if gui.LOOTEMPOWEREDFABLED ~= DroidLoot.LootUtils.LootEmpoweredFabled then
+                                gui.LOOTEMPOWEREDFABLED = DroidLoot.LootUtils.LootEmpoweredFabled
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootEmpoweredFabled', DroidLoot.LootUtils.LootEmpoweredFabled)
+                            end
+                            ImGui.Separator();
+
+                            DroidLoot.LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments', DroidLoot.LootUtils.LootAllFabledAugs)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Loots all fabled augments.')
+                            if gui.LOOTALLFABLEDAUGS ~= DroidLoot.LootUtils.LootAllFabledAugs then
+                                gui.LOOTALLFABLEDAUGS = DroidLoot.LootUtils.LootAllFabledAugs
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootAllFabledAugs', DroidLoot.LootUtils.LootAllFabledAugs)
+                            end
+                            ImGui.Separator();
+
+                            DroidLoot.LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP", DroidLoot.LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
+                            if gui.EMPOWEREDFABLEDMINHP ~= DroidLoot.LootUtils.EmpoweredFabledMinHP then
+                                gui.EMPOWEREDFABLEDMINHP = DroidLoot.LootUtils.EmpoweredFabledMinHP
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledMinHP', DroidLoot.LootUtils.EmpoweredFabledMinHP)
+                            end
+                            ImGui.Separator();
+
+                            DroidLoot.LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name', DroidLoot.LootUtils.EmpoweredFabledName)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Name of the empowered fabled item.')
+                            if gui.EMPOWEREDFABLEDNAME ~= DroidLoot.LootUtils.EmpoweredFabledName then
+                                gui.EMPOWEREDFABLEDNAME = DroidLoot.LootUtils.EmpoweredFabledName
+                                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledName', DroidLoot.LootUtils.EmpoweredFabledName)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent()
                         end
                         ImGui.Unindent();
                     end

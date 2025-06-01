@@ -61,9 +61,23 @@ local LootUtils = {
     bankAtFreeSlots = 5,
     bankZone = 202,
     bankNPC = 'Banker Granger',
-    vendorNPC = 'Jocelyn Forgerson'
+    vendorNPC = 'Jocelyn Forgerson',
+    returnToCampDistance = 200,
+    camp_Check = false,
+    zone_Check = true,
+    lootGroundSpawns = false,
+    returnHomeAfterLoot = true,
+    staticHunt = false,
+    staticZoneID = '173',
+    staticZoneName = 'maiden',
+    staticX = '1905',
+    staticY = '940',
+    staticZ = '-151.74',
+    health_Check = true,
+    heal_Spell = 'Daria\'s Mending Rk. III',
+    heal_Gem = 1,
+    heal_At = 50,
 }
-
 LootUtils.Messages = require('DroidLoot.lib.Messages')
 LootUtils.Storage = require('DroidLoot.lib.Storage')
 
@@ -311,8 +325,32 @@ local function navToID(spawnID)
     end
 end
 
+local function navToXYZ(navX, navY, navZ)
+    local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+    local playerDelay = 1000 + playerPing
+    local playerLoopDelay = 100 + playerPing
+    if LootUtils.UseWarp then
+        mq.cmdf('/squelch /warp loc %s %s %s', navY, navX, navZ)
+    else
+        mq.cmdf('/nav locxyz %s %s %s log=off', navX, navY, navZ)
+        mq.delay(50)
+        if mq.TLO.Navigation.Active() then
+            local startTime = os.time()
+            while mq.TLO.Navigation.Active() do
+                mq.delay(playerLoopDelay)
+                if os.difftime(os.time(), startTime) > 5 then
+                    break
+                end
+            end
+        end
+    end
+end
+
 function LootUtils.navToID(spawnID)
     navToID(spawnID)
+end
+function LootUtils.navToXYZ(navX, navY, navZ)
+    navToXYZ(navX, navY, navZ)
 end
 
 local function addRule(itemName, section, rule)

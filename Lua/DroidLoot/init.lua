@@ -1,6 +1,4 @@
 local mq = require 'mq'
----@type ImGui
-local ImGui = require 'ImGui'
 
 DroidLoot = {
     debug = false,
@@ -23,30 +21,24 @@ DroidLoot = {
 }
 DroidLoot.needToBank = false
 DroidLoot.needToVendorSell = false
+DroidLoot.huntZoneID = mq.TLO.Zone.ID()
+DroidLoot.huntZoneName = mq.TLO.Zone.ShortName()
+DroidLoot.camp_X = mq.TLO.Me.X()
+DroidLoot.camp_Y = mq.TLO.Me.Y()
+DroidLoot.camp_Z = mq.TLO.Me.Z()
 
-DroidLoot.LootUtils = require('DroidLoot.lib.LootUtils')
 DroidLoot.Messages = require('DroidLoot.lib.Messages')
+DroidLoot.LootUtils = require('DroidLoot.lib.LootUtils')
 DroidLoot.GUI = require('DroidLoot.lib.Gui')
 DroidLoot.Storage = require('DroidLoot.lib.Storage')
 if not DroidLoot.Storage.dir_exists(mq.configDir .. '\\DroidLoot') then DroidLoot.Storage.make_dir(mq.configDir .. '\\DroidLoot') end
+
 local function GetDistance(X, Y, Z)
     local deltaX = X - mq.TLO.Me.X()
     local deltaY = Y - mq.TLO.Me.Y()
     local deltaZ = Z - mq.TLO.Me.Z()
     local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
     return distance
-end
-
-local function NavToXYZ(X, Y, Z)
-    DroidLoot.Messages.CONSOLEMETHOD(false, 'Moving to %s %s %s.', X, Y, Z)
-    mq.cmdf('/nav locxyz %s %s %s', X, Y, Z)
-    while mq.TLO.Navigation.Active() do
-        if GetDistance(X, Y, Z) < DroidLoot.home_Dist then
-            mq.cmd('/nav stop')
-        end
-        mq.delay(50)
-    end
-    mq.delay(250)
 end
 
 function DroidLoot.HandleDisconnect()
@@ -75,14 +67,20 @@ function DroidLoot.HandleDisconnect()
     end
 end
 
-function DroidLoot.CheckZone()
+function DroidLoot.CheckDistanceToXYZ(checkX, checkY, checkZ)
+    local deltaX = checkX - mq.TLO.Me.X()
+    local deltaY = checkY - mq.TLO.Me.Y()
+    local deltaZ = checkZ - mq.TLO.Me.Z()
+    local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
+    return distance
+end
+
+function DroidLoot.MoveToCamp()
     DroidLoot.HandleDisconnect()
-    if mq.TLO.Zone.ID() ~= DroidLoot.huntZoneID and mq.TLO.DynamicZone() ~= nil then
-        if not DroidLoot.needToBank and not DroidLoot.needToCashSell and not DroidLoot.needToFabledSell then
-            mq.delay(1000)
-            mq.cmd('/say #enter')
-            mq.delay(50000, function() return mq.TLO.Zone.ID() == DroidLoot.huntZoneID end)
-            mq.delay(1000)
+    if mq.TLO.Zone.ID() == DroidLoot.huntZoneID then
+        if DroidLoot.CheckDistanceToXYZ(DroidLoot.camp_X, DroidLoot.camp_Y, DroidLoot.camp_Z) > DroidLoot.LootUtils.returnToCampDistance then
+            DroidLoot.LootUtils.navToXYZ(DroidLoot.camp_X, DroidLoot.camp_Y, DroidLoot.camp_Z)
+            mq.delay(50)
         end
     end
 end
@@ -185,8 +183,37 @@ mq.bind('/' .. DroidLoot.command_LongName, binds)
 
 DroidLoot.GUI.initGUI()
 
-DroidLoot.Messages.CONSOLEMETHOD(false, '++ \agDROID LOOT BOT STARTED\aw ++')
+local cast_Mode = 'casting'
+function DroidLoot.CheckHP()
+    function DoneCasting()
+        return not mq.TLO.Me.Casting()
+    end
+
+    if DroidLoot.LootUtils.health_Check then
+        if mq.TLO.Me.PctHPs() <= DroidLoot.LootUtils.heal_At then
+            DroidLoot.Messages.Normal('Casting \ag %s \ax on \ag %s\ax', DroidLoot.LootUtils.heal_Spell, mq.TLO.Me())
+            mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(DroidLoot.LootUtils.heal_Spell).RankName() .. '" ' .. DroidLoot.LootUtils.heal_Gem)
+            while mq.TLO.Me.Casting() do
+                mq.delay(1000, DoneCasting)
+            end
+        end
+    end
+end
+
+function DroidLoot.CheckCampInfo()
+    if DroidLoot.LootUtils.staticHunt then
+        DroidLoot.huntZoneName = DroidLoot.LootUtils.staticZoneName
+        DroidLoot.huntZoneID = tonumber(DroidLoot.LootUtils.staticZoneID)
+        DroidLoot.camp_X = tonumber(DroidLoot.LootUtils.staticX)
+        DroidLoot.camp_Y = tonumber(DroidLoot.LootUtils.staticY)
+        DroidLoot.camp_Z = tonumber(DroidLoot.LootUtils.staticZ)
+    end
+end
+
 mq.cmd('/hidecorpse looted')
+DroidLoot.CheckCampInfo()
+
+DroidLoot.Messages.CONSOLEMETHOD(false, '++ \agDROID LOOT BOT STARTED\aw ++')
 if DroidLoot.returnToHome then
     DroidLoot.home_X = mq.TLO.Me.X()
     DroidLoot.home_Y = mq.TLO.Me.Y()
@@ -195,6 +222,12 @@ if DroidLoot.returnToHome then
 end
 while not DroidLoot.terminate do
     if not DroidLoot.doPause then
+        if not mq.TLO.Me.Standing() or mq.TLO.Me.Ducking() then
+            mq.TLO.Me.Stand()
+        end
+        if DroidLoot.LootUtils.camp_Check then
+            DroidLoot.MoveToCamp()
+        end
         local deadCount = mq.TLO.SpawnCount(DroidLoot.spawnSearch:format('npccorpse', DroidLoot.LootUtils.CorpseRadius))()
         if DroidLoot.doLoot and deadCount ~= 0 then
             if DroidLoot.announce and DroidLoot.doLootMessages then mq.cmdf('/%s [%s]Started Looting!', DroidLoot.LootUtils.AnnounceChannel, mq.TLO.Time()) end
@@ -204,10 +237,12 @@ while not DroidLoot.terminate do
                 mq.delay(500)
             end
             DroidLoot.LootUtils.lootMobs()
-            if DroidLoot.debug then DroidLoot.Messages.CONSOLEMETHOD(false, 'Corpse Distance: %s', GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)) end
-            if DroidLoot.returnToHome and GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z) > DroidLoot.home_Dist then
-                NavToXYZ(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
+            if DroidLoot.LootUtils.returnHomeAfterLoot or (DroidLoot.returnToHome and GetDistance(DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z) > DroidLoot.home_Dist) then
+                DroidLoot.MoveToCamp()
                 mq.delay(500)
+            end
+            if DroidLoot.LootUtils.health_Check then
+                DroidLoot.CheckHP()
             end
             if mq.TLO.Macro() ~= nil and mq.TLO.Macro.Paused() ~= 'FALSE' then mq.cmd('/mqpause off') end
             if DroidLoot.announce and DroidLoot.doLootMessages then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!', DroidLoot.LootUtils.AnnounceChannel, mq.TLO.Time()) end
