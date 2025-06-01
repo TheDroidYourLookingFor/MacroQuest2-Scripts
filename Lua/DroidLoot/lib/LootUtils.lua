@@ -809,7 +809,7 @@ function LootUtils.lootCorpse(corpseID)
                 end
 
                 if LootUtils.ReportSkipped and (lootAction == 'Ignore' or lootAction == 'NULL') then
-                    LootUtils.report('Skipped Item: %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                    LootUtils.report('Skipped Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
                 if lootAction == 'Announce' and LootUtils.AnnounceLoot then
                     LootUtils.report('Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))

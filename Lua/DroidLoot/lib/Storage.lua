@@ -12,7 +12,6 @@ function storage.ReadINISection(filename, section)
 end
 
 function storage.SetINIValue(filename, section, option, value)
-	print(filename, section, option, value)
 	mq.cmdf('/ini "%s" "%s" "%s" "%s"', filename, section, option, value)
 end
 

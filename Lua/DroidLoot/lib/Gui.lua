@@ -242,7 +242,7 @@ function gui.DroidLootGUI()
                 if ImGui.CollapsingHeader("Droid Loot Bot") then
                     ImGui.Indent()
                     ImGui.Text("This is a simple script I threw together to help out a few friends.\n" ..
-                        "It will loot anything set in the DroidLoot.ini,\n")
+                        "It will loot anything set in the DroidLoot.ini.\n")
                     ImGui.Separator();
 
                     ImGui.Text("COMMANDS:");
