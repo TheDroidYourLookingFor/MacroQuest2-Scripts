@@ -24,6 +24,12 @@ local LootUtils = {
     LootForage = true,
     LootTradeSkill = false,
     DoLoot = true,
+    LootByAugSlots = true,
+    LootByAugSlotsAmount = 3,
+    LootByAugSlotsTypeIndex = 1,
+    LootByAugSlotsType = 'Weapon', -- Any, Armor, Weapon, NonVis
+    LootByDamage = true,
+    LootByDamageAmount = 240,
     EquipUsable = false,     -- Buggy at best
     LootGearUpgrades = true, -- WIP
     CorpseRadius = 250,
@@ -383,6 +389,13 @@ end
 local function getRule(item)
     local itemName = item.Name()
     local itemHP = item.HP()
+    local itemDMG = item.Damage()
+    local itemAugSlot1 = item.AugSlot1()
+    local itemAugSlot2 = item.AugSlot2()
+    local itemAugSlot3 = item.AugSlot3()
+    local itemAugSlot4 = item.AugSlot4()
+    local itemAugSlot5 = item.AugSlot5()
+    local itemAugSlot6 = item.AugSlot6()
     local itemLink = item.ItemLink('CLICKABLE')()
     local lootDecision = 'Ignore'
     local tradeskill = item.Tradeskills()
@@ -426,6 +439,56 @@ local function getRule(item)
         [22] = "Ammo"
     }
 
+    -- Define category lookup tables
+    local weaponSlots = {
+        ["Main Hand"] = true,
+        ["Off Hand"] = true,
+        ["Ranged"] = true,
+    }
+
+    local armorSlots = {
+        ["Head"] = true,
+        ["Arms"] = true,
+        ["Left Wrist"] = true,
+        ["Right Wrist"] = true,
+        ["Hands"] = true,
+        ["Chest"] = true,
+        ["Legs"] = true,
+        ["Feet"] = true,
+    }
+
+    -- Use slotNames[wornSlot] to determine category
+    local function getItemSlotCategory(slot)
+        local slotName = slotNames[slot]
+        if weaponSlots[slotName] then
+            return "Weapon"
+        elseif armorSlots[slotName] then
+            return "Armor"
+        elseif slotName then
+            return "NonVis"
+        end
+        return nil
+    end
+
+    if LootUtils.LootByAugSlots then
+        local slotCategory = getItemSlotCategory(wornSlot)
+        if LootUtils.LootByAugSlotsType == 'Any' or LootUtils.LootByAugSlotsType == slotCategory then
+            if LootUtils.LootByAugSlotsAmount == 6 and itemAugSlot6 ~= 0 then
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 5 and itemAugSlot5 ~= 0 then
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 4 and itemAugSlot4 ~= 0 then
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 3 and itemAugSlot3 ~= 0 then
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 2 and itemAugSlot2 ~= 0 then
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount == 1 and itemAugSlot1 ~= 0 then
+                return 'Keep'
+            end
+        end
+    end
+
     if LootUtils.EquipUsable and canUse then
         if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
             return 'Keep'
@@ -438,6 +501,10 @@ local function getRule(item)
         elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
             return 'Keep'
         end
+    end
+
+    if LootUtils.LootByDamage and itemDMG >= LootUtils.LootByDamageAmount then
+        return 'Keep'
     end
 
     local function AnnounceUpgrade(slotNumber, slotName)
@@ -852,10 +919,10 @@ local function LootGUI()
 
         -- Calculate total width of all checkboxes and labels on the line
         local totalWidth = 0
-        local padding = 10                        -- space between checkbox+label groups
+        local padding = 10                            -- space between checkbox+label groups
 
         local checkboxSize = ImGui.CalcTextSize("[]") -- checkbox approx size
-        local checkBoxWidth = 20                  -- approximate checkbox width (can be tweaked)
+        local checkBoxWidth = 20                      -- approximate checkbox width (can be tweaked)
         local maxLabelWidth = 0
 
         -- For each flag, calculate width of checkbox + label + padding

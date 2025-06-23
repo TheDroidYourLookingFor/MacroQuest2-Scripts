@@ -5,7 +5,7 @@ local messages = require('DroidLoot.lib.Messages')
 local gui = {}
 
 gui.version = '1.0.8'
-gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8" }
+gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
         '- Added GUI for loot options'
@@ -62,6 +62,10 @@ gui.change_Log = {
         '- This is accessible in droid loot and my lootutils.',
         '- /dlu gui to toggle the gui on/off when calling via lootutils',
         '- Made the console actually do something.'
+    },
+    ['1.0.9'] = { 'Added new options',
+        '- Added options for loot by damage',
+        '- Added options for loot by Number of Augment Slots'
     },
 }
 
@@ -140,6 +144,12 @@ gui.HEALTHCHECK = DroidLoot.LootUtils.health_Check
 gui.HEALAT = DroidLoot.LootUtils.heal_At
 gui.HEALSPELL = DroidLoot.LootUtils.heal_Spell
 gui.HEALGEM = DroidLoot.LootUtils.heal_Gem
+
+gui.LOOTBYAUGSLOTS = DroidLoot.LootUtils.LootByAugSlots
+gui.LOOTBYAUGSLOTSAMOUNT = DroidLoot.LootUtils.LootByAugSlotsAmount
+gui.LOOTBYAUGSLOTSTYPE = DroidLoot.LootUtils.LootByAugSlotsType
+gui.LOOTBYDAMAGE = DroidLoot.LootUtils.LootByDamage
+gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
 
 gui.CurrentStatus = ' '
 gui.Open = false
@@ -452,6 +462,8 @@ function gui.DroidLootGUI()
                         ImGui.Separator();
 
                         ImGui.Text("COMMANDS:");
+                        ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' sell');
+                        ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' sellall');
                         ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' bank');
                         ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' cash');
                         ImGui.BulletText('/' .. DroidLoot.command_ShortName .. ' fabled');
@@ -595,10 +607,10 @@ function gui.DroidLootGUI()
 
                         -- Calculate total width of all checkboxes and labels on the line
                         local totalWidth = 0
-                        local padding = 10                    -- space between checkbox+label groups
+                        local padding = 10                            -- space between checkbox+label groups
 
                         local checkboxSize = ImGui.CalcTextSize("[]") -- checkbox approx size
-                        local checkBoxWidth = 20              -- approximate checkbox width (can be tweaked)
+                        local checkBoxWidth = 20                      -- approximate checkbox width (can be tweaked)
                         local maxLabelWidth = 0
 
                         -- For each flag, calculate width of checkbox + label + padding
@@ -708,10 +720,73 @@ function gui.DroidLootGUI()
 
                     local optionsOpen = ImGui.BeginTabItem("Options")
                     if optionsOpen then
-                        if ImGui.CollapsingHeader('DroidLoot Options') then
-                            ImGui.Indent()
-                            if ImGui.CollapsingHeader("Hub Operations") then
-                                ImGui.Indent()
+                        local optionsBarOpen = ImGui.BeginTabBar("OptionsTabs")
+                        if optionsBarOpen then
+                            local lootByAugSlotsOpen = ImGui.BeginTabItem("Loot By Aug Slots")
+                            if lootByAugSlotsOpen then
+                                local lootByAugSlotTypes = { "Any", "Armor", "Weapon", "NonVis" }
+                                DroidLoot.LootUtils.LootByAugSlots = ImGui.Checkbox('Enable## Loot By Aug Slot', DroidLoot.LootUtils.LootByAugSlots)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Loots items by their amount of aug slots when enabled.')
+                                if gui.LOOTBYAUGSLOTS ~= DroidLoot.LootUtils.LootByAugSlots then
+                                    gui.LOOTBYAUGSLOTS = DroidLoot.LootUtils.LootByAugSlots
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlots', DroidLoot.LootUtils.LootByAugSlots)
+                                end
+                                ImGui.Separator();
+
+                                DroidLoot.LootUtils.LootByAugSlotsAmount = ImGui.SliderInt("Min Slots", DroidLoot.LootUtils.LootByAugSlotsAmount, 1, 6)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('The minimum amount of aug slots an item needs to be kept.')
+                                if gui.LOOTBYAUGSLOTSAMOUNT ~= DroidLoot.LootUtils.LootByAugSlotsAmount then
+                                    gui.LOOTBYAUGSLOTSAMOUNT = DroidLoot.LootUtils.LootByAugSlotsAmount
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlotsAmount', DroidLoot.LootUtils.LootByAugSlotsAmount)
+                                end
+                                ImGui.Separator();
+
+                                -- Add Combo Box here for Types
+                                DroidLoot.LootUtils.LootByAugSlotsTypeIndex = DroidLoot.LootUtils.LootByAugSlotsTypeIndex or 1
+                                local lootTypeLabel = lootByAugSlotTypes[DroidLoot.LootUtils.LootByAugSlotsTypeIndex] or lootByAugSlotTypes[1]
+
+                                if ImGui.BeginCombo("Slot Type", lootTypeLabel) then
+                                    for i = 1, #lootByAugSlotTypes do
+                                        local is_selected = (DroidLoot.LootUtils.LootByAugSlotsTypeIndex == i)
+                                        if ImGui.Selectable(lootByAugSlotTypes[i], is_selected) then
+                                            DroidLoot.LootUtils.LootByAugSlotsTypeIndex = i
+                                            DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlotsTypeIndex', i)
+                                        end
+                                        if is_selected then
+                                            ImGui.SetItemDefaultFocus()
+                                        end
+                                    end
+                                    ImGui.EndCombo()
+                                end
+
+                                ImGui.EndTabItem()
+                            end
+                            local lootByDamageOpen = ImGui.BeginTabItem("Loot By Damage")
+                            if lootByDamageOpen then
+                                DroidLoot.LootUtils.LootByDamage = ImGui.Checkbox('Enable## Loot by Damage', DroidLoot.LootUtils.LootByDamage)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Loots items by their damage when enabled.')
+                                if gui.LOOTBYDAMAGE ~= DroidLoot.LootUtils.LootByDamage then
+                                    gui.LOOTBYDAMAGE = DroidLoot.LootUtils.LootByDamage
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByDamage', DroidLoot.LootUtils.LootByDamage)
+                                end
+                                ImGui.Separator();
+
+                                DroidLoot.LootUtils.LootByDamageAmount = ImGui.SliderInt("Min Damage", DroidLoot.LootUtils.LootByDamageAmount, 1, 1000)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('The minimum amount of damage an item needs to be kept.')
+                                if gui.LOOTBYDAMAGEAMOUNT ~= DroidLoot.LootUtils.LootByDamageAmount then
+                                    gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByDamageAmount', DroidLoot.LootUtils.LootByDamageAmount)
+                                end
+                                ImGui.Separator();
+
+                                ImGui.EndTabItem()
+                            end
+                            local hubOperationsOpen = ImGui.BeginTabItem("Hub Operations")
+                            if hubOperationsOpen then
                                 ImGui.Columns(2)
                                 DroidLoot.LootUtils.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', DroidLoot.LootUtils.bankDeposit)
                                 ImGui.SameLine()
@@ -767,10 +842,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'bankAtFreeSlots', DroidLoot.LootUtils.bankAtFreeSlots)
                                 end
                                 ImGui.Separator();
-                                ImGui.Unindent();
+                                ImGui.EndTabItem()
                             end
-                            if ImGui.CollapsingHeader("Health Operations") then
-                                ImGui.Indent();
+                            local healthOperationsOpen = ImGui.BeginTabItem("Health Operations")
+                            if healthOperationsOpen then
                                 DroidLoot.LootUtils.health_Check = ImGui.Checkbox('Enable Healing', DroidLoot.LootUtils.health_Check)
                                 ImGui.SameLine()
                                 ImGui.HelpMarker('Enables healing with our heal spell when below our heal at limit.')
@@ -806,10 +881,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'heal_At', DroidLoot.LootUtils.heal_At)
                                 end
                                 ImGui.Separator();
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Movement Operations") then
-                                ImGui.Indent()
+                            local movementOperationsOpen = ImGui.BeginTabItem("Movement Operations")
+                            if movementOperationsOpen then
                                 ImGui.Columns(2)
                                 local start_y_Options = ImGui.GetCursorPosY()
                                 DroidLoot.LootUtils.camp_Check = ImGui.Checkbox('Enable Camp Check', DroidLoot.LootUtils.camp_Check)
@@ -850,10 +925,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'returnToCampDistance', DroidLoot.LootUtils.returnToCampDistance)
                                 end
                                 ImGui.Separator();
-                                ImGui.Unindent()
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Camp Settings") then
-                                ImGui.Indent()
+                            local campSettingsOpen = ImGui.BeginTabItem("Camp Settings")
+                            if campSettingsOpen then
                                 DroidLoot.LootUtils.staticHunt = ImGui.Checkbox('Enable Static Hunt', DroidLoot.LootUtils.staticHunt)
                                 ImGui.SameLine()
                                 ImGui.HelpMarker('Always use the same Hunting Zone.')
@@ -928,10 +1003,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.CheckCampInfo()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'staticZ', DroidLoot.LootUtils.staticZ)
                                 end
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Wild Card Looting Options") then
-                                ImGui.Indent()
+                            local wildcardOptionsOpen = ImGui.BeginTabItem("Wild Card Looting Options")
+                            if wildcardOptionsOpen then
                                 local settingsChanged = false -- Track if any settings changed
 
                                 -- Checkbox for enabling wildcard looting
@@ -996,11 +1071,10 @@ function gui.DroidLootGUI()
                                 if settingsChanged then
                                     DroidLoot.LootUtils.saveWildCardTerms()
                                 end
-
-                                ImGui.Unindent()
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Booleans") then
-                                ImGui.Indent()
+                            local booleanOptionsOpen = ImGui.BeginTabItem("Booleans")
+                            if booleanOptionsOpen then
                                 ImGui.Columns(2)
                                 local start_y = ImGui.GetCursorPosY()
                                 DroidLoot.LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', DroidLoot.LootUtils.UseWarp)
@@ -1156,10 +1230,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByMinHPNoDrop', DroidLoot.LootUtils.LootByMinHPNoDrop)
                                 end
                                 ImGui.Columns(1)
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Strings") then
-                                ImGui.Indent()
+                            local stringsOptionsOpen = ImGui.BeginTabItem("Strings")
+                            if stringsOptionsOpen then
                                 DroidLoot.LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", DroidLoot.LootUtils.CorpseRadius, 1, 5000)
                                 ImGui.SameLine()
                                 ImGui.HelpMarker('The radius we should scan for corpses.')
@@ -1231,10 +1305,10 @@ function gui.DroidLootGUI()
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'AnnounceChannel', DroidLoot.LootUtils.AnnounceChannel)
                                 end
                                 ImGui.Separator();
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("INI") then
-                                ImGui.Indent()
+                            local iniOptionsOpen = ImGui.BeginTabItem("INI")
+                            if iniOptionsOpen then
                                 DroidLoot.LootUtils.Settings.LootFile = ImGui.InputText('Loot file', DroidLoot.LootUtils.Settings.LootFile)
                                 ImGui.SameLine()
                                 ImGui.HelpMarker('Loot file to use.')
@@ -1287,10 +1361,10 @@ function gui.DroidLootGUI()
                                 if ImGui.Button('Save Config', buttonImVec2) then
                                     DroidLoot.LootUtils.writeSettings()
                                 end
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            if ImGui.CollapsingHeader("Server Specific Options") then
-                                ImGui.Indent();
+                            local serverOptionsOpen = ImGui.BeginTabItem("Server Specific Options")
+                            if serverOptionsOpen then
                                 if ImGui.CollapsingHeader("WastingTime Options") then
                                     ImGui.Indent()
                                     DroidLoot.LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', DroidLoot.LootUtils.LootPlatinumBags)
@@ -1346,13 +1420,12 @@ function gui.DroidLootGUI()
                                         DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledName', DroidLoot.LootUtils.EmpoweredFabledName)
                                     end
                                     ImGui.Separator();
-                                    ImGui.Unindent()
                                 end
-                                ImGui.Unindent();
+                                ImGui.EndTabItem();
                             end
-                            ImGui.Unindent();
+                            ImGui.EndTabItem()
                         end
-                        ImGui.EndTabItem()
+                        ImGui.EndTabBar()
                     end
                     local consoleOpen = ImGui.BeginTabItem("Console")
                     if consoleOpen then
