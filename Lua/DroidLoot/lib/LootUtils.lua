@@ -360,6 +360,7 @@ end
 function LootUtils.navToID(spawnID)
     navToID(spawnID)
 end
+
 function LootUtils.navToXYZ(navX, navY, navZ)
     navToXYZ(navX, navY, navZ)
 end
@@ -665,6 +666,305 @@ end
 
 -- BINDS
 
+local flags = {
+    { name = "Quest",    color = { 1.0, 0.5, 0.0, 1.0 } },
+    { name = "Keep",     color = { 0.0, 1.0, 0.0, 1.0 } },
+    { name = "Ignore",   color = { 1.0, 0.0, 0.0, 1.0 } },
+    { name = "Announce", color = { 0.0, 1.0, 1.0, 1.0 } },
+    { name = "Destroy",  color = { 0.5, 0.0, 0.0, 1.0 } },
+    { name = "Sell",     color = { 0.0, 0.5, 1.0, 1.0 } },
+    { name = "Fabled",   color = { 0.6, 0.2, 0.8, 1.0 } },
+    { name = "Cash",     color = { 1.0, 0.84, 0.0, 1.0 } },
+}
+
+local function truncateText(text, maxLength)
+    if #text > maxLength then
+        return text:sub(1, maxLength - 2) .. ".."
+    end
+    return text
+end
+-- Add this near the top, after your flags definition
+local flagsVisible = {
+    Quest = true,
+    Keep = true,
+    Ignore = true,
+    Announce = true,
+    Destroy = true,
+    Sell = true,
+    Fabled = false, -- hide by default
+    Cash = false,   -- hide by default
+}
+-- Individual flag visibility states
+local showQuest = flagsVisible.Quest
+local showKeep = flagsVisible.Keep
+local showIgnore = flagsVisible.Ignore
+local showAnnounce = flagsVisible.Announce
+local showDestroy = flagsVisible.Destroy
+local showSell = flagsVisible.Sell
+local showFabled = flagsVisible.Fabled
+local showCash = flagsVisible.Cash
+
+local function LoadLootListFromINI()
+    local iniFile = LootUtils.Settings.LootFile
+    local list, ini = {}, mq.TLO.Ini.File(iniFile)
+    if not ini() then return list end
+
+    for i = 65, 90 do
+        local section = ini.Section(string.char(i))
+        if section() then
+            for idx = 1, section.Key.Count() do
+                local key = section.Key.KeyAtIndex(idx)()
+                if key and key ~= "Defaults" then
+                    local val = section.Key(key).Value() or "Ignore"
+                    table.insert(list, { name = key, flag = val })
+                end
+            end
+        end
+    end
+    return list
+end
+
+local function SaveItemFlagToINI(itemName, flag)
+    local iniFile = LootUtils.Settings.LootFile
+    local section = string.upper(itemName:sub(1, 1))
+    LootUtils.Storage.SetINIValue(iniFile, section, itemName, flag)
+end
+
+local lootList = LoadLootListFromINI()
+local function getTextColorForBackground(r, g, b)
+    local luminance = 0.299 * r + 0.587 * g + 0.114 * b
+    -- Light backgrounds -> dark text, dark backgrounds -> light text
+    return luminance > 0.5 and { 0, 0, 0, 1 } or { 1, 1, 1, 1 }
+end
+
+local function DrawFlagButton(item, flagInfo)
+    local isActive = item.flag == flagInfo.name
+    local r, g, b = flagInfo.color[1], flagInfo.color[2], flagInfo.color[3]
+    local blendFactor = 0.7 -- 70% blend toward white to lighten inactive buttons
+    if not isActive then
+        r = r * (1 - blendFactor) + blendFactor
+        g = g * (1 - blendFactor) + blendFactor
+        b = b * (1 - blendFactor) + blendFactor
+    end
+
+    local color = { r, g, b, 1.0 }
+    local label = truncateText(flagInfo.name, 6)
+    local id = flagInfo.name .. "##" .. item.name
+
+    local size = ImVec2(45, 24)
+    local cursorX, cursorY = ImGui.GetCursorScreenPos()
+
+    -- local pressed = ImGui.ColorButton(id, color, 0, size)
+    local ImGuiColorEditFlags_NoPicker = 2 ^ 6   -- 64
+    local ImGuiColorEditFlags_NoTooltip = 2 ^ 10 -- 1024
+    local cbflags = ImGuiColorEditFlags_NoPicker + ImGuiColorEditFlags_NoTooltip
+    local pressed = ImGui.ColorButton(id, color, cbflags, size)
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip(flagInfo.name) -- Show full name on hover
+    end
+
+    local textSizeX, textSizeY = ImGui.CalcTextSize(label)
+    local textX = cursorX + (size.x - textSizeX) / 2
+    local textY = cursorY + (size.y - textSizeY) / 2
+
+    -- Text color:
+    local textColorBase
+    if not isActive then
+        textColorBase = { 0, 0, 0, 1 } -- black text for faded buttons
+    elseif flagInfo.name == "Ignore" then
+        textColorBase = { 0, 0, 0, 1 }
+    else
+        textColorBase = getTextColorForBackground(flagInfo.color[1], flagInfo.color[2], flagInfo.color[3])
+    end
+    if isActive then
+        local drawList = ImGui.GetWindowDrawList()
+        local minX, minY = ImGui.GetItemRectMin()
+        local maxX, maxY = ImGui.GetItemRectMax()
+
+        local minPos = ImVec2(minX, minY)
+        local maxPos = ImVec2(maxX, maxY)
+
+        drawList:AddRect(minPos, maxPos, ImGui.GetColorU32(1, 1, 1, 1), 1.0)
+    end
+
+    local textAlpha = isActive and 1.0 or 0.7
+    local textColor = { textColorBase[1], textColorBase[2], textColorBase[3], textAlpha }
+
+    ImGui.GetWindowDrawList():AddText(
+        ImVec2(textX, textY),
+        ImGui.GetColorU32(textColor[1], textColor[2], textColor[3], textColor[4]),
+        label
+    )
+
+    if pressed then
+        item.flag = isActive and "Ignore" or flagInfo.name
+        SaveItemFlagToINI(item.name, item.flag)
+    end
+
+    return pressed
+end
+
+local function DrawDeleteButton(item)
+    local id = "Delete##" .. item.name
+    local size = ImVec2(30, 22)
+    local cursorX, cursorY = ImGui.GetCursorScreenPos()
+
+    -- red color for the button
+    local color = { 1.0, 0.0, 0.0, 1.0 }
+
+    local pressed = ImGui.ColorButton(id, color, 0, size)
+
+    -- Draw white "X" centered inside button
+    local text = "X"
+    local textSizeX, textSizeY = ImGui.CalcTextSize(text)
+    local textX = cursorX + (size.x - textSizeX) / 2
+    local textY = cursorY + (size.y - textSizeY) / 2
+
+    ImGui.GetWindowDrawList():AddText(
+        ImVec2(textX, textY),
+        ImGui.GetColorU32(1, 1, 1, 1),
+        text
+    )
+
+    if pressed then
+        -- Remove item from lootList
+        for i, it in ipairs(lootList) do
+            if it == item then
+                table.remove(lootList, i)
+                SaveItemFlagToINI(item.name, "Ignore")
+                break
+            end
+        end
+    end
+
+    return pressed
+end
+
+LootUtils.Settings.showGUI = false
+LootUtils.Settings.open = true
+local function LootGUI()
+    if not LootUtils.Settings.showGUI then return end
+    LootUtils.Settings.showGUI, LootUtils.Settings.open = ImGui.Begin("DroidLoot GUI", LootUtils.Settings.open)
+    if LootUtils.Settings.open then
+        -- put checkboxes here side by side on 1 line to enable/disable flags being shown below.
+        -- Checkboxes for showing flags
+        local availWidth, _ = ImGui.GetContentRegionAvail()
+
+        -- Calculate total width of all checkboxes and labels on the line
+        local totalWidth = 0
+        local padding = 10                        -- space between checkbox+label groups
+
+        local checkboxSize = ImGui.CalcTextSize("[]") -- checkbox approx size
+        local checkBoxWidth = 20                  -- approximate checkbox width (can be tweaked)
+        local maxLabelWidth = 0
+
+        -- For each flag, calculate width of checkbox + label + padding
+        local flagNames = { "Quest", "Keep", "Ignore", "Announce", "Destroy", "Sell", "Fabled", "Cash" }
+        local widths = {}
+
+        for _, name in ipairs(flagNames) do
+            local labelWidth, _ = ImGui.CalcTextSize(name)
+            local groupWidth = checkBoxWidth + 5 + labelWidth -- checkbox + small space + label width
+            table.insert(widths, groupWidth)
+            totalWidth = totalWidth + groupWidth + padding
+        end
+
+        totalWidth = totalWidth - padding -- remove last padding
+
+        -- Set cursor to center the entire row
+        local cursorPosX = (availWidth - totalWidth) / 2
+        if cursorPosX > 0 then ImGui.SetCursorPosX(cursorPosX) end
+
+        -- Draw checkboxes and labels inline, updating flagsVisible variables
+        local changed
+        showQuest, changed = ImGui.Checkbox("##Quest", showQuest)
+        if changed then flagsVisible.Quest = showQuest end
+        ImGui.SameLine()
+        ImGui.Text("Quest")
+        ImGui.SameLine()
+
+        showKeep, changed = ImGui.Checkbox("##Keep", showKeep)
+        if changed then flagsVisible.Keep = showKeep end
+        ImGui.SameLine()
+        ImGui.Text("Keep")
+        ImGui.SameLine()
+
+        showIgnore, changed = ImGui.Checkbox("##Ignore", showIgnore)
+        if changed then flagsVisible.Ignore = showIgnore end
+        ImGui.SameLine()
+        ImGui.Text("Ignore")
+        ImGui.SameLine()
+
+        showAnnounce, changed = ImGui.Checkbox("##Announce", showAnnounce)
+        if changed then flagsVisible.Announce = showAnnounce end
+        ImGui.SameLine()
+        ImGui.Text("Announce")
+        ImGui.SameLine()
+
+        showDestroy, changed = ImGui.Checkbox("##Destroy", showDestroy)
+        if changed then flagsVisible.Destroy = showDestroy end
+        ImGui.SameLine()
+        ImGui.Text("Destroy")
+        ImGui.SameLine()
+
+        showSell, changed = ImGui.Checkbox("##Sell", showSell)
+        if changed then flagsVisible.Sell = showSell end
+        ImGui.SameLine()
+        ImGui.Text("Sell")
+        ImGui.SameLine()
+
+        showFabled, changed = ImGui.Checkbox("##Fabled", showFabled)
+        if changed then flagsVisible.Fabled = showFabled end
+        ImGui.SameLine()
+        ImGui.Text("Fabled")
+        ImGui.SameLine()
+
+        showCash, changed = ImGui.Checkbox("##Cash", showCash)
+        if changed then flagsVisible.Cash = showCash end
+        ImGui.SameLine()
+        ImGui.Text("Cash")
+
+        ImGui.Separator()
+        local availWidth2, _ = ImGui.GetContentRegionAvail()
+        local text2 = "Loot Items"
+        local textWidth2, _ = ImGui.CalcTextSize(text2)
+        local cursorPosX2 = (availWidth2 - textWidth2) / 2
+        if cursorPosX2 > 0 then ImGui.SetCursorPosX(cursorPosX2) end
+        ImGui.Text(text2)
+        ImGui.Separator()
+        ImGui.Columns(3, "loot_columns", true)
+        ImGui.Text("Item")
+        ImGui.NextColumn()
+        ImGui.Text("Flags")
+        ImGui.NextColumn()
+        ImGui.Text("Delete")
+        ImGui.NextColumn()
+        ImGui.Separator()
+
+        for _, item in ipairs(lootList) do
+            ImGui.Text(item.name)
+            ImGui.NextColumn()
+
+            local first = true
+            for _, flagInfo in ipairs(flags) do
+                if flagsVisible[flagInfo.name] then
+                    if not first then ImGui.SameLine() end
+                    DrawFlagButton(item, flagInfo)
+                    first = false
+                end
+            end
+
+            ImGui.NextColumn()
+            DrawDeleteButton(item)
+            ImGui.NextColumn()
+        end
+
+        ImGui.Columns(1)
+    end
+    ImGui.End()
+end
+mq.imgui.init("DroidLootGUI", LootGUI)
+
 local function commandHandler(...)
     local args = { ... }
     if #args == 1 then
@@ -681,7 +981,7 @@ local function commandHandler(...)
         elseif args[1] == 'tsbank' then
             LootUtils.markTradeSkillAsBank()
         elseif args[1] == 'gui' then
-            DroidLoot.GUI.Open = not DroidLoot.GUI.Open
+            LootUtils.Settings.showGUI = not LootUtils.Settings.showGUI
         end
     elseif #args == 2 then
         if validActions[args[1]] and args[2] ~= 'NULL' then

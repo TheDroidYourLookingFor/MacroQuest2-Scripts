@@ -51,15 +51,45 @@ function messages.ScriptInfo()
     return sName .. ' @ ' .. sLine
 end
 
+messages.outputLog = {}
+-- Function to add output to the log with a timestamp
+local function stripColors(str)
+    -- ASCII 7 (bell) char is \a in Lua, but it is a single char with code 7
+    -- We want to remove any sequence like: \a followed by optional '-' then a letter
+    -- Pattern explanation:
+    -- %a = letter, %- = literal dash
+    -- So pattern: \a%-?%a
+    -- But \a is ASCII 7, which in pattern is \a literally (the bell char)
+
+    -- We'll remove all sequences of: <bell><optional dash><letter>
+    -- So pattern is: "\a%-?%a"
+
+    -- Use gsub to replace with empty string
+    return str:gsub("\a%-?%a", "")
+end
+
+function messages.addToConsole(text, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    local formattedText = string.format(text, ...)
+
+    -- Strip color codes from formattedText
+    local cleanText = stripColors(formattedText)
+
+    local logEntry = string.format("%s %s", timestamp, cleanText)
+    table.insert(messages.outputLog, logEntry)
+end
+
 function messages.CONSOLEMETHOD(isDebugMessage, consoleMessage, ...)
     -- Get the current time in a readable format (HH:MM:SS)
     local timestamp = os.date("[%H:%M:%S]")
     if isDebugMessage then
         if messages.debug then
             printf("%s" .. Colors.g .. "[%s]" .. Colors.r .. consoleMessage .. Colors.x, timestamp, messages.ScriptInfo(), ...)
+            messages.addToConsole("%s" .. consoleMessage, timestamp, messages.ScriptInfo(), ...)
         end
     else
         printf(Colors.W .. timestamp .. Colors.w .. consoleMessage .. Colors.x, ...)
+        messages.addToConsole(consoleMessage, ...)
     end
 end
 

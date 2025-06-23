@@ -28,6 +28,7 @@ DroidLoot.huntZoneName = mq.TLO.Zone.ShortName()
 DroidLoot.camp_X = mq.TLO.Me.X()
 DroidLoot.camp_Y = mq.TLO.Me.Y()
 DroidLoot.camp_Z = mq.TLO.Me.Z()
+DroidLoot.outputLog = {}
 
 DroidLoot.Messages = require('DroidLoot.lib.Messages')
 DroidLoot.LootUtils = require('DroidLoot.lib.LootUtils')
