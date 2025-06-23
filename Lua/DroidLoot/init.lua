@@ -1,7 +1,7 @@
 local mq = require 'mq'
 
 DroidLoot = {
-    debug = false,
+    debug = true,
     announce = true,
     say = 'rsay',
     returnToHome = false,
@@ -14,6 +14,8 @@ DroidLoot = {
     terminate = false,
     spawnSearch = '%s radius %d zradius 50',
     doSell = false,
+    doSellAll = false,
+    closeSellWindow = false,
     doLoot = true,
     doLootMessages = false,
     doPause = false,
@@ -131,7 +133,7 @@ function DroidLoot.VendorSell()
             mq.delay(250)
             mq.cmdf('/nomodkey /click right target')
             mq.delay(5000, function() return mq.TLO.Window('MerchantWnd').Open() end)
-            DroidLoot.LootUtils.sellStuff()
+            DroidLoot.LootUtils.sellStuff(DroidLoot.closeSellWindow, false)
             DroidLoot.needToVendorSell = false
         end
     end
@@ -147,6 +149,8 @@ local function binds(...)
             DroidLoot.BankDropOff()
         elseif args[1] == 'vendor' then
             DroidLoot.needToVendorSell = true
+        elseif args[1] == 'sellall' then
+            DroidLoot.doSellAll = not DroidLoot.doSellAll
         elseif args[1] == 'sell' then
             DroidLoot.doSell = not DroidLoot.doSell
         elseif args[1] == 'loot' then
@@ -167,6 +171,7 @@ local function binds(...)
             DroidLoot.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
+            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
             DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
         end
@@ -174,6 +179,7 @@ local function binds(...)
         DroidLoot.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
         DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
         DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
+        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
         DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
         DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
     end
@@ -248,8 +254,12 @@ while not DroidLoot.terminate do
             if DroidLoot.announce and DroidLoot.doLootMessages then mq.cmdf('/%s [%s]Done Looting; no more corpses within range!', DroidLoot.LootUtils.AnnounceChannel, mq.TLO.Time()) end
         end
         if DroidLoot.doSell then
-            DroidLoot.LootUtils.sellStuff()
+            DroidLoot.LootUtils.sellStuff(DroidLoot.closeSellWindow, true)
             DroidLoot.doSell = false
+        end
+        if DroidLoot.doSellAll then
+            DroidLoot.LootUtils.sellStuff(DroidLoot.closeSellWindow, false)
+            DroidLoot.doSellAll = false
         end
         if DroidLoot.LootUtils.bankDeposit and mq.TLO.Me.FreeInventory() <= DroidLoot.LootUtils.bankAtFreeSlots then
             DroidLoot.needToBank = true

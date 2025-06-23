@@ -30,7 +30,7 @@ local LootUtils = {
     MobsTooClose = 40,
     AnnounceLoot = false,
     AnnounceUpgrades = true,
-    ReportLoot = true,
+    ReportLoot = false,
     ReportSkipped = true,
     LootChannel = "dgt",
     AnnounceChannel = 'dgt',
@@ -39,7 +39,7 @@ local LootUtils = {
     CombatLooting = true,
     LootEvolvingItems = false, -- Buggy on Emulator
     LootPlatinumBags = false,
-    LootWildCardItems = true,
+    LootWildCardItems = false,
     wildCardTerms = { 'Rk. I', 'Empowered', 'Transcendent', 'Rough Consigned' },
     LootTokensOfAdvancement = false,
     LootEmpoweredFabled = false,
@@ -52,7 +52,8 @@ local LootUtils = {
     SaveBagSlots = 3,
     MinSellPrice = 100000,
     StackableOnly = false,
-    UseSingleFileForAllCharacters = true,
+    UseSingleFileForAllCharacters = false,
+    UseServerLootFile = true,
     useZoneLootFile = false,
     useClassLootFile = false,
     useArmorTypeLootFile = false,
@@ -87,7 +88,9 @@ LootUtils.Settings = {
     Defaults = "Quest|Keep|Ignore|Announce|Destroy|Sell|Fabled|Cash",
     Terminate = true,
     logger = Write,
-    LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
+    LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini',
+    command_ShortName = 'dlu',
+    command_LongName = 'droidlootutils',
 }
 
 -- Internal settings
@@ -161,6 +164,14 @@ end
 function LootUtils.SetINIType()
     if LootUtils.UseSingleFileForAllCharacters then
         LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini'
+        LootUtils.ConsoleMessage('Debug', 'LootFile: %s', LootUtils.Settings.LootFile)
+        LootUtils.ConsoleMessage('Normal', '++ \agDROID LOOT UTILS STARTED\aw ++')
+        LootUtils.ConsoleMessage('Normal', '++ \ag %s \aw ++', LootUtils.Settings.LootFile)
+        return
+    end
+    if LootUtils.UseServerLootFile then
+        local my_Server = mq.TLO.EverQuest.Server() or ''
+        LootUtils.Settings.LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.' .. my_Server .. '.ini'
         LootUtils.ConsoleMessage('Debug', 'LootFile: %s', LootUtils.Settings.LootFile)
         LootUtils.ConsoleMessage('Normal', '++ \agDROID LOOT UTILS STARTED\aw ++')
         LootUtils.ConsoleMessage('Normal', '++ \ag %s \aw ++', LootUtils.Settings.LootFile)
@@ -662,12 +673,15 @@ local function commandHandler(...)
         elseif args[1] == 'cash' and not LootUtils.Settings.Terminate then
             doCashSell = true
         elseif args[1] == 'reload' then
+            LootUtils.loadSettings()
             lootData = {}
             LootUtils.ConsoleMessage('Info', 'Reloaded Loot File')
         elseif args[1] == 'bank' then
             LootUtils.bankStuff()
         elseif args[1] == 'tsbank' then
             LootUtils.markTradeSkillAsBank()
+        elseif args[1] == 'gui' then
+            DroidLoot.GUI.Open = not DroidLoot.GUI.Open
         end
     elseif #args == 2 then
         if validActions[args[1]] and args[2] ~= 'NULL' then
@@ -683,7 +697,8 @@ local function commandHandler(...)
 end
 
 local function setupBinds()
-    mq.bind('/DroidLootUtils', commandHandler)
+    mq.bind('/' .. LootUtils.Settings.command_ShortName, commandHandler)
+    mq.bind('/' .. LootUtils.Settings.command_LongName, commandHandler)
 end
 
 function LootUtils.report(message, ...)
@@ -1033,7 +1048,9 @@ local function sellBagItemToVendor(itemToSell, itemBag, itemBagSlot)
     end
 end
 
-function LootUtils.sellStuff(closeWindowWhenDone)
+function LootUtils.sellStuff(closeWindowWhenDone, requireRuleToSell)
+    if closeWindowWhenDone == nil then closeWindowWhenDone = false end
+    if requireRuleToSell == nil then requireRuleToSell = true end
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then
             return
@@ -1066,7 +1083,7 @@ function LootUtils.sellStuff(closeWindowWhenDone)
                 local itemToSell = bagSlot.Item(j)
                 if itemToSell.Name() then
                     local sellRule = getRule(bagSlot.Item(j))
-                    if sellRule == 'Sell' or sellRule == 'NULL' then
+                    if (requireRuleToSell and (sellRule == 'Sell' or sellRule == 'NULL')) or (not requireRuleToSell and (sellRule == 'Sell' or sellRule == 'NULL' or sellRule == 'Ignore')) then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value() / 1000 or 0
                         if sellPrice == 0 then
                             LootUtils.ConsoleMessage('Info', 'Item \ay%s\ax is set to Sell but has no sell value!', itemToSell.Name())
