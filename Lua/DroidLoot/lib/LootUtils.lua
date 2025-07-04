@@ -16,7 +16,7 @@ Examples:
 local mq = require 'mq'
 
 local LootUtils = {
-    Version = "1.0.27",
+    Version = "1.0.28",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -470,43 +470,6 @@ local function getRule(item)
         return nil
     end
 
-    if LootUtils.LootByAugSlots then
-        local slotCategory = getItemSlotCategory(wornSlot)
-        if LootUtils.LootByAugSlotsType == 'Any' or LootUtils.LootByAugSlotsType == slotCategory then
-            if LootUtils.LootByAugSlotsAmount == 6 and itemAugSlot6 ~= 0 then
-                return 'Keep'
-            elseif LootUtils.LootByAugSlotsAmount >= 5 and itemAugSlot5 ~= 0 then
-                return 'Keep'
-            elseif LootUtils.LootByAugSlotsAmount >= 4 and itemAugSlot4 ~= 0 then
-                return 'Keep'
-            elseif LootUtils.LootByAugSlotsAmount >= 3 and itemAugSlot3 ~= 0 then
-                return 'Keep'
-            elseif LootUtils.LootByAugSlotsAmount >= 2 and itemAugSlot2 ~= 0 then
-                return 'Keep'
-            elseif LootUtils.LootByAugSlotsAmount == 1 and itemAugSlot1 ~= 0 then
-                return 'Keep'
-            end
-        end
-    end
-
-    if LootUtils.EquipUsable and canUse then
-        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
-            return 'Keep'
-        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() == nil then
-            return 'Keep'
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() == nil then
-            return 'Keep'
-        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() == nil then
-            return 'Keep'
-        elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
-            return 'Keep'
-        end
-    end
-
-    if LootUtils.LootByDamage and itemDMG >= LootUtils.LootByDamageAmount then
-        return 'Keep'
-    end
-
     local function AnnounceUpgrade(slotNumber, slotName)
         local hpDiff
         if mq.TLO.Me.Inventory(wornSlot)() ~= nil then
@@ -517,6 +480,78 @@ local function getRule(item)
         if LootUtils.AnnounceUpgrades then
             LootUtils.report('Found Upgrade: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
         end
+        LootUtils.logReport('Keep', 'Found Upgrade: %s (+%s hp - %s)', itemName, hpDiff, slotName)
+    end
+
+    if LootUtils.LootByAugSlots then
+        local slotCategory = getItemSlotCategory(wornSlot)
+        if LootUtils.LootByAugSlotsType == 'Any' or LootUtils.LootByAugSlotsType == slotCategory then
+            if LootUtils.LootByAugSlotsAmount == 6 and itemAugSlot6 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 5 and itemAugSlot5 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot5, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 4 and itemAugSlot4 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot4, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 3 and itemAugSlot3 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot3, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount >= 2 and itemAugSlot2 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot2, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            elseif LootUtils.LootByAugSlotsAmount == 1 and itemAugSlot1 ~= 0 then
+                if LootUtils.AnnounceUpgrades then
+                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot1, LootUtils.LootByAugSlotsAmount)
+                end
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                return 'Keep'
+            end
+        end
+    end
+
+    if LootUtils.EquipUsable and canUse then
+        if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() == nil then
+            AnnounceUpgrade(wornSlot, 'Left Ear')
+            return 'Keep'
+        elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() == nil then
+            AnnounceUpgrade(4, 'Right Ear')
+            return 'Keep'
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() == nil then
+            AnnounceUpgrade(15, 'Left Finger')
+            return 'Keep'
+        elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() == nil then
+            AnnounceUpgrade(16, 'Right Finger')
+            return 'Keep'
+        elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
+            local slotName = slotNames[wornSlot] or "Unknown"
+            AnnounceUpgrade(wornSlot, slotName)
+            return 'Keep'
+        end
+    end
+
+    if LootUtils.LootByDamage and itemDMG >= LootUtils.LootByDamageAmount then
+        if LootUtils.AnnounceUpgrades then
+            LootUtils.report('Found Weapon Damge Item: %s (%s(%s))', itemLink, itemDMG, LootUtils.LootByDamageAmount)
+        end
+        LootUtils.logReport('Keep', 'Found Weapon Damge Item: %s (%s(%s))', itemName, itemDMG, LootUtils.LootByDamageAmount)
+        return 'Keep'
     end
 
     if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
@@ -612,64 +647,79 @@ local function getRule(item)
     if lootData[firstLetter][itemName] == 'NULL' then
         if noDrop and not canUse then
             LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'noDrop and not canUse')
+            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'noDrop and not canUse')
             lootDecision = 'Ignore'
         end
         if LootUtils.LootTradeSkill and tradeskill then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTradeSkill')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootTradeSkill')
             lootDecision = 'Bank'
         end
         if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice and not noDrop and not noRent then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'MinSellPrice')
+            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemName, 'MinSellPrice')
             lootDecision = 'Sell'
         end
         if not stackable and LootUtils.StackableOnly then
             LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'StackableOnly')
+            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'StackableOnly')
             lootDecision = 'Ignore'
         end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue and not noDrop and not noRent then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'StackPlatValue')
+            LootUtils.logReport('Sell', 'Ignore Item: %s (%s)', itemName, 'StackPlatValue')
             lootDecision = 'Sell'
         end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
                 LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
                 lootDecision = 'Bank'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP <= LootUtils.EmpoweredFabledMinHP then
                 LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
         end
         if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
             if LootUtils.LootByMinHPNoDrop and noDrop and canUse then
                 LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHPNoDrop')
+                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootByMinHPNoDrop')
                 lootDecision = 'Keep'
             elseif not LootUtils.LootByMinHPNoDrop and noDrop then
                 LootUtils.ConsoleMessage('Debug', 'Skipping because: %s', 'LootByMinHPNoDrop')
+                LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'LootByMinHPNoDrop')
                 lootDecision = 'Ignore'
             elseif not noDrop then
                 LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHP')
+                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootByMinHP')
                 lootDecision = 'Keep'
             end
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootAllFabledAugs')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootAllFabledAugs')
             lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'LootPlatinumBags')
+            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemName, 'LootPlatinumBags')
             lootDecision = 'Sell'
         end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTokensOfAdvancement')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootTokensOfAdvancement')
             lootDecision = 'Bank'
         end
         if evolvingItem and LootUtils.LootEvolvingItems then
             LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootEvolvingItems')
+            LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootEvolvingItems')
             lootDecision = 'Keep'
         end
         if LootUtils.LootWildCardItems then
@@ -677,6 +727,7 @@ local function getRule(item)
                 if string.find(itemName, term) then
                     lootDecision = 'Keep'
                     LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'wildCardTerms')
+                    LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'wildCardTerms')
                     break
                 end
             end
@@ -907,12 +958,800 @@ local function DrawDeleteButton(item)
     return pressed
 end
 
-LootUtils.Settings.showGUI = false
-LootUtils.Settings.open = true
+LOOTEVOLVINGITEMS = LootUtils.LootEvolvingItems
+MOBSTOOCLOSE = LootUtils.MobsTooClose
+CORPSERADIUS = LootUtils.CorpseRadius
+ADDNEWSALES = LootUtils.AddNewSales
+ADDIGNOREDITEMS = LootUtils.AddIgnoredItems
+USECLASSLOOTFILE = LootUtils.useClassLootFile
+USEARMORTYPELOOTFILE = LootUtils.useArmorTypeLootFile
+USEMACROLOOTFILE = LootUtils.useMacroLootFile
+USEZONELOOTFILE = LootUtils.useZoneLootFile
+USESINGLEFILEFORALLCHARACTERS = LootUtils.UseSingleFileForAllCharacters
+LOOTFORAGE = LootUtils.LootForage
+REPORTLOOT = LootUtils.ReportLoot
+ANNOUNCEUPGRADES = LootUtils.AnnounceUpgrades
+LOOTCHANNEL = LootUtils.LootChannel
+SPAMLOOTINFO = LootUtils.SpamLootInfo
+COMBATLOOTING = LootUtils.CombatLooting
+LOOTGEARUPGRADES = LootUtils.LootGearUpgrades
+LOOTWILDCARDITEMS = LootUtils.LootWildCardItems
+MINSELLPRICE = LootUtils.MinSellPrice
+STACKABLEONLY = LootUtils.StackableOnly
+LOOTBYHPMIN = LootUtils.LootByMinHP
+LOOTBYHPMINNODROP = LootUtils.LootByMinHPNoDrop
+STACKPLATVALUE = LootUtils.StackPlatValue
+
+RETURNHOMEAFTERLOOT = LootUtils.returnHomeAfterLoot
+CAMPCHECK = LootUtils.camp_Check
+ZONECHECK = LootUtils.zone_Check
+RETURNTOCAMPDISTANCE = LootUtils.returnToCampDistance
+STATICHUNT = LootUtils.staticHunt
+STATICZONEID = LootUtils.staticZoneID
+STATICZONENAME = LootUtils.staticZoneName
+STATICX = LootUtils.staticX
+STATICY = LootUtils.staticY
+STATICZ = LootUtils.staticZ
+HEALTHCHECK = LootUtils.health_Check
+HEALAT = LootUtils.heal_At
+HEALSPELL = LootUtils.heal_Spell
+HEALGEM = LootUtils.heal_Gem
+
+LOOTBYAUGSLOTS = LootUtils.LootByAugSlots
+LOOTBYAUGSLOTSAMOUNT = LootUtils.LootByAugSlotsAmount
+LOOTBYAUGSLOTSTYPE = LootUtils.LootByAugSlotsType
+LOOTBYDAMAGE = LootUtils.LootByDamage
+LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
+
+CurrentStatus = ' '
+LootUtils.Settings.optionsShowGUI = false
+LootUtils.Settings.optionsOpenGUI = true
+local function OptionsGUI()
+    if not LootUtils.Settings.optionsShowGUI then return end
+    if LootUtils.Settings.optionsShowGUI and LootUtils.Settings.optionsOpenGUI then
+        ImGui.SetNextWindowCollapsed(false, ImGuiCond.Always)
+    end
+    LootUtils.Settings.optionsShowGUI, LootUtils.Settings.optionsOpenGUI = ImGui.Begin("DroidLoot Options Window", LootUtils.Settings.optionsOpenGUI)
+    if LootUtils.Settings.optionsShowGUI then
+        local x_size = 665
+        local y_size = 680
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.Once)
+        local io = ImGui.GetIO()
+        local center_x = io.DisplaySize.x / 2
+        local center_y = io.DisplaySize.y / 2
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
+        ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
+
+        local optionsBarOpen = ImGui.BeginTabBar("LootUtilsOptions")
+        if optionsBarOpen then
+            local lootByAugSlotsOpen = ImGui.BeginTabItem("Loot By Aug Slots")
+            if lootByAugSlotsOpen then
+                local lootByAugSlotTypes = { "Any", "Armor", "Weapon", "NonVis" }
+                LootUtils.LootByAugSlots = ImGui.Checkbox('Enable## Loot By Aug Slot', LootUtils.LootByAugSlots)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items by their amount of aug slots when enabled.')
+                if LOOTBYAUGSLOTS ~= LootUtils.LootByAugSlots then
+                    LOOTBYAUGSLOTS = LootUtils.LootByAugSlots
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlots', LootUtils.LootByAugSlots)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByAugSlotsAmount = ImGui.SliderInt("Min Slots", LootUtils.LootByAugSlotsAmount, 1, 6)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum amount of aug slots an item needs to be kept.')
+                if LOOTBYAUGSLOTSAMOUNT ~= LootUtils.LootByAugSlotsAmount then
+                    LOOTBYAUGSLOTSAMOUNT = LootUtils.LootByAugSlotsAmount
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlotsAmount', LootUtils.LootByAugSlotsAmount)
+                end
+                ImGui.Separator();
+
+                -- Add Combo Box here for Types
+                LootUtils.LootByAugSlotsTypeIndex = LootUtils.LootByAugSlotsTypeIndex or 1
+                local lootTypeLabel = lootByAugSlotTypes[LootUtils.LootByAugSlotsTypeIndex] or lootByAugSlotTypes[1]
+
+                if ImGui.BeginCombo("Slot Type", lootTypeLabel) then
+                    for i = 1, #lootByAugSlotTypes do
+                        local is_selected = (LootUtils.LootByAugSlotsTypeIndex == i)
+                        if ImGui.Selectable(lootByAugSlotTypes[i], is_selected) then
+                            LootUtils.LootByAugSlotsTypeIndex = i
+                            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByAugSlotsTypeIndex', i)
+                        end
+                        if is_selected then
+                            ImGui.SetItemDefaultFocus()
+                        end
+                    end
+                    ImGui.EndCombo()
+                end
+
+                ImGui.EndTabItem()
+            end
+            local lootByDamageOpen = ImGui.BeginTabItem("Loot By Damage")
+            if lootByDamageOpen then
+                LootUtils.LootByDamage = ImGui.Checkbox('Enable## Loot by Damage', LootUtils.LootByDamage)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items by their damage when enabled.')
+                if LOOTBYDAMAGE ~= LootUtils.LootByDamage then
+                    LOOTBYDAMAGE = LootUtils.LootByDamage
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamage', LootUtils.LootByDamage)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByDamageAmount = ImGui.SliderInt("Min Damage", LootUtils.LootByDamageAmount, 1, 1000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum amount of damage an item needs to be kept.')
+                if LOOTBYDAMAGEAMOUNT ~= LootUtils.LootByDamageAmount then
+                    LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamageAmount', LootUtils.LootByDamageAmount)
+                end
+                ImGui.Separator();
+
+                ImGui.EndTabItem()
+            end
+            local hubOperationsOpen = ImGui.BeginTabItem("Hub Operations")
+            if hubOperationsOpen then
+                ImGui.Columns(2)
+                LootUtils.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', LootUtils.bankDeposit)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
+                if BANKDEPOSIT ~= LootUtils.bankDeposit then
+                    BANKDEPOSIT = LootUtils.bankDeposit
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankDeposit', LootUtils.bankDeposit)
+                end
+                ImGui.NextColumn();
+
+                LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling', LootUtils.sellVendor)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Sells items for Platinum when enabled.')
+                if SELLVENDOR ~= LootUtils.sellVendor then
+                    SELLVENDOR = LootUtils.sellVendor
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'sellVendor', LootUtils.sellVendor)
+                end
+                ImGui.Separator();
+                ImGui.Columns(1)
+
+                LootUtils.bankZone = ImGui.InputInt('Bank Zone', LootUtils.bankZone)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Zone where we can access banking services.')
+                if BANKZONE ~= LootUtils.bankZone then
+                    BANKZONE = LootUtils.bankZone
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankZone', LootUtils.bankZone)
+                end
+                ImGui.Separator();
+
+                LootUtils.bankNPC = ImGui.InputText('Bank NPC', LootUtils.bankNPC)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The name of the npc to warp to for banking.')
+                if BANKNPC ~= LootUtils.bankNPC then
+                    BANKNPC = LootUtils.bankNPC
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankNPC', LootUtils.bankNPC)
+                end
+                ImGui.Separator();
+
+                LootUtils.vendorNPC = ImGui.InputText('Vendor NPC', LootUtils.vendorNPC)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
+                if VENDORNPC ~= LootUtils.vendorNPC then
+                    VENDORNPC = LootUtils.vendorNPC
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'vendorNPC', LootUtils.vendorNPC)
+                end
+                ImGui.Separator();
+
+                LootUtils.bankAtFreeSlots = ImGui.SliderInt("Inventory Free Slots", LootUtils.bankAtFreeSlots, 1, 20)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The amount of free slots before we should bank.')
+                if BANKATFREESLOTS ~= LootUtils.bankAtFreeSlots then
+                    BANKATFREESLOTS = LootUtils.bankAtFreeSlots
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankAtFreeSlots', LootUtils.bankAtFreeSlots)
+                end
+                ImGui.Separator();
+                ImGui.EndTabItem()
+            end
+            local healthOperationsOpen = ImGui.BeginTabItem("Health Operations")
+            if healthOperationsOpen then
+                LootUtils.health_Check = ImGui.Checkbox('Enable Healing', LootUtils.health_Check)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Enables healing with our heal spell when below our heal at limit.')
+                if HEALTHCHECK ~= LootUtils.health_Check then
+                    HEALTHCHECK = LootUtils.health_Check
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'health_Check', LootUtils.health_Check)
+                end
+                ImGui.Separator();
+
+                LootUtils.heal_Spell = ImGui.InputText('Heal Spell', LootUtils.heal_Spell)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The name of the spell to cast to heal.')
+                if HEALSPELL ~= LootUtils.heal_Spell then
+                    HEALSPELL = LootUtils.heal_Spell
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'heal_Spell', LootUtils.heal_Spell)
+                end
+                ImGui.Separator();
+
+                LootUtils.heal_Gem = ImGui.SliderInt("Heal Gem", LootUtils.heal_Gem, 1, 12)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The gem number our heal spell is on.')
+                if HEALAT ~= LootUtils.heal_Gem then
+                    HEALAT = LootUtils.heal_Gem
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'heal_Gem', LootUtils.heal_Gem)
+                end
+                ImGui.Separator();
+
+                LootUtils.heal_At = ImGui.SliderInt("Heal At", LootUtils.heal_At, 1, 99)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The amount of health we cast our heal spell at.')
+                if HEALAT ~= LootUtils.heal_At then
+                    HEALAT = LootUtils.heal_At
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'heal_At', LootUtils.heal_At)
+                end
+                ImGui.Separator();
+                ImGui.EndTabItem();
+            end
+            local movementOperationsOpen = ImGui.BeginTabItem("Movement Operations")
+            if movementOperationsOpen then
+                ImGui.Columns(2)
+                local start_y_Options = ImGui.GetCursorPosY()
+                LootUtils.camp_Check = ImGui.Checkbox('Enable Camp Check', LootUtils.camp_Check)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Return home if we get too far away?')
+                if CAMPCHECK ~= LootUtils.camp_Check then
+                    CAMPCHECK = LootUtils.camp_Check
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'camp_Check', LootUtils.camp_Check)
+                end
+                ImGui.Separator();
+
+                LootUtils.zone_Check = ImGui.Checkbox('Enable Zone Check', LootUtils.zone_Check)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Return to start zone if we leave it?')
+                if ZONECHECK ~= LootUtils.zone_Check then
+                    ZONECHECK = LootUtils.zone_Check
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'zone_Check', LootUtils.zone_Check)
+                end
+                ImGui.Separator();
+
+                ImGui.NextColumn();
+                ImGui.SetCursorPosY(start_y_Options)
+                LootUtils.returnHomeAfterLoot = ImGui.Checkbox('Enable Return Home After Loot', LootUtils.returnHomeAfterLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Return to start X/Y/Z after looting?')
+                if RETURNHOMEAFTERLOOT ~= LootUtils.returnHomeAfterLoot then
+                    RETURNHOMEAFTERLOOT = LootUtils.returnHomeAfterLoot
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'returnHomeAfterLoot', LootUtils.returnHomeAfterLoot)
+                end
+                ImGui.Separator();
+                ImGui.Columns(1)
+
+                LootUtils.returnToCampDistance = ImGui.SliderInt("Return To Camp Distance", LootUtils.returnToCampDistance, 1, 100000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The distance we can get before we trigger return to camp.')
+                if RETURNTOCAMPDISTANCE ~= LootUtils.returnToCampDistance then
+                    RETURNTOCAMPDISTANCE = LootUtils.returnToCampDistance
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'returnToCampDistance', LootUtils.returnToCampDistance)
+                end
+                ImGui.Separator();
+                ImGui.EndTabItem();
+            end
+            local campSettingsOpen = ImGui.BeginTabItem("Camp Settings")
+            if campSettingsOpen then
+                LootUtils.staticHunt = ImGui.Checkbox('Enable Static Hunt', LootUtils.staticHunt)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Always use the same Hunting Zone.')
+                if STATICHUNT ~= LootUtils.staticHunt then
+                    STATICHUNT = LootUtils.staticHunt
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticHunt', LootUtils.staticHunt)
+                end
+                ImGui.Separator();
+
+                LootUtils.staticZoneName = ImGui.InputText('Zone Name', LootUtils.staticZoneName)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The short name of the Static Hunt Zone.')
+                if STATICZONENAME ~= LootUtils.staticZoneName then
+                    STATICZONENAME = LootUtils.staticZoneName
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZoneName', LootUtils.staticZoneName)
+                end
+                ImGui.Separator();
+
+                LootUtils.staticZoneID = ImGui.InputText('Zone ID', LootUtils.staticZoneID)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The ID of the static Hunting Zone.')
+                if STATICZONEID ~= LootUtils.staticZoneID then
+                    STATICZONEID = LootUtils.staticZoneID
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZoneID', LootUtils.staticZoneID)
+                end
+                ImGui.Separator();
+
+                local start_y_Options = ImGui.GetCursorPosY()
+                ImGui.SetCursorPosY(start_y_Options + 3)
+                ImGui.Text('X')
+                ImGui.SameLine()
+                ImGui.SetNextItemWidth(120)
+                ImGui.SetCursorPosY(start_y_Options)
+                LootUtils.staticX = ImGui.InputText('##Zone X', LootUtils.staticX)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
+                if STATICX ~= LootUtils.staticX then
+                    STATICX = LootUtils.staticX
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticX', LootUtils.staticX)
+                end
+                ImGui.SameLine();
+
+                ImGui.SetCursorPosY(start_y_Options + 1)
+                ImGui.Text('Y')
+                ImGui.SameLine()
+                ImGui.SetNextItemWidth(120)
+                ImGui.SetCursorPosY(start_y_Options)
+                LootUtils.staticY = ImGui.InputText('##Zone Y', LootUtils.staticY)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
+                if STATICY ~= LootUtils.staticY then
+                    STATICY = LootUtils.staticY
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticY', LootUtils.staticY)
+                end
+                ImGui.SameLine();
+
+                ImGui.SetCursorPosY(start_y_Options + 1)
+                ImGui.Text('Z')
+                ImGui.SameLine()
+                ImGui.SetNextItemWidth(120)
+                ImGui.SetCursorPosY(start_y_Options)
+                LootUtils.staticZ = ImGui.InputText('##Zone Z', LootUtils.staticZ)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
+                if STATICZ ~= LootUtils.staticZ then
+                    STATICZ = LootUtils.staticZ
+                    DroidLoot.CheckCampInfo()
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZ', LootUtils.staticZ)
+                end
+                ImGui.EndTabItem();
+            end
+            local wildcardOptionsOpen = ImGui.BeginTabItem("Wild Card Looting Options")
+            if wildcardOptionsOpen then
+                local settingsChanged = false -- Track if any settings changed
+
+                -- Checkbox for enabling wildcard looting
+                local lootWildCardItems = LootUtils.LootWildCardItems
+                local changed
+                lootWildCardItems, changed = ImGui.Checkbox('Enable Wildcard Looting', lootWildCardItems)
+                if changed then
+                    LootUtils.LootWildCardItems = lootWildCardItems
+                    LOOTWILDCARDITEMS = lootWildCardItems
+                    settingsChanged = true
+                end
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items matching wildcard names.')
+                ImGui.Separator()
+
+                -- Wildcard Terms Management
+                LootUtils.wildCardTerms = LootUtils.wildCardTerms or {}
+                if ImGui.CollapsingHeader("Wildcard Terms") then
+                    ImGui.Indent()
+                    local removeIndex = nil
+
+                    for i, term in ipairs(LootUtils.wildCardTerms) do
+                        ImGui.PushID(i)
+                        local newTerm, termChanged = ImGui.InputText("##Term" .. i, term, 256)
+                        if termChanged then
+                            LootUtils.wildCardTerms[i] = newTerm
+                            settingsChanged = true
+                        end
+                        ImGui.SameLine()
+                        if ImGui.Button("Delete") then
+                            removeIndex = i
+                        end
+                        ImGui.PopID()
+                    end
+
+                    if removeIndex then
+                        table.remove(LootUtils.wildCardTerms, removeIndex)
+                        settingsChanged = true
+                    end
+
+                    ImGui.Separator()
+
+                    -- Add new term
+                    LootUtils.newWildCardTerm = LootUtils.newWildCardTerm or ""
+                    local newTermInput
+                    newTermInput, changed = ImGui.InputText("New Term", LootUtils.newWildCardTerm, 256)
+                    if changed then
+                        LootUtils.newWildCardTerm = newTermInput
+                    end
+                    if ImGui.Button("Add Term") then
+                        if LootUtils.newWildCardTerm ~= "" then
+                            table.insert(LootUtils.wildCardTerms, LootUtils.newWildCardTerm)
+                            LootUtils.newWildCardTerm = ""
+                            settingsChanged = true
+                        end
+                    end
+
+                    ImGui.Unindent()
+                end
+
+                -- If any settings changed, write them once
+                if settingsChanged then
+                    LootUtils.saveWildCardTerms()
+                end
+                ImGui.EndTabItem();
+            end
+            local booleanOptionsOpen = ImGui.BeginTabItem("Booleans")
+            if booleanOptionsOpen then
+                ImGui.Columns(2)
+                local start_y = ImGui.GetCursorPosY()
+                LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', LootUtils.UseWarp)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Uses warp when enabled.')
+                if USEWARP ~= LootUtils.UseWarp then
+                    USEWARP = LootUtils.UseWarp
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'UseWarp', LootUtils.UseWarp)
+                end
+                ImGui.Separator();
+
+                LootUtils.AddNewSales = ImGui.Checkbox('Enable New Sales', LootUtils.AddNewSales)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Add new sales when enabled.')
+                if ADDNEWSALES ~= LootUtils.AddNewSales then
+                    ADDNEWSALES = LootUtils.AddNewSales
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'AddNewSales', LootUtils.AddNewSales)
+                end
+                ImGui.Separator();
+
+                LootUtils.AddIgnoredItems = ImGui.Checkbox('Enable Add Ignored Items', LootUtils.AddIgnoredItems)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Add ignored items to ini when enabled.')
+                if ADDIGNOREDITEMS ~= LootUtils.AddIgnoredItems then
+                    ADDIGNOREDITEMS = LootUtils.AddIgnoredItems
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'AddIgnoredItems', LootUtils.AddIgnoredItems)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootForage = ImGui.Checkbox('Enable Loot Forage', LootUtils.LootForage)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot forage when enabled.')
+                if LOOTFORAGE ~= LootUtils.LootForage then
+                    LOOTFORAGE = LootUtils.LootForage
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootForage', LootUtils.LootForage)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootTradeSkill = ImGui.Checkbox('Enable Loot TradeSkill', LootUtils.LootTradeSkill)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot trade skill items when enabled.')
+                if LOOTTRADESKILL ~= LootUtils.LootTradeSkill then
+                    LOOTTRADESKILL = LootUtils.LootTradeSkill
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootTradeSkill', LootUtils.LootTradeSkill)
+                end
+                ImGui.Separator();
+
+                LootUtils.DoLoot = ImGui.Checkbox('Enable Looting', LootUtils.DoLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Enables looting.')
+                if DOLOOT ~= LootUtils.DoLoot then
+                    DOLOOT = LootUtils.DoLoot
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'DoLoot', LootUtils.DoLoot)
+                end
+                ImGui.Separator();
+
+                LootUtils.EquipUsable = ImGui.Checkbox('Enable Equip Usable', LootUtils.EquipUsable)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Equips usable items. Buggy at best.')
+                if EQUIPUSABLE ~= LootUtils.EquipUsable then
+                    EQUIPUSABLE = LootUtils.EquipUsable
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'EquipUsable', LootUtils.EquipUsable)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootEvolvingItems = ImGui.Checkbox('Enable Loot Evolving', LootUtils.LootEvolvingItems)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots Evolving Items')
+                if LOOTEVOLVINGITEMS ~= LootUtils.LootEvolvingItems then
+                    LOOTEVOLVINGITEMS = LootUtils.LootEvolvingItems
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootEvolvingItems', LootUtils.LootEvolvingItems)
+                end
+
+                ImGui.NextColumn();
+                ImGui.SetCursorPosY(start_y)
+                LootUtils.AnnounceLoot = ImGui.Checkbox('Enable Announce Loot', LootUtils.AnnounceLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports looted items to announce channel.')
+                if ANNOUNCELOOT ~= LootUtils.AnnounceLoot then
+                    ANNOUNCELOOT = LootUtils.AnnounceLoot
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'AnnounceLoot', LootUtils.AnnounceLoot)
+                end
+                ImGui.Separator();
+
+                LootUtils.ReportLoot = ImGui.Checkbox('Enable Report Loot to Console', LootUtils.ReportLoot)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports looted items to console.')
+                if REPORTLOOT ~= LootUtils.ReportLoot then
+                    REPORTLOOT = LootUtils.ReportLoot
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'ReportLoot', LootUtils.ReportLoot)
+                end
+                ImGui.Separator();
+
+                LootUtils.ReportSkipped = ImGui.Checkbox('Enable Report Skipped', LootUtils.ReportSkipped)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports skipped loots.')
+                if REPORTSKIPPED ~= LootUtils.ReportSkipped then
+                    REPORTSKIPPED = LootUtils.ReportSkipped
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'ReportSkipped', LootUtils.ReportSkipped)
+                end
+                ImGui.Separator();
+
+                LootUtils.AnnounceUpgrades = ImGui.Checkbox('Enable Report Upgrade', LootUtils.AnnounceUpgrades)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reports skipped loots.')
+                if ANNOUNCEUPGRADES ~= LootUtils.AnnounceUpgrades then
+                    ANNOUNCEUPGRADES = LootUtils.AnnounceUpgrades
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'AnnounceUpgrades', LootUtils.AnnounceUpgrades)
+                end
+                ImGui.Separator();
+
+                LootUtils.SpamLootInfo = ImGui.Checkbox('Enable Spam Loot Info', LootUtils.SpamLootInfo)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Spams loot info.')
+                if SPAMLOOTINFO ~= LootUtils.SpamLootInfo then
+                    SPAMLOOTINFO = LootUtils.SpamLootInfo
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'SpamLootInfo', LootUtils.SpamLootInfo)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootForageSpam = ImGui.Checkbox('Enable Loot Forage Spam', LootUtils.LootForageSpam)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Spams loot forage info.')
+                if LOOTFORAGESPAM ~= LootUtils.LootForageSpam then
+                    LOOTFORAGESPAM = LootUtils.LootForageSpam
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootForageSpam', LootUtils.LootForageSpam)
+                end
+                ImGui.Separator();
+
+                LootUtils.CombatLooting = ImGui.Checkbox('Enable Combat Looting', LootUtils.CombatLooting)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots during combat.')
+                if COMBATLOOTING ~= LootUtils.CombatLooting then
+                    COMBATLOOTING = LootUtils.CombatLooting
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'CombatLooting', LootUtils.CombatLooting)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', LootUtils.LootGearUpgrades)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items with more HP than currently worn items.')
+                if LOOTGEARUPGRADES ~= LootUtils.LootGearUpgrades then
+                    LOOTGEARUPGRADES = LootUtils.LootGearUpgrades
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootGearUpgrades', LootUtils.LootGearUpgrades)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByMinHPNoDrop = ImGui.Checkbox('Enable Loot MinHP No Drop', LootUtils.LootByMinHPNoDrop)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots No Drop items you can use when looting by MinHP.')
+                if LOOTBYHPMINNODROP ~= LootUtils.LootByMinHPNoDrop then
+                    LOOTBYHPMINNODROP = LootUtils.LootByMinHPNoDrop
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByMinHPNoDrop', LootUtils.LootByMinHPNoDrop)
+                end
+                ImGui.Columns(1)
+                ImGui.EndTabItem();
+            end
+            local stringsOptionsOpen = ImGui.BeginTabItem("Strings")
+            if stringsOptionsOpen then
+                LootUtils.CorpseRadius = ImGui.SliderInt("Corpse Radius", LootUtils.CorpseRadius, 1, 5000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The radius we should scan for corpses.')
+                if CORPSERADIUS ~= LootUtils.CorpseRadius then
+                    CORPSERADIUS = LootUtils.CorpseRadius
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'CorpseRadius', LootUtils.CorpseRadius)
+                end
+                ImGui.Separator();
+
+                LootUtils.MobsTooClose = ImGui.SliderInt("Mobs Too Close", LootUtils.MobsTooClose, 1, 5000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The range to check for nearby mobs.')
+                if MOBSTOOCLOSE ~= LootUtils.MobsTooClose then
+                    MOBSTOOCLOSE = LootUtils.MobsTooClose
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'MobsTooClose', LootUtils.MobsTooClose)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByMinHP = ImGui.SliderInt("Loot By HP Min Health", LootUtils.LootByMinHP, 0, 50000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Minimum HP for item to be considered and set to Keep. Any value greater than 0 activates this.')
+                if LOOTBYHPMIN ~= LootUtils.LootByMinHP then
+                    LOOTBYHPMIN = LootUtils.LootByMinHP
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByMinHP', LootUtils.LootByMinHP)
+                end
+                ImGui.Separator();
+
+                LootUtils.StackPlatValue = ImGui.SliderInt("Stack Platinum Value", LootUtils.StackPlatValue, 0, 10000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The value of platinum stacks.')
+                if STACKPLATVALUE ~= LootUtils.StackPlatValue then
+                    STACKPLATVALUE = LootUtils.StackPlatValue
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'StackPlatValue', LootUtils.StackPlatValue)
+                end
+                ImGui.Separator();
+
+                LootUtils.SaveBagSlots = ImGui.SliderInt("Save Bag Slots", LootUtils.SaveBagSlots, 0, 100)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The number of bag slots to save.')
+                if SAVEBAGSLOTS ~= LootUtils.SaveBagSlots then
+                    SAVEBAGSLOTS = LootUtils.SaveBagSlots
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'SaveBagSlots', LootUtils.SaveBagSlots)
+                end
+                ImGui.Separator();
+
+                LootUtils.MinSellPrice = ImGui.SliderInt("Min Sell Price", LootUtils.MinSellPrice, 1, 1000000000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum price at which items will be sold.')
+                if MINSELLPRICE ~= LootUtils.MinSellPrice then
+                    MINSELLPRICE = LootUtils.MinSellPrice
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'MinSellPrice', LootUtils.MinSellPrice)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootChannel = ImGui.InputText('Loot Channel', LootUtils.LootChannel)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Channel to report loot to.')
+                if LOOTCHANNEL ~= LootUtils.LootChannel then
+                    LOOTCHANNEL = LootUtils.LootChannel
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootChannel', LootUtils.LootChannel)
+                end
+                ImGui.Separator();
+
+                LootUtils.AnnounceChannel = ImGui.InputText('Announce Channel', LootUtils.AnnounceChannel)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Channel to announce events.')
+                if ANNOUNCECHANNEL ~= LootUtils.AnnounceChannel then
+                    ANNOUNCECHANNEL = LootUtils.AnnounceChannel
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'AnnounceChannel', LootUtils.AnnounceChannel)
+                end
+                ImGui.Separator();
+                ImGui.EndTabItem();
+            end
+            local iniOptionsOpen = ImGui.BeginTabItem("INI")
+            if iniOptionsOpen then
+                LootUtils.Settings.LootFile = ImGui.InputText('Loot file', LootUtils.Settings.LootFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loot file to use.')
+                if LOOTINIFILE ~= LootUtils.Settings.LootFile then
+                    LOOTINIFILE = LootUtils.Settings.LootFile
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootFile', LootUtils.Settings.LootFile)
+                end
+                ImGui.Separator();
+
+                ImGui.Columns(2)
+                local start_y_INI = ImGui.GetCursorPosY()
+
+                LootUtils.UseSingleFileForAllCharacters = ImGui.Checkbox('Enable Single INI', LootUtils.UseSingleFileForAllCharacters)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reads from a single INI file for all characters when enabled.')
+                if USESINGLEFILEFORALLCHARACTERS ~= LootUtils.UseSingleFileForAllCharacters then
+                    USESINGLEFILEFORALLCHARACTERS = LootUtils.UseSingleFileForAllCharacters
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'UseSingleFileForAllCharacters', LootUtils.UseSingleFileForAllCharacters)
+                end
+                ImGui.Separator();
+
+                LootUtils.useZoneLootFile = ImGui.Checkbox('Enable Zone INI', LootUtils.useZoneLootFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reads from a zone based INI file for all characters when enabled.')
+                if USEZONELOOTFILE ~= LootUtils.useZoneLootFile then
+                    USEZONELOOTFILE = LootUtils.useZoneLootFile
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'useZoneLootFile', LootUtils.useZoneLootFile)
+                end
+                ImGui.Separator();
+
+                ImGui.NextColumn();
+                ImGui.SetCursorPosY(start_y_INI)
+                LootUtils.useClassLootFile = ImGui.Checkbox('Enable Class INI', LootUtils.useClassLootFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reads from a class based INI file for all characters when enabled.')
+                if USECLASSLOOTFILE ~= LootUtils.useClassLootFile then
+                    USECLASSLOOTFILE = LootUtils.useClassLootFile
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'useClassLootFile', LootUtils.useClassLootFile)
+                end
+                ImGui.Separator();
+
+                LootUtils.useArmorTypeLootFile = ImGui.Checkbox('Enable Armor Type INI', LootUtils.useArmorTypeLootFile)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Reads from an armor type based INI file for all characters when enabled.')
+                if USEARMORTYPELOOTFILE ~= LootUtils.useArmorTypeLootFile then
+                    USEARMORTYPELOOTFILE = LootUtils.useArmorTypeLootFile
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'useArmorTypeLootFile', LootUtils.useArmorTypeLootFile)
+                end
+                ImGui.Columns(1)
+                local buttonWidth, buttonHeight = 140, 30
+                local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
+                if ImGui.Button('Save Config', buttonImVec2) then
+                    LootUtils.writeSettings()
+                end
+                ImGui.EndTabItem();
+            end
+            local serverOptionsOpen = ImGui.BeginTabItem("Server Specific Options")
+            if serverOptionsOpen then
+                if ImGui.CollapsingHeader("WastingTime Options") then
+                    ImGui.Indent()
+                    LootUtils.LootPlatinumBags = ImGui.Checkbox('Enable Loot Platinum Bags', LootUtils.LootPlatinumBags)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots platinum bags.')
+                    if LOOTPLATINUMBAGS ~= LootUtils.LootPlatinumBags then
+                        LOOTPLATINUMBAGS = LootUtils.LootPlatinumBags
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootPlatinumBags', LootUtils.LootPlatinumBags)
+                    end
+                    ImGui.Separator();
+
+                    LootUtils.LootTokensOfAdvancement = ImGui.Checkbox('Enable Loot Tokens of Advancement', LootUtils.LootTokensOfAdvancement)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots tokens of advancement.')
+                    if LOOTTOKENSOFADVANCEMENT ~= LootUtils.LootTokensOfAdvancement then
+                        LOOTTOKENSOFADVANCEMENT = LootUtils.LootTokensOfAdvancement
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootTokensOfAdvancement', LootUtils.LootTokensOfAdvancement)
+                    end
+                    ImGui.Separator();
+
+                    LootUtils.LootEmpoweredFabled = ImGui.Checkbox('Enable Loot Empowered Fabled', LootUtils.LootEmpoweredFabled)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots empowered fabled items.')
+                    if LOOTEMPOWEREDFABLED ~= LootUtils.LootEmpoweredFabled then
+                        LOOTEMPOWEREDFABLED = LootUtils.LootEmpoweredFabled
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootEmpoweredFabled', LootUtils.LootEmpoweredFabled)
+                    end
+                    ImGui.Separator();
+
+                    LootUtils.LootAllFabledAugs = ImGui.Checkbox('Enable Loot All Fabled Augments', LootUtils.LootAllFabledAugs)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Loots all fabled augments.')
+                    if LOOTALLFABLEDAUGS ~= LootUtils.LootAllFabledAugs then
+                        LOOTALLFABLEDAUGS = LootUtils.LootAllFabledAugs
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootAllFabledAugs', LootUtils.LootAllFabledAugs)
+                    end
+                    ImGui.Separator();
+
+                    LootUtils.EmpoweredFabledMinHP = ImGui.SliderInt("Empowered Fabled Min HP", LootUtils.EmpoweredFabledMinHP, 0, 1000)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Minimum HP for Empowered Fabled to be considered.')
+                    if EMPOWEREDFABLEDMINHP ~= LootUtils.EmpoweredFabledMinHP then
+                        EMPOWEREDFABLEDMINHP = LootUtils.EmpoweredFabledMinHP
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledMinHP', LootUtils.EmpoweredFabledMinHP)
+                    end
+                    ImGui.Separator();
+
+                    LootUtils.EmpoweredFabledName = ImGui.InputText('Empowered Fabled Name', LootUtils.EmpoweredFabledName)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Name of the empowered fabled item.')
+                    if EMPOWEREDFABLEDNAME ~= LootUtils.EmpoweredFabledName then
+                        EMPOWEREDFABLEDNAME = LootUtils.EmpoweredFabledName
+                        LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'EmpoweredFabledName', LootUtils.EmpoweredFabledName)
+                    end
+                    ImGui.Separator();
+                end
+                ImGui.EndTabItem();
+            end
+        end
+        ImGui.EndTabBar()
+    end
+    ImGui.End()
+end
+mq.imgui.init("DroidLoot Options Window", OptionsGUI)
+
+
+LootUtils.Settings.lootShowGUI = false
+LootUtils.Settings.lootOpenGUI = true
 local function LootGUI()
-    if not LootUtils.Settings.showGUI then return end
-    LootUtils.Settings.showGUI, LootUtils.Settings.open = ImGui.Begin("DroidLoot GUI", LootUtils.Settings.open)
-    if LootUtils.Settings.open then
+    if not LootUtils.Settings.lootShowGUI then return end
+    if LootUtils.Settings.lootShowGUI and LootUtils.Settings.lootOpenGUI then
+        ImGui.SetNextWindowCollapsed(false, ImGuiCond.Always)
+    end
+    LootUtils.Settings.lootShowGUI, LootUtils.Settings.lootOpenGUI = ImGui.Begin("DroidLoot Loot Window", LootUtils.Settings.lootOpenGUI)
+    if LootUtils.Settings.lootShowGUI then
+        local x_size = 665
+        local y_size = 680
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.Once)
+        local io = ImGui.GetIO()
+        local center_x = io.DisplaySize.x / 2
+        local center_y = io.DisplaySize.y / 2
+        ImGui.SetWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
+        ImGui.SetWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
         -- put checkboxes here side by side on 1 line to enable/disable flags being shown below.
         -- Checkboxes for showing flags
         local availWidth, _ = ImGui.GetContentRegionAvail()
@@ -1030,7 +1869,82 @@ local function LootGUI()
     end
     ImGui.End()
 end
-mq.imgui.init("DroidLootGUI", LootGUI)
+mq.imgui.init("DroidLoot Loot Window", LootGUI)
+
+local logTypes = {
+    "full", "keep", "bank", "sell", "fabled", "cash", "ignore",
+    "destroy", "quest", "announce", "wildcard", "skipped",
+    "looted"
+}
+
+LootUtils.Settings.logShowGUI = false
+LootUtils.Settings.logOpenGUI = true
+LootUtils.Settings.logAutoScroll = true
+local logFilterText = '' -- global or upvalue
+
+local function LogWindowGUI()
+    if not LootUtils.Settings.logShowGUI then return end
+
+    if LootUtils.Settings.logOpenGUI then
+        ImGui.SetNextWindowCollapsed(false, ImGuiCond.Always)
+        local x_size, y_size = 665, 680
+        local io = ImGui.GetIO()
+        local center_x = io.DisplaySize.x / 2
+        local center_y = io.DisplaySize.y / 2
+        ImGui.SetNextWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
+        ImGui.SetNextWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
+    end
+
+    LootUtils.Settings.logShowGUI, LootUtils.Settings.logOpenGUI = ImGui.Begin("DroidLoot Logs Window", LootUtils.Settings.logOpenGUI)
+    if LootUtils.Settings.logShowGUI then
+        if ImGui.BeginPopup("Options") then
+            ImGui.Checkbox('Auto-Scroll', LootUtils.Settings.logAutoScroll)
+            if ImGui.Button('Clear Logs') then
+                for _, logType in ipairs(logTypes) do
+                    LootUtils.MessageLogs[logType] = {}
+                end
+            end
+            ImGui.EndPopup()
+        end
+        if ImGui.Button('Options') then
+            ImGui.OpenPopup("Options")
+        end
+        ImGui.SameLine()
+
+        logFilterText = ImGui.InputText('Filter', logFilterText, 256)
+        ImGui.SameLine()
+        if ImGui.Button('Clear') then
+            logFilterText = ''
+        end
+        ImGui.Separator()
+        if ImGui.BeginTabBar("LogWindows") then
+            for _, logType in ipairs(logTypes) do
+                local tabName = string.format("%s", string.upper(logType))
+                if ImGui.BeginTabItem(tabName) then
+                    ImGui.BeginChild(logType .. "_scroll", 0, 0, true)
+                    local messages = LootUtils.MessageLogs[logType]
+                    if messages and #messages > 0 then
+                        for i, msg in ipairs(messages) do
+                            if logFilterText == '' or string.find(string.lower(msg), string.lower(logFilterText), 1, true) then
+                                ImGui.TextUnformatted(msg)
+                            end
+                        end
+                        if LootUtils.Settings.logAutoScroll then
+                            ImGui.SetScrollHereY(1.0)
+                        end
+                    else
+                        ImGui.TextDisabled("No messages logged yet.")
+                    end
+                    ImGui.EndChild()
+                    ImGui.EndTabItem()
+                end
+            end
+            ImGui.EndTabBar()
+        end
+    end
+    ImGui.End()
+end
+mq.imgui.init("DroidLoot Logs Window", LogWindowGUI)
 
 local function commandHandler(...)
     local args = { ... }
@@ -1048,7 +1962,14 @@ local function commandHandler(...)
         elseif args[1] == 'tsbank' then
             LootUtils.markTradeSkillAsBank()
         elseif args[1] == 'gui' then
-            LootUtils.Settings.showGUI = not LootUtils.Settings.showGUI
+            LootUtils.Settings.lootShowGUI = true
+            if not LootUtils.Settings.lootOpenGUI then LootUtils.Settings.lootOpenGUI = true end
+        elseif args[1] == 'options' then
+            LootUtils.Settings.optionsShowGUI = true
+            if not LootUtils.Settings.optionsOpenGUI then LootUtils.Settings.optionsOpenGUI = true end
+        elseif args[1] == 'logs' then
+            LootUtils.Settings.logShowGUI = true
+            if not LootUtils.Settings.logOpenGUI then LootUtils.Settings.logOpenGUI = true end
         end
     elseif #args == 2 then
         if validActions[args[1]] and args[2] ~= 'NULL' then
@@ -1068,6 +1989,26 @@ local function setupBinds()
     mq.bind('/' .. LootUtils.Settings.command_LongName, commandHandler)
 end
 
+LootUtils.MessageLogs = {
+    full = {},
+    keep = {},
+    bank = {},
+    sell = {},
+    fabled = {},
+    cash = {},
+    ignore = {},
+    destroy = {},
+    quest = {},
+    announce = {},
+    wildcard = {},
+    skipped = {},
+    looted = {}
+}
+
+function LootUtils.getMessagesByType(messageType)
+    return LootUtils.MessageLogs[string.lower(messageType)] or {}
+end
+
 function LootUtils.report(message, ...)
     local timestamp = os.date("[%H:%M:%S]")
     local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
@@ -1083,6 +2024,16 @@ function LootUtils.report(message, ...)
     if LootUtils.ReportLoot then
         LootUtils.Messages.Normal(message, ...)
     end
+end
+
+function LootUtils.logReport(messageType, message, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    -- Log the message by type
+    local logTable = LootUtils.MessageLogs[string.lower(messageType)] or LootUtils.MessageLogs.full
+    local cleanMsg = string.gsub(string.format(message, ...), "\aITEM.-\a", "<ItemLink>")
+    local formattedMessage = timestamp .. '[DroidLoot] ' .. cleanMsg
+    table.insert(logTable, formattedMessage)
+    table.insert(LootUtils.MessageLogs.full, formattedMessage)
 end
 
 -- LOOTING
@@ -1136,6 +2087,7 @@ local function lootItem(index, doWhat, button)
     end
     if LootUtils.AnnounceLoot then
         LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
+        LootUtils.logReport('Keep', 'Looted: %s[%s]', corpseItem.Name(), doWhat)
     end
 
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
@@ -1208,15 +2160,17 @@ function LootUtils.lootCorpse(corpseID)
                 mq.delay(1)
                 LootUtils.ConsoleMessage('Debug', 'itemName: %s / lootAction: %s / stackable: %s / freeStack: %s / haveItem: %s / haveItemBank: %s', itemName, lootAction, stackable, freeStack, haveItem, haveItemBank)
                 if freeSpace < LootUtils.SaveBagSlots then
+                    LootUtils.logReport('Skipped', 'Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
                     if LootUtils.ReportSkipped then
-                        LootUtils.report('Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                        LootUtils.report('Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
                         goto continue
                     end
                 end
                 if corpseItem.Lore() then
                     if haveItem or haveItemBank then
+                        LootUtils.logReport('Skipped', 'Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
                         if LootUtils.ReportSkipped then
-                            LootUtils.report('Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                            LootUtils.report('Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
                             goto continue
                         end
                     else
@@ -1228,11 +2182,17 @@ function LootUtils.lootCorpse(corpseID)
                     end
                 end
 
-                if LootUtils.ReportSkipped and (lootAction == 'Ignore' or lootAction == 'NULL') then
-                    LootUtils.report('Skipped Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                if lootAction == 'Ignore' or lootAction == 'NULL' then
+                    if LootUtils.ReportSkipped then
+                        LootUtils.report('Skipped Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
+                    end
+                    LootUtils.logReport('Skipped', 'Skipped Item: %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
                 end
-                if lootAction == 'Announce' and LootUtils.AnnounceLoot then
-                    LootUtils.report('Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                if lootAction == 'Announce' then
+                    if LootUtils.AnnounceLoot then
+                        LootUtils.report('Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
+                    end
+                    LootUtils.logReport('Announce', 'Found: %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, getRule(corpseItem))
                 end
             end
             ::continue::
