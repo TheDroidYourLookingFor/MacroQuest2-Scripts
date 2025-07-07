@@ -97,7 +97,30 @@ LootUtils.Settings = {
     LootFile = mq.configDir .. '\\DroidLoot\\DroidLoot.ini',
     command_ShortName = 'dlu',
     command_LongName = 'droidlootutils',
+    Debug = false,
 }
+
+LootUtils.Settings.optionsShowGUI = false
+LootUtils.Settings.optionsOpenGUI = true
+LootUtils.Settings.lootShowGUI = false
+LootUtils.Settings.lootOpenGUI = true
+LootUtils.Settings.logTypes = {
+    "full", "keep", "bank", "sell", "fabled", "cash", "ignore",
+    "destroy", "quest", "announce", "wildcard", "skipped",
+    "upgrade", "debug", "warn", "info"
+}
+
+LootUtils.Settings.logShowGUI = false
+LootUtils.Settings.logOpenGUI = true
+LootUtils.Settings.logAutoScroll = true
+LootUtils.Settings.logFilterText = ''
+
+LootUtils.console = nil
+LootUtils.Settings.logShow2GUI = false
+LootUtils.Settings.logOpen2GUI = true
+LootUtils.Settings.log2AutoScroll = true
+LootUtils.ConsoleByType = LootUtils.ConsoleByType or {}
+LootUtils.MessageLogs = LootUtils.MessageLogs or {}
 
 -- Internal settings
 local lootData = {}
@@ -153,17 +176,122 @@ local saveOptionTypes = {
 local eventForage, eventSell, eventCantLoot
 
 -- UTILITIES
+local function setupConsoles()
+    if LootUtils.console == nil then
+        LootUtils.console = ImGui.ConsoleWidget.new("Loot_imported##Imported_Console")
+    end
+
+    for _, logType in ipairs(LootUtils.Settings.logTypes) do
+        local key = "console" .. logType
+        if LootUtils[key] == nil then
+            LootUtils[key] = ImGui.ConsoleWidget.new(logType .. "##Imported_Console")
+        end
+    end
+end
+setupConsoles()
+
+LootUtils.MessageLogs = {
+    full = {},
+    keep = {},
+    bank = {},
+    sell = {},
+    fabled = {},
+    cash = {},
+    ignore = {},
+    destroy = {},
+    quest = {},
+    announce = {},
+    wildcard = {},
+    skipped = {},
+    upgrade = {},
+    debug = {},
+    warn = {},
+    info = {}
+}
+
+function LootUtils.getMessagesByType(messageType)
+    return LootUtils.MessageLogs[string.lower(messageType)] or {}
+end
+
+function LootUtils.report(message, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
+    local reportPrefixAnnounceGeneric = '/%s ' .. timestamp .. '[DroidLoot] '
+    local consolePrefix = '\a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
+    local lootChannelCheck = string.lower(LootUtils.LootChannel)
+    if lootChannelCheck == 'g' or lootChannelCheck == 'rs' or lootChannelCheck == 'say' then
+        local prefixWithChannel = reportPrefixAnnounceGeneric:format(LootUtils.LootChannel)
+        mq.cmdf(prefixWithChannel .. message, ...)
+    else
+        local prefixWithChannel = reportPrefixAnnounce:format(LootUtils.LootChannel)
+        mq.cmdf(prefixWithChannel .. message, ...)
+    end
+end
+
+function LootUtils.logReport(messageType, message, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    local consolePrefix = '\a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
+    local cleanMsg = string.format(consolePrefix .. message, ...)
+    local msgType = string.lower(messageType)
+
+    if LootUtils.ReportLoot then
+        LootUtils.Messages.Normal(message, ...)
+    end
+
+    -- Always send to full console unless the type is explicitly 'full'
+    if msgType ~= 'full' then
+        LootUtils.consolefull:AppendText(cleanMsg)
+    else
+        LootUtils.consolefull:AppendText(cleanMsg)
+    end
+
+    -- Mapping message types to their consoles and optional report flags
+    local consoleMap = {
+        keep     = { console = LootUtils.consolekeep, reportFlag = "AnnounceLoot" },
+        bank     = { console = LootUtils.consolebank },
+        sell     = { console = LootUtils.consolesell },
+        fabled   = { console = LootUtils.consolefabled },
+        cash     = { console = LootUtils.consolecash },
+        ignore   = { console = LootUtils.consoleignore },
+        destroy  = { console = LootUtils.consoledestroy },
+        quest    = { console = LootUtils.consolequest },
+        announce = { console = LootUtils.consoleannounce },
+        wildcard = { console = LootUtils.consolewildcard },
+        skipped  = { console = LootUtils.consoleskipped, reportFlag = "ReportSkipped" },
+        upgrade  = { console = LootUtils.consoleupgrade, reportFlag = "AnnounceUpgrades" },
+        debug    = { console = LootUtils.consoledebug },
+        info     = { console = LootUtils.consoleinfo },
+        warn     = { console = LootUtils.consolewarn },
+    }
+
+    local entry = consoleMap[msgType]
+    if entry then
+        entry.console:AppendText(cleanMsg)
+        if entry.reportFlag and LootUtils[entry.reportFlag] then
+            LootUtils.report(message, ...)
+        end
+    end
+end
+
 function LootUtils.ConsoleMessage(messageType, message, ...)
+    local timestamp = os.date("[%H:%M:%S]")
+    local consolePrefix = '\a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
+    local cleanMsg = string.format(consolePrefix .. message, ...)
     if messageType == 'Debug' then
         LootUtils.Messages.Debug(message, ...)
+        LootUtils.consoledebug:AppendText(cleanMsg)
     elseif messageType == 'Info' then
         LootUtils.Messages.Info(message, ...)
+        LootUtils.consoleinfo:AppendText(cleanMsg)
     elseif messageType == 'Warn' then
         LootUtils.Messages.Warn(message, ...)
+        LootUtils.consolewarn:AppendText(cleanMsg)
     elseif messageType == 'Normal' then
         LootUtils.Messages.Normal(message, ...)
+        LootUtils.consolefull:AppendText(cleanMsg)
     else
         LootUtils.Messages.Normal(message, ...)
+        LootUtils.consolefull:AppendText(cleanMsg)
     end
 end
 
@@ -477,50 +605,29 @@ local function getRule(item)
         else
             hpDiff = itemHP
         end
-        if LootUtils.AnnounceUpgrades then
-            LootUtils.report('Found Upgrade: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
-        end
-        LootUtils.logReport('Keep', 'Found Upgrade: %s (+%s hp - %s)', itemName, hpDiff, slotName)
+        LootUtils.logReport('Upgrade', 'Found Upgrade: %s (+%s hp - %s)', itemLink, hpDiff, slotName)
     end
 
     if LootUtils.LootByAugSlots then
         local slotCategory = getItemSlotCategory(wornSlot)
         if LootUtils.LootByAugSlotsType == 'Any' or LootUtils.LootByAugSlotsType == slotCategory then
             if LootUtils.LootByAugSlotsAmount == 6 and itemAugSlot6 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             elseif LootUtils.LootByAugSlotsAmount >= 5 and itemAugSlot5 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot5, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             elseif LootUtils.LootByAugSlotsAmount >= 4 and itemAugSlot4 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot4, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             elseif LootUtils.LootByAugSlotsAmount >= 3 and itemAugSlot3 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot3, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             elseif LootUtils.LootByAugSlotsAmount >= 2 and itemAugSlot2 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot2, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             elseif LootUtils.LootByAugSlotsAmount == 1 and itemAugSlot1 ~= 0 then
-                if LootUtils.AnnounceUpgrades then
-                    LootUtils.report('Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot1, LootUtils.LootByAugSlotsAmount)
-                end
-                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemName, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
+                LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
                 return 'Keep'
             end
         end
@@ -547,10 +654,7 @@ local function getRule(item)
     end
 
     if LootUtils.LootByDamage and itemDMG >= LootUtils.LootByDamageAmount then
-        if LootUtils.AnnounceUpgrades then
-            LootUtils.report('Found Weapon Damge Item: %s (%s(%s))', itemLink, itemDMG, LootUtils.LootByDamageAmount)
-        end
-        LootUtils.logReport('Keep', 'Found Weapon Damge Item: %s (%s(%s))', itemName, itemDMG, LootUtils.LootByDamageAmount)
+        LootUtils.logReport('Keep', 'Found Weapon Damge Item: %s (%s(%s))', itemLink, itemDMG, LootUtils.LootByDamageAmount)
         return 'Keep'
     end
 
@@ -647,79 +751,79 @@ local function getRule(item)
     if lootData[firstLetter][itemName] == 'NULL' then
         if noDrop and not canUse then
             LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'noDrop and not canUse')
-            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'noDrop and not canUse')
+            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemLink, 'noDrop and not canUse')
             lootDecision = 'Ignore'
         end
         if LootUtils.LootTradeSkill and tradeskill then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTradeSkill')
-            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootTradeSkill')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemLink, 'LootTradeSkill')
             lootDecision = 'Bank'
         end
         if sellPrice ~= 0 and sellPrice >= LootUtils.MinSellPrice and not noDrop and not noRent then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'MinSellPrice')
-            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemName, 'MinSellPrice')
+            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemLink, 'MinSellPrice')
             lootDecision = 'Sell'
         end
         if not stackable and LootUtils.StackableOnly then
             LootUtils.ConsoleMessage('Debug', 'Ignore because: %s', 'StackableOnly')
-            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'StackableOnly')
+            LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemLink, 'StackableOnly')
             lootDecision = 'Ignore'
         end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue and not noDrop and not noRent then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'StackPlatValue')
-            LootUtils.logReport('Sell', 'Ignore Item: %s (%s)', itemName, 'StackPlatValue')
+            LootUtils.logReport('Sell', 'Ignore Item: %s (%s)', itemLink, 'StackPlatValue')
             lootDecision = 'Sell'
         end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
             if LootUtils.EmpoweredFabledMinHP == 0 then
                 LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
-                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemLink, 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP >= LootUtils.EmpoweredFabledMinHP then
                 LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'EmpoweredFabledMinHP')
-                LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemLink, 'EmpoweredFabledMinHP')
                 lootDecision = 'Bank'
             end
             if LootUtils.EmpoweredFabledMinHP >= 1 and itemHP <= LootUtils.EmpoweredFabledMinHP then
                 LootUtils.ConsoleMessage('Debug', 'Fabled because: %s', 'EmpoweredFabledMinHP')
-                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemName, 'EmpoweredFabledMinHP')
+                LootUtils.logReport('Fabled', 'Fabled Item: %s (%s)', itemLink, 'EmpoweredFabledMinHP')
                 lootDecision = 'Fabled'
             end
         end
         if LootUtils.LootByMinHP >= 1 and itemHP >= LootUtils.LootByMinHP then
             if LootUtils.LootByMinHPNoDrop and noDrop and canUse then
                 LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHPNoDrop')
-                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootByMinHPNoDrop')
+                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemLink, 'LootByMinHPNoDrop')
                 lootDecision = 'Keep'
             elseif not LootUtils.LootByMinHPNoDrop and noDrop then
                 LootUtils.ConsoleMessage('Debug', 'Skipping because: %s', 'LootByMinHPNoDrop')
-                LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemName, 'LootByMinHPNoDrop')
+                LootUtils.logReport('Ignore', 'Ignore Item: %s (%s)', itemLink, 'LootByMinHPNoDrop')
                 lootDecision = 'Ignore'
             elseif not noDrop then
                 LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootByMinHP')
-                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootByMinHP')
+                LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemLink, 'LootByMinHP')
                 lootDecision = 'Keep'
             end
         end
         if LootUtils.LootAllFabledAugs and string.find(itemName, LootUtils.EmpoweredFabledName) and item.AugType() ~= nil and item.AugType() > 0 then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootAllFabledAugs')
-            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootAllFabledAugs')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemLink, 'LootAllFabledAugs')
             lootDecision = 'Bank'
         end
         if LootUtils.LootPlatinumBags and string.find(itemName, 'of Platinum') then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'LootPlatinumBags')
-            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemName, 'LootPlatinumBags')
+            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemLink, 'LootPlatinumBags')
             lootDecision = 'Sell'
         end
         if LootUtils.LootTokensOfAdvancement and string.find(itemName, 'Token of Advancement') then
             LootUtils.ConsoleMessage('Debug', 'Bank because: %s', 'LootTokensOfAdvancement')
-            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemName, 'LootTokensOfAdvancement')
+            LootUtils.logReport('Bank', 'Bank Item: %s (%s)', itemLink, 'LootTokensOfAdvancement')
             lootDecision = 'Bank'
         end
         if evolvingItem and LootUtils.LootEvolvingItems then
             LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'LootEvolvingItems')
-            LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'LootEvolvingItems')
+            LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemLink, 'LootEvolvingItems')
             lootDecision = 'Keep'
         end
         if LootUtils.LootWildCardItems then
@@ -727,7 +831,7 @@ local function getRule(item)
                 if string.find(itemName, term) then
                     lootDecision = 'Keep'
                     LootUtils.ConsoleMessage('Debug', 'Keeping because: %s', 'wildCardTerms')
-                    LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemName, 'wildCardTerms')
+                    LootUtils.logReport('Keep', 'Keep Item: %s (%s)', itemLink, 'wildCardTerms')
                     break
                 end
             end
@@ -801,7 +905,7 @@ local function truncateText(text, maxLength)
     end
     return text
 end
--- Add this near the top, after your flags definition
+
 local flagsVisible = {
     Quest = true,
     Keep = true,
@@ -812,7 +916,7 @@ local flagsVisible = {
     Fabled = false, -- hide by default
     Cash = false,   -- hide by default
 }
--- Individual flag visibility states
+
 local showQuest = flagsVisible.Quest
 local showKeep = flagsVisible.Keep
 local showIgnore = flagsVisible.Ignore
@@ -1004,8 +1108,6 @@ LOOTBYDAMAGE = LootUtils.LootByDamage
 LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
 
 CurrentStatus = ' '
-LootUtils.Settings.optionsShowGUI = false
-LootUtils.Settings.optionsOpenGUI = true
 local function OptionsGUI()
     if not LootUtils.Settings.optionsShowGUI then return end
     if LootUtils.Settings.optionsShowGUI and LootUtils.Settings.optionsOpenGUI then
@@ -1735,8 +1837,7 @@ end
 mq.imgui.init("DroidLoot Options Window", OptionsGUI)
 
 
-LootUtils.Settings.lootShowGUI = false
-LootUtils.Settings.lootOpenGUI = true
+
 local function LootGUI()
     if not LootUtils.Settings.lootShowGUI then return end
     if LootUtils.Settings.lootShowGUI and LootUtils.Settings.lootOpenGUI then
@@ -1871,16 +1972,6 @@ local function LootGUI()
 end
 mq.imgui.init("DroidLoot Loot Window", LootGUI)
 
-local logTypes = {
-    "full", "keep", "bank", "sell", "fabled", "cash", "ignore",
-    "destroy", "quest", "announce", "wildcard", "skipped",
-    "looted"
-}
-
-LootUtils.Settings.logShowGUI = false
-LootUtils.Settings.logOpenGUI = true
-LootUtils.Settings.logAutoScroll = true
-local logFilterText = '' -- global or upvalue
 
 local function LogWindowGUI()
     if not LootUtils.Settings.logShowGUI then return end
@@ -1900,7 +1991,7 @@ local function LogWindowGUI()
         if ImGui.BeginPopup("Options") then
             ImGui.Checkbox('Auto-Scroll', LootUtils.Settings.logAutoScroll)
             if ImGui.Button('Clear Logs') then
-                for _, logType in ipairs(logTypes) do
+                for _, logType in ipairs(LootUtils.Settings.logTypes) do
                     LootUtils.MessageLogs[logType] = {}
                 end
             end
@@ -1911,21 +2002,21 @@ local function LogWindowGUI()
         end
         ImGui.SameLine()
 
-        logFilterText = ImGui.InputText('Filter', logFilterText, 256)
+        LootUtils.Settings.logFilterText = ImGui.InputText('Filter', LootUtils.Settings.logFilterText, 256)
         ImGui.SameLine()
         if ImGui.Button('Clear') then
-            logFilterText = ''
+            LootUtils.Settings.logFilterText = ''
         end
         ImGui.Separator()
         if ImGui.BeginTabBar("LogWindows") then
-            for _, logType in ipairs(logTypes) do
+            for _, logType in ipairs(LootUtils.Settings.logTypes) do
                 local tabName = string.format("%s", string.upper(logType))
                 if ImGui.BeginTabItem(tabName) then
                     ImGui.BeginChild(logType .. "_scroll", 0, 0, true)
                     local messages = LootUtils.MessageLogs[logType]
                     if messages and #messages > 0 then
                         for i, msg in ipairs(messages) do
-                            if logFilterText == '' or string.find(string.lower(msg), string.lower(logFilterText), 1, true) then
+                            if LootUtils.Settings.logFilterText == '' or string.find(string.lower(msg), string.lower(LootUtils.Settings.logFilterText), 1, true) then
                                 ImGui.TextUnformatted(msg)
                             end
                         end
@@ -1945,6 +2036,101 @@ local function LogWindowGUI()
     ImGui.End()
 end
 mq.imgui.init("DroidLoot Logs Window", LogWindowGUI)
+
+
+
+local function ConsoleWidgetTest()
+    if not LootUtils.Settings.logShow2GUI then return end
+
+    if LootUtils.Settings.logOpen2GUI then
+        ImGui.SetNextWindowCollapsed(false, ImGuiCond.Always)
+        local x_size, y_size = 665, 680
+        local io = ImGui.GetIO()
+        local center_x = io.DisplaySize.x / 2
+        local center_y = io.DisplaySize.y / 2
+        ImGui.SetNextWindowSize(x_size, y_size, ImGuiCond.FirstUseEver)
+        ImGui.SetNextWindowPos(center_x - x_size / 2, center_y - y_size / 2, ImGuiCond.FirstUseEver)
+    end
+
+    LootUtils.Settings.logShow2GUI, LootUtils.Settings.logOpen2GUI =
+        ImGui.Begin("DroidLoot Logs Window Test", LootUtils.Settings.logOpen2GUI)
+
+    if LootUtils.Settings.logShow2GUI then
+        if ImGui.BeginPopup("Options") then
+            LootUtils.Settings.Debug = ImGui.Checkbox('Debug', LootUtils.Settings.Debug)
+            LootUtils.Settings.log2AutoScroll = ImGui.Checkbox('Auto-Scroll', LootUtils.Settings.log2AutoScroll)
+            if ImGui.Button('Clear Logs') then
+                for _, logType in ipairs(LootUtils.Settings.logTypes) do
+                    local console = LootUtils.ConsoleByType[logType]
+                    if console then console:Clear() end
+                    LootUtils.MessageLogs[logType] = {}
+                end
+            end
+            ImGui.EndPopup()
+        end
+
+        if ImGui.Button('Options') then
+            ImGui.OpenPopup("Options")
+        end
+
+        ImGui.SameLine()
+
+        LootUtils.Settings.logFilterText = ImGui.InputText('Filter', LootUtils.Settings.logFilterText, 256)
+        ImGui.SameLine()
+        if ImGui.Button('Clear') then
+            LootUtils.Settings.logFilterText = ''
+        end
+        ImGui.Separator()
+        local consoles = {}
+
+        for _, logType in ipairs(LootUtils.Settings.logTypes) do
+            consoles[#consoles + 1] = {
+                name = logType:upper(),
+                console = LootUtils["console" .. logType]
+            }
+        end
+
+        if ImGui.BeginTabBar("LogWindows") then
+            for _, entry in ipairs(consoles) do
+                if not LootUtils.Settings.Debug and (entry.name == 'DEBUG' or entry.name == 'INFO' or entry.name == 'WARN') then
+                    goto continue
+                else
+                    if mq.TLO.EverQuest.Server() ~= 'Wasting Time' and (entry.name == 'FABLED' or entry.name == 'CASH') then
+                        goto continue
+                    end
+                    if ImGui.BeginTabItem(entry.name) then
+                        entry.console.autoScroll = LootUtils.Settings.log2AutoScroll or false
+                        entry.console:Render()
+                        ImGui.EndTabItem()
+                    end
+                    -- if ImGui.BeginTabItem(entry.name) then
+                    --     local originalBuffer = entry.console.buffer
+                    --     if LootUtils.Settings.logFilterText ~= '' then
+                    --         local filtered = {}
+                    --         for _, line in ipairs(originalBuffer) do
+                    --             if string.find(string.lower(line), string.lower(LootUtils.Settings.logFilterText), 1, true) then
+                    --                 table.insert(filtered, line)
+                    --             end
+                    --         end
+                    --         entry.console.buffer = filtered
+                    --     end
+
+                    --     entry.console.autoScroll = LootUtils.Settings.log2AutoScroll or false
+                    --     entry.console:Render()
+                    --     entry.console.buffer = originalBuffer
+
+                    --     ImGui.EndTabItem()
+                    -- end
+                end
+                ::continue::
+            end
+            ImGui.EndTabBar()
+        end
+    end
+
+    ImGui.End()
+end
+mq.imgui.init("DroidLoot Logs Window Test", ConsoleWidgetTest)
 
 local function commandHandler(...)
     local args = { ... }
@@ -1970,6 +2156,9 @@ local function commandHandler(...)
         elseif args[1] == 'logs' then
             LootUtils.Settings.logShowGUI = true
             if not LootUtils.Settings.logOpenGUI then LootUtils.Settings.logOpenGUI = true end
+        elseif args[1] == 'logs2' then
+            LootUtils.Settings.logShow2GUI = true
+            if not LootUtils.Settings.logOpen2GUI then LootUtils.Settings.logOpen2GUI = true end
         end
     elseif #args == 2 then
         if validActions[args[1]] and args[2] ~= 'NULL' then
@@ -1989,53 +2178,6 @@ local function setupBinds()
     mq.bind('/' .. LootUtils.Settings.command_LongName, commandHandler)
 end
 
-LootUtils.MessageLogs = {
-    full = {},
-    keep = {},
-    bank = {},
-    sell = {},
-    fabled = {},
-    cash = {},
-    ignore = {},
-    destroy = {},
-    quest = {},
-    announce = {},
-    wildcard = {},
-    skipped = {},
-    looted = {}
-}
-
-function LootUtils.getMessagesByType(messageType)
-    return LootUtils.MessageLogs[string.lower(messageType)] or {}
-end
-
-function LootUtils.report(message, ...)
-    local timestamp = os.date("[%H:%M:%S]")
-    local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
-    local reportPrefixAnnounceGeneric = '/%s ' .. timestamp .. '[DroidLoot] '
-    local lootChannelCheck = string.lower(LootUtils.LootChannel)
-    if lootChannelCheck == 'g' or lootChannelCheck == 'rs' or lootChannelCheck == 'say' then
-        local prefixWithChannel = reportPrefixAnnounceGeneric:format(LootUtils.LootChannel)
-        mq.cmdf(prefixWithChannel .. message, ...)
-    else
-        local prefixWithChannel = reportPrefixAnnounce:format(LootUtils.LootChannel)
-        mq.cmdf(prefixWithChannel .. message, ...)
-    end
-    if LootUtils.ReportLoot then
-        LootUtils.Messages.Normal(message, ...)
-    end
-end
-
-function LootUtils.logReport(messageType, message, ...)
-    local timestamp = os.date("[%H:%M:%S]")
-    -- Log the message by type
-    local logTable = LootUtils.MessageLogs[string.lower(messageType)] or LootUtils.MessageLogs.full
-    local cleanMsg = string.gsub(string.format(message, ...), "\aITEM.-\a", "<ItemLink>")
-    local formattedMessage = timestamp .. '[DroidLoot] ' .. cleanMsg
-    table.insert(logTable, formattedMessage)
-    table.insert(LootUtils.MessageLogs.full, formattedMessage)
-end
-
 -- LOOTING
 
 function eventCantLoot()
@@ -2049,6 +2191,8 @@ local function lootItem(index, doWhat, button)
     LootUtils.ConsoleMessage('Debug', 'Enter lootItem')
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local corpseItem = mq.TLO.Corpse.Item(index)
+    local corpseName = mq.TLO.Corpse.Name()
+    local corpseID = mq.TLO.Corpse.ID()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     local ruleAction = doWhat
 
@@ -2085,10 +2229,7 @@ local function lootItem(index, doWhat, button)
     if not mq.TLO.Window('LootWnd').Open() then
         return
     end
-    if LootUtils.AnnounceLoot then
-        LootUtils.report('Looted: %s[%s]', corpseItem.ItemLink('CLICKABLE')(), doWhat)
-        LootUtils.logReport('Keep', 'Looted: %s[%s]', corpseItem.Name(), doWhat)
-    end
+    LootUtils.logReport('Keep', 'Keep Item: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
 
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
         mq.cmd('/destroy')
@@ -2114,6 +2255,7 @@ function LootUtils.lootCorpse(corpseID)
     if mq.TLO.Cursor() then
         checkCursor()
     end
+    if LootUtils.useWarp then navToID(corpseID) end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
         LootUtils.ConsoleMessage('Warn', 'My bags are full, I can\'t loot anymore!')
         return
@@ -2160,19 +2302,13 @@ function LootUtils.lootCorpse(corpseID)
                 mq.delay(1)
                 LootUtils.ConsoleMessage('Debug', 'itemName: %s / lootAction: %s / stackable: %s / freeStack: %s / haveItem: %s / haveItemBank: %s', itemName, lootAction, stackable, freeStack, haveItem, haveItemBank)
                 if freeSpace < LootUtils.SaveBagSlots then
-                    LootUtils.logReport('Skipped', 'Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
-                    if LootUtils.ReportSkipped then
-                        LootUtils.report('Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
-                        goto continue
-                    end
+                    LootUtils.logReport('Skipped', 'Skipped Item(\arLow Bag Space\ax): %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
+                    goto continue
                 end
                 if corpseItem.Lore() then
                     if haveItem or haveItemBank then
-                        LootUtils.logReport('Skipped', 'Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
-                        if LootUtils.ReportSkipped then
-                            LootUtils.report('Skipped Item(\arLore\ax): %s (%s-%s)[%s]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
-                            goto continue
-                        end
+                        LootUtils.logReport('Skipped', 'Skipped Item(\arLore\ax): %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
+                        goto continue
                     else
                         lootItem(i, getRule(corpseItem), 'leftmouseup')
                     end
@@ -2183,16 +2319,10 @@ function LootUtils.lootCorpse(corpseID)
                 end
 
                 if lootAction == 'Ignore' or lootAction == 'NULL' then
-                    if LootUtils.ReportSkipped then
-                        LootUtils.report('Skipped Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
-                    end
-                    LootUtils.logReport('Skipped', 'Skipped Item: %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, 'Ignore')
+                    LootUtils.logReport('Ignore', 'Ignore Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
                 end
                 if lootAction == 'Announce' then
-                    if LootUtils.AnnounceLoot then
-                        LootUtils.report('Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
-                    end
-                    LootUtils.logReport('Announce', 'Found: %s (%s-%s)[%s]', corpseItem.Name(), corpseName, corpseID, getRule(corpseItem))
+                    LootUtils.logReport('Announce', 'Found: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, getRule(corpseItem))
                 end
             end
             ::continue::
@@ -2241,9 +2371,14 @@ function LootUtils.lootMobs(limit)
     for i = 1, #corpseList do
         local corpse = corpseList[i]
         local corpseID = corpse.ID()
-        if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id ' .. tostring(corpseID))() or 100) < 60 then
-            LootUtils.ConsoleMessage('Debug', 'Moving to corpse ID=%s', tostring(corpseID))
-            navToID(corpseID)
+        if corpseID and corpseID > 0 and not corpseLocked(corpseID) then
+            if LootUtils.useWarp then
+                navToID(corpseID)
+            end
+            if (mq.TLO.Navigation.PathLength('spawn id ' .. tostring(corpseID))() or 100) < 60 then
+                LootUtils.ConsoleMessage('Debug', 'Moving to corpse ID=%s', tostring(corpseID))
+                navToID(corpseID)
+            end
             corpse.DoTarget()
             mq.delay(100)
             LootUtils.lootCorpse(corpseID)
