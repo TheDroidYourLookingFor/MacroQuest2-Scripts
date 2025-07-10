@@ -1,0 +1,4 @@
+[submodule "libaqo"]
+	path = libaqo
+	url = https://github.com/aquietone/libaqo
+	branch = main

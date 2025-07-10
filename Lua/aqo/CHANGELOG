@@ -1,0 +1,377 @@
+# 2024/09/22
+- Add offtank config option. Tank will broadcast xtargets it doesn't have aggro on. Offtanks will pick targets based off that.
+
+# 2024/09/21
+- Consolidate hottank and hotdps options to hot
+- Some lame attempts at fixing pet aftercast clickies
+- Ranger try to maintain proper bow range if not project lazarus
+- Add RTZ command like e3: /aqo rtz
+- Add a simple getting started window on first use
+
+# 2024/09/14
+- Fix loop casting buff after spell swap
+- Rogue evasion tweaks
+- Add druid spell nettlecoat
+- Use gem 8 if swap gem > num gems
+
+# 2024/09/13
+- Fix beastlord trying to mem same spell in two spots
+- Add SOW buff beg alias
+- Add REGEN buff beg alias
+- Add druid and shaman group regen and group sow to SOW and REGEN alias
+- Add druid Wrath of the Wild AA to TEMPDS buff beg alias
+- Add druid Legacy of Nettles to DS buff beg alias
+- Add cleric aura of devotion to SPELLHASTE buff beg alias
+- Add enchanter Guard of Druzzil to RESMAGIC buff beg alias
+- Add config option to announce tank deaths in /rs
+
+# 2024/09/10
+- Add DS alias to druid DS spell
+- Add UseUnionOfSpirits option to shaman to toggle use of union of spirits as a panic heal
+- Add spirit of the panther to proc buff spell line for shaman
+- Add MELEEPROC to buff beg for shaman proc spell line
+
+# 2024/09/09
+- Remove condition on cleric aego which was mostly just a lazarus specific i don't want to cast this anymore because i have a buff stick
+- Add conditions to war,ber,mnk auras to handle multiple of a class in group with conflicting auras
+- Update pal spells to use more stun lines
+
+# 2024/09/07
+- Add force option to returnToCamp so that UI returnToCamp button always does something
+- Change returnToCamp: if in combat, return if > campradius+15 away to allow fighting near edge of camp radius. if not in combat, return to camp if > campradius/2 away from camp center
+- Add ChaseStopDistance config
+- Add `/aqo return` command to return to camp
+- Add new minimize button top left to minimize AQO UI into a button similar to the EQ button (borrowed idea from grimmier)
+- Add config option StartMinimized to toggle startup behavior of UI
+
+# 2024/09/03
+- Fix typo in INTERRUPTFORHEALS setting and in canInterrupt check
+- Add some small delays for active discs to become active to try and avoid discs being wasted
+- Mark a bunch of abilities and class options with emu=true or emu=false to remove some clutter
+- Add an e3-like `/aqo cleartargets` command which temporarily enters tank mode til nearby mobs are dead
+- Add Announce Heals option to announce heals/interrupts for heals in group
+
+# 2024/08/31
+- Add more classes epic 2.5s for project lazarus
+- Stop and wait for agro after turning on autofire in pull with ranged if in puller/pullertank modes
+- Adjust some queued action logic to handle swapping pet spells with postcast defined
+- Make rez ability a list and add veksar divine rez clicky by default
+
+# 2024/08/27
+- Handle item clickies which cast combat abilities
+- Allow defining custom burn categories when adding clickies like `/mnk addclicky burn legs/true` then `/mnk burnnow legs`
+- Add special case buff begging for cleric forsaken boots and enchanter fippy bracer (laz specific)
+
+# 2024/08/25
+- Add 2.5s for some classes
+- Add codex clicky on pet summon for pet classes
+- Move USESWARMPETS to common class options
+- Add USESWARMPETS to all swarm pet abilities
+- Add druid usecheetah option
+- Add enc toggle for buffing KEI
+- Various paladin updates
+- Add normal heals to rng
+- Rearrange some shm dots
+- Remove mana blaze from wiz
+- Add some more buff begging aliases
+- Add interrupt heals if full hp and interrupt cast for emergency heals options
+
+
+# 2024/07/18
+- Kill familiars in managepet routine
+- Timer fixes for clicky items to avoid thinking a clicky was used when it was really not
+- AddClicky updates to accept any key/value arguments, e.g. /war addclicky defensive usebelowpct/50 condition/condFunctionName opt/USEFORTITUDE
+
+# 2024/07/16
+- lootnscoot / looted updated to latest
+- bard songs stop playing if group member out of camp radius
+- mash clickies called from cast routines for casters with no mash in routines
+- check casting before attempting rampage abilities
+- add clr dps burns
+- add cure option on druid
+- attempt some fixes on ranger stick/nav spam when no los
+- use blood of yoppa on shaman, add imp twincast to burns
+- use ancient spear of gelaqua on wizard
+- add delay 1 in manastone loops for manastone revamp
+- check paused in enrage events
+- fix count of mobs in camp
+
+# 2024/07/01
+- DOTNAMEDONLY check for all classes
+- Add /aqo burnnow epicburn
+- Ber bewildering scream as burn instead of dps
+- Fix brd 3rd spire
+- Move paragon to buff beg logic
+- More clicky types, summon, defensive, mana
+- Don't immediately use mash or class clickies at 100% hp
+- Add /aqo preburn
+- Allow attacking pets
+- Add heal clickies into lifesupport
+- Use defensive clickies or fades on rampage damage
+- Add divine peace fade for clerics
+- Add rain nuke for druids
+- Enchanter spell updates and move to common findNextSpell routine
+- Mage spell updates
+- Pal spell/burn updates
+- Rog burn updates
+- Shm spell updates, add swarm pet aa to burn
+- ClearToBuff check based on nearby aggressive NPC instead of xtarhaters
+- No manastone in fippy raid instance (laz)
+- Add muggers sap for brd/rog (laz)
+- Add more spells to buff beg
+- Attempt /reload if multiple corpses to avoid cant loot bugs
+- Move manastone to main loop
+- Add /aqo blockspells for blocking common spells on self/pet
+- Add /aqo rebuff to force using clickies in combat after rezzing
+- Add /aqo rezall to do nothing but loop through rezzing nearby corpses
+- Assist updates for attacking pets, check nearby .Aggressive instead of xtargets
+- Disable stick when target switching in assist
+- Add USECRIPPLE check to debuff routine
+- Add extra target below assist percent checks
+
+# 2024/05/18
+- Add bard options USEJONTHANS, USEAMPLIFICATION
+- Update ability init to check more than first 5 spell slots for various SPAs
+- Add debuff to bst class order
+- Add combatbuffothers flag to abilities like DI or reptile skin
+- Move config into config/aqo subfolder
+- Add new DEBUFFONPULL option to enc to control whether debuffs should wait for assist
+- Some fixes to nowcast / buff requests
+- Add clr 2.0
+- Misc spell updates
+- Remove auspice from ranger burns. Control it manually
+- USEEPIC option for rogue 2.0 to keep up as combat buff, otherwise just part of burns
+- Add champion and SE into buff begging
+- Update corpse rez event check for lazarus
+- Tweaks to healing logic
+- Avoid using group heals on ext target heals
+
+# 2024/04/21
+- Add SLOWALL option for shaman. May be buggy as it resist count tracking is based on current assist target only, so may screw up some if stuff resists
+
+# 2024/04/06
+- Attempt some mezzing fixes
+- Check switch with MA false in manual assist mode
+- Pull in latest lootnscoot
+
+# 2024/02/25
+- Added /aqo save command
+- Fix mage pettype command
+
+# 2024/02/25
+- implement cures maybe
+- some spell updates
+- some manual casting fixes
+
+# 2024/02/03
+- Move all init* ability list initializers to one initAbilities based off Abilities table because reasons
+
+# 2024/02/01
+- Prep work for removing initBuffs methods
+- Consolidate initSpellConditions into ability definitions
+
+# 2024/01/31
+- Small self heal fix if heal spell isn't ready/enabled
+- Re-initialize spell lines when new spell is memmed
+
+# 2024/01/29
+- Questionable updates around precast/postcast to work with the not synchronous pattern of the script
+- Try fixing some spammy melee abilities
+
+# 2024/01/28
+- More 86-100 spells for ber bst clr enc pal
+
+# 2024/01/27
+- Fix stopping medding early as puller
+- Use common list processing on sk
+
+# 2024/01/22
+- Some fixes around pulling and recover and rest routines related to medding
+- Some workarounds for bst not liking casting paragon on itself
+
+# 2024/01/21
+- Necromancer updates
+- UI lock button
+
+# 2024/01/20
+- Berserker updates
+- Monk updates
+- Add libaqo submodule to start making some common stuff
+
+# 2024/01/17
+- Updates to memming spells
+
+# 2024/01/13
+- Some refactoring around ability can/should use methods
+- Remove state.loop variables
+
+# 2024/01/07
+- Consolidate actor buff requests and request aliases
+- Fix nukemanamin / dotmanamin checks for non-mana using abilities / non-casters
+- Fix WillLand check for buff actors
+
+# 2024/01/06
+- Try to merge some emu vs live config for shm and bst
+- Check dot / nuke min mana on casts
+- HP med start/stop settings
+- Misc cleanup
+- Move some debug tab clutter to other tabs
+- Make state inspector into a table
+
+# 2023/12/24
+- Add very basic actor based buffing logic
+
+# 2023/12/23
+- Some consolidation of casting code
+
+# 2023/11/28
+- Update logging for finding abilities
+- Refactor actor experiment a bit
+- Add theme setting on debug tab for fun
+
+# 2023/11/27
+- add some stuff around clickies
+- added some usage of new actor features
+- some small bug fixes
+
+# 2023/11/17
+- some refactoring of class objects
+- added mostly commented out live abilities for classes...
+
+# 2023/11/04
+- Attempt some hacky single target mez logic fixes
+
+# 2023/11/02
+- Add laurions song spells for brd, enc, nec, rng, shd, war
+
+# 2023/11/01
+- Cleanup logger code some
+- Tidy up ui toggles a tiny bit
+
+# 2023/10/31
+- Add console tab
+- Add some lower level cleric spells
+- Fix checks around having some abilities on monk
+
+# 2023/07/23
+- Rename checkDistance and cleanup some ImGui.Text formatting
+
+# 2023/05/20
+- Add code for TLOs/datatype
+- Refactor some spell code out of common into ability
+- Move some subtables out of aqo into requires
+- Break up tank and assist code into a few functions incase i ever try to move more towards a state machine again
+- Various class updates
+
+# 2023/04/30
+- Fix SummonID setting
+- Adjust rezzing to hopefully be more proactive
+- Fix npc checks on bard clickies
+- Adjust enc nukes
+
+# 2023/02/08
+- manastone options only visible in ui for mana users
+
+# 2023/02/07
+- Move XTARGETHEAL to common configuration for healer classes
+- All classes can now rez in combat with rez tokens
+- Improve pull debug
+- Reorganized init code in each of the class luas
+- Fix option check for HoT heals
+- Move some 10ish min CDs for bard into burns
+- Add manastone configs
+
+# 2023/02/03
+- Maybe actually stopped bard crashes
+- Fix error in buff requests with unrecognized spells
+
+# 2023/02/01
+- More attempts at bard clicky issues
+- Med fixes
+- Attempt to fix some pull return issues
+- Add timestamps option
+
+# 2023/01/31
+- Longer delay after stopcast before using clickies on bard
+- Remove dup DMZ zone id list
+- Add 'nodmz' check to spells like lich that drain HP
+- Add reagent check to pet summoning before memorizing spell
+- Only click charm for geomantra if charm clicky is geomantra
+- Extra debug on pull routine
+- Fix spell resist event
+- Check if corpse cannot be rezzed before rezzing
+- Fix looting own corpse after rez
+
+# 2023/01/30
+- ASSISTNAMES to list out priority order of people to manually assist
+- MEDCOMBAT to toggle whether to keep medding during combat
+- Pull med settings changed to be used for medding in general
+- OMM mask event
+
+# 2023/01/29
+- Some cleanup work
+- Try making bard clickies less crashy
+
+# 2023/01/27
+- All the things
+- UI Status Section: Added help button to open new window with all available commands
+- UI General Settings:
+  1. Main Tank checkbox - For EMU where group MainTank role is unreliable, this lets tanks use tank abilities in manual mode.
+  2. Loot Mobs - For EMU where there is no advloot, enable looting of mobs.
+  3. Auto Detect Raid - For EMU where raid assist roles don't work, automatically swap to manual assist mode when in a raid
+- UI Assist Settings:
+  1. Assist - For EMU, addnew new `manual` assist option which will make toons use `/assist` command instead of relying on assist roles.
+- UI Burn Settings:
+  1. New quick burn, long burn, full burn buttons. Didn't really finish implementing these, there is basically just full burn.
+- UI Pull Settings:
+  1. Added pull method, swap between melee, ranged, spell, custom function for class.
+- UI Debug Settings:
+  1. New restart AQO button to restart the lua script
+  2. New update AQO button to download new aqo.zip from GitHub EMU branch.
+  3. New View Ability Lists button which opens a window that shows all the class abilities and such that are loaded and may be used.
+- Commands: Many new commands, utility commands and such. Refer to the docs or help command.
+- Buff Begging: See the docs on buff request support
+- Fleshed out some more abilities for most classes for EMU
+- Many internal changes I've made no attempt to keep track of
+- Add cleric reverse ds
+
+# 2022/09/29
+- So much change, where to begin
+- Trying to take this and make it run on EMU
+
+# 2022/05/20
+- pull and tank for bard, mainly for farm stuff
+
+# 2022/02/27
+- lots of pull changes
+
+# 2022/02/16
+- Refactor some spell cast validation for spells, aa, items, discs
+
+# 2022/02/13
+- Pull path length checking
+- Tweak ranger positioning checking for nearby mobs
+
+# 2022/02/12
+- Group watch settings
+
+# 2022/02/10
+- Bunch of fixes around pulling and other things
+- Pull ignore lists
+- Named list for burn all named
+
+# 2022/02/07
+- Start on an SK implementation.
+
+# 2022/02/06
+- UI refactor
+
+# 2022/02/01
+- Split mezzing logic out from bard class impl.
+
+# 2022/01/31
+- Add more war DPS abilities and split up DPS and tanking abilities.
+
+# Pre-changelog existing
+- A months worth of dev around supporting manual, assist, chase, pullertank, tank modes for nec, brd, rng, war classes.
+- Refer to commit history prior to 2022-01-31.
