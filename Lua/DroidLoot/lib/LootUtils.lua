@@ -861,6 +861,12 @@ local function event_CantLoot_handler(line)
     if not mq.TLO.Target() then
         return
     end
+    if LootUtils.UseWarp then
+        mq.cmdf('%s', '/warp t')
+        local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+        local playerDelay = 250 + playerPing
+        mq.delay(playerDelay)
+    end
     LootUtils.CorpseFixCounter = LootUtils.CorpseFixCounter + 1
     if LootUtils.CorpseFixCounter >= 3 then
         LootUtils.CorpseFixCounter = 0
@@ -2257,7 +2263,12 @@ function LootUtils.lootCorpse(corpseID)
     if mq.TLO.Cursor() then
         checkCursor()
     end
-    if LootUtils.useWarp then navToID(corpseID) end
+    if LootUtils.UseWarp then
+        mq.cmdf('%s', '/warp t')
+        local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+        local playerDelay = 250 + playerPing
+        mq.delay(playerDelay)
+    end
     if mq.TLO.Me.FreeInventory() <= LootUtils.SaveBagSlots then
         LootUtils.ConsoleMessage('Warn', 'My bags are full, I can\'t loot anymore!')
         return
