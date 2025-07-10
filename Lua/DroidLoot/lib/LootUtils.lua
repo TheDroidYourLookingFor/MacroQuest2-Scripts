@@ -14,6 +14,8 @@ Examples:
 
 ]] ---@type Mq
 local mq = require 'mq'
+---@type ImGui
+local ImGui = require 'ImGui'
 
 local LootUtils = {
     Version = "1.0.28",
@@ -2229,7 +2231,7 @@ local function lootItem(index, doWhat, button)
     if not mq.TLO.Window('LootWnd').Open() then
         return
     end
-    LootUtils.logReport('Keep', 'Keep Item: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
+    LootUtils.logReport('Keep', 'Keep Item: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Keep')
 
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
         mq.cmd('/destroy')
