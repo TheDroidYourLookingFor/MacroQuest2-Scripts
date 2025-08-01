@@ -150,6 +150,8 @@ gui.LOOTBYAUGSLOTSAMOUNT = DroidLoot.LootUtils.LootByAugSlotsAmount
 gui.LOOTBYAUGSLOTSTYPE = DroidLoot.LootUtils.LootByAugSlotsType
 gui.LOOTBYDAMAGE = DroidLoot.LootUtils.LootByDamage
 gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
+gui.LOOTBYDAMAGEEFFICIENCY = DroidLoot.LootUtils.LootByDamageEfficiency
+gui.LOOTBYDAMAGEEFFICIENCYAMOUNT = DroidLoot.LootUtils.LootByDamageEfficiencyAmount
 
 gui.CurrentStatus = ' '
 gui.Open = false
@@ -780,6 +782,28 @@ function gui.DroidLootGUI()
                                 if gui.LOOTBYDAMAGEAMOUNT ~= DroidLoot.LootUtils.LootByDamageAmount then
                                     gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByDamageAmount', DroidLoot.LootUtils.LootByDamageAmount)
+                                end
+                                ImGui.Separator();
+
+                                ImGui.EndTabItem()
+                            end
+                            local lootByDamageEfficiencyOpen = ImGui.BeginTabItem("Loot By Damage Efficiency")
+                            if lootByDamageEfficiencyOpen then
+                                DroidLoot.LootUtils.LootByDamageEfficiency = ImGui.Checkbox('Enable## Loot by Damage Efficiency', DroidLoot.LootUtils.LootByDamageEfficiency)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Loots items by their damage efficiency when enabled.')
+                                if gui.LOOTBYDAMAGEEFFICIENCY ~= DroidLoot.LootUtils.LootByDamageEfficiency then
+                                    gui.LOOTBYDAMAGEEFFICIENCY = DroidLoot.LootUtils.LootByDamageEfficiency
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByDamageEfficiency', DroidLoot.LootUtils.LootByDamageEfficiency)
+                                end
+                                ImGui.Separator();
+
+                                DroidLoot.LootUtils.LootByDamageEfficiencyAmount = ImGui.SliderInt("Min Efficiency", DroidLoot.LootUtils.LootByDamageEfficiencyAmount, 1, 1000)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('The minimum amount of efficiency an item needs to be kept.')
+                                if gui.LOOTBYDAMAGEEFFICIENCYAMOUNT ~= DroidLoot.LootUtils.LootByDamageEfficiencyAmount then
+                                    gui.LOOTBYDAMAGEEFFICIENCYAMOUNT = DroidLoot.LootUtils.LootByDamageEfficiencyAmount
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByDamageEfficiencyAmount', DroidLoot.LootUtils.LootByDamageEfficiencyAmount)
                                 end
                                 ImGui.Separator();
 

@@ -32,6 +32,8 @@ local LootUtils = {
     LootByAugSlotsType = 'Weapon', -- Any, Armor, Weapon, NonVis
     LootByDamage = true,
     LootByDamageAmount = 240,
+    LootByDamageEfficiency = false,
+    LootByDamageEfficiencyAmount = 200,
     EquipUsable = false,     -- Buggy at best
     LootGearUpgrades = true, -- WIP
     CorpseRadius = 250,
@@ -564,6 +566,17 @@ local function getRule(item)
     local itemName = item.Name()
     local itemHP = item.HP()
     local itemDMG = item.Damage()
+    local itemDelay = item.ItemDelay()
+    local itemEff = (itemDMG / itemDelay) * 100
+    local wornPrimaryDmg = mq.TLO.Me.Inventory(13).Damage()
+    local wornSecondaryDmg = mq.TLO.Me.Inventory(14).Damage()
+    local wornRangedDmg = mq.TLO.Me.Inventory(11).Damage()
+    local wornPrimaryDelay = mq.TLO.Me.Inventory(13).ItemDelay()
+    local wornSecondaryDelay = mq.TLO.Me.Inventory(14).ItemDelay()
+    local wornRangedDelay = mq.TLO.Me.Inventory(11).ItemDelay()
+    local wornPrimaryEff = (itemDMG / itemDelay) * 100
+    local wornSecondaryEff = (itemDMG / itemDelay) * 100
+    local wornRangeEff = (itemDMG / itemDelay) * 100
     local itemAugSlot1 = item.AugSlot1()
     local itemAugSlot2 = item.AugSlot2()
     local itemAugSlot3 = item.AugSlot3()
@@ -704,6 +717,46 @@ local function getRule(item)
         return 'Keep'
     end
 
+    if LootUtils.LootByDamageEfficiency and itemEff >= LootUtils.LootByDamageEfficiencyAmount then
+        LootUtils.logReport('Keep', 'Found Weapon Efficiency Item: %s (%s(%s))', itemLink, itemEff, LootUtils.LootByDamageEfficiencyAmount)
+        return 'Keep'
+    end
+
+    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornPrimaryEff ~= nil and itemEff > wornPrimaryEff then
+        if itemLore then
+            if not haveItem and not haveItemBank then
+                AnnounceUpgrade(wornSlot, 'Primary')
+                return 'Keep'
+            end
+        else
+            AnnounceUpgrade(wornSlot, 'Primary')
+            return 'Keep'
+        end
+    end
+
+    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornSecondaryEff ~= nil and itemEff > wornSecondaryEff then
+        if itemLore then
+            if not haveItem and not haveItemBank then
+                AnnounceUpgrade(wornSlot, 'Secondary')
+                return 'Keep'
+            end
+        else
+            AnnounceUpgrade(wornSlot, 'Secondary')
+            return 'Keep'
+        end
+    end
+
+    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornRangeEff ~= nil and itemEff > wornRangeEff then
+        if itemLore then
+            if not haveItem and not haveItemBank then
+                AnnounceUpgrade(wornSlot, 'Range')
+                return 'Keep'
+            end
+        else
+            AnnounceUpgrade(wornSlot, 'Range')
+            return 'Keep'
+        end
+    end
     if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
         if mq.TLO.Me.Inventory(wornSlot)() ~= nil then
             if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
@@ -1159,6 +1212,9 @@ LOOTBYAUGSLOTSTYPE = LootUtils.LootByAugSlotsType
 LOOTBYDAMAGE = LootUtils.LootByDamage
 LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
 
+LOOTBYDAMAGEEFFICIENCY = LootUtils.LootByDamageEfficiency
+LOOTBYDAMAGEEFFICIENCYAMOUNT = LootUtils.LootByDamageEfficiencyAmount
+
 CurrentStatus = ' '
 local function OptionsGUI()
     if not LootUtils.Settings.optionsShowGUI then return end
@@ -1236,6 +1292,28 @@ local function OptionsGUI()
                 if LOOTBYDAMAGEAMOUNT ~= LootUtils.LootByDamageAmount then
                     LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamageAmount', LootUtils.LootByDamageAmount)
+                end
+                ImGui.Separator();
+
+                ImGui.EndTabItem()
+            end
+            local lootByDamageEfficiencyOpen = ImGui.BeginTabItem("Loot By Damage Efficiency")
+            if lootByDamageEfficiencyOpen then
+                LootUtils.LootByDamageEfficiency = ImGui.Checkbox('Enable## Loot by Damage Efficiency', LootUtils.LootByDamageEfficiency)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items by their damage efficiency when enabled.')
+                if LOOTBYDAMAGEEFFICIENCY ~= LootUtils.LootByDamageEfficiency then
+                    LOOTBYDAMAGEEFFICIENCY = LootUtils.LootByDamageEfficiency
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamageEfficiency', LootUtils.LootByDamageEfficiency)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByDamageEfficiencyAmount = ImGui.SliderInt("Min Efficiency", LootUtils.LootByDamageEfficiencyAmount, 1, 1000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum amount of efficiency an item needs to be kept.')
+                if LOOTBYDAMAGEEFFICIENCYAMOUNT ~= LootUtils.LootByDamageEfficiencyAmount then
+                    LOOTBYDAMAGEEFFICIENCYAMOUNT = LootUtils.LootByDamageEfficiencyAmount
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamageEfficiencyAmount', LootUtils.LootByDamageEfficiencyAmount)
                 end
                 ImGui.Separator();
 
