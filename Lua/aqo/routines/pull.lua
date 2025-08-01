@@ -350,12 +350,23 @@ local function pullEngage(pull_spawn)
     end
     if mq.TLO.Target.Distance3D() < 35 then
         --movement.stop()
+        if (not mq.TLO.Target.LineOfSight() or mq.TLO.Target.Distance3D() > 11) and config.USEWARP then
+            if config.USEWARP and not config.USEWARPININSTANCE then
+                mq.cmd('/warp t')
+            elseif config.USEWARP and config.USEWARPININSTANCE and mq.TLO.Me.InInstance() then
+                mq.cmd('/warp t')
+            end
+        end
         if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
         mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
         mq.cmd('/attack on')
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+            mq.cmd('/say ^summon all')
+            mq.delay(500)
+            mq.cmd('/say ^attack')
+        end
         state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
-        mq.cmdf('/cast itemn "%s"',config.PULLWITH.value)
     else
         if mq.TLO.Target() and mq.TLO.Target.Name() == 'Reward Chest' and mq.TLO.Target.PctHPs() == 100 and mq.TLO.EverQuest.Server() == 'Chaotic' then
             mq.cmd('/say /open')
@@ -365,6 +376,16 @@ local function pullEngage(pull_spawn)
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
             -- mq.delay(100)
+        end
+        if config.USEWARP and not config.USEWARPININSTANCE then
+            mq.cmd('/warp t')
+        elseif config.USEWARP and config.USEWARPININSTANCE and mq.TLO.Me.InInstance() then
+            mq.cmd('/warp t')
+        end
+        if mq.TLO.Group() then
+            mq.cmd('/say ^summon all')
+            mq.delay(500)
+            mq.cmd('/say ^attack')
         end
         local pullWith = config.get('PULLWITH')
         local pull_item = nil

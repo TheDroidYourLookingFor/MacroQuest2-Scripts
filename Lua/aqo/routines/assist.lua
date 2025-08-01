@@ -48,6 +48,11 @@ local function eventEnragedOff(line, name)
         if mq.TLO.Target.ID() == mq.TLO.Spawn(name).ID() then
             -- target is no longer enraged
             mq.cmd('/attack on')
+            if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+                mq.cmd('/say ^summon all')
+                mq.delay(500)
+                mq.cmd('/say ^attack')
+            end
         end
         if mq.TLO.Pet.ID() > 0 then
             mq.cmd('/pet attack')
@@ -310,6 +315,11 @@ function assist.engage()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+            mq.cmd('/say ^summon all')
+            mq.delay(500)
+            mq.cmd('/say ^attack')
+        end
     elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false
     end
@@ -390,6 +400,11 @@ function assist.attack(skip_no_los)
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+            mq.cmd('/say ^summon all')
+            mq.delay(500)
+            mq.cmd('/say ^attack')
+        end
     elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false
     end

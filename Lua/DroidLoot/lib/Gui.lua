@@ -1010,13 +1010,11 @@ function gui.DroidLootGUI()
                                 local settingsChanged = false -- Track if any settings changed
 
                                 -- Checkbox for enabling wildcard looting
-                                local lootWildCardItems = DroidLoot.LootUtils.LootWildCardItems
-                                local changed
-                                lootWildCardItems, changed = ImGui.Checkbox('Enable Wildcard Looting', lootWildCardItems)
-                                if changed then
-                                    DroidLoot.LootUtils.LootWildCardItems = lootWildCardItems
-                                    gui.LOOTWILDCARDITEMS = lootWildCardItems
-                                    settingsChanged = true
+                                DroidLoot.LootUtils.LootWildCardItems = ImGui.Checkbox('Enable Wildcard Looting', DroidLoot.LootUtils.LootWildCardItems)
+                                if gui.LOOTWILDCARDITEMS ~= DroidLoot.LootUtils.LootWildCardItems then
+                                    gui.LOOTWILDCARDITEMS = DroidLoot.LootUtils.LootWildCardItems
+                                    -- settingsChanged = true
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootWildCardItems', DroidLoot.LootUtils.LootWildCardItems)
                                 end
                                 ImGui.SameLine()
                                 ImGui.HelpMarker('Loots items matching wildcard names.')
@@ -1051,7 +1049,7 @@ function gui.DroidLootGUI()
 
                                     -- Add new term
                                     DroidLoot.LootUtils.newWildCardTerm = DroidLoot.LootUtils.newWildCardTerm or ""
-                                    local newTermInput
+                                    local newTermInput, changed
                                     newTermInput, changed = ImGui.InputText("New Term", DroidLoot.LootUtils.newWildCardTerm, 256)
                                     if changed then
                                         DroidLoot.LootUtils.newWildCardTerm = newTermInput

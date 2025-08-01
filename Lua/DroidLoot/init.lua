@@ -160,7 +160,7 @@ local function binds(...)
             if args[2] ~= nil then
                 DroidLoot.LootUtils.CorpseRadius = args[2]
             else
-                DroidLoot.Messages.CONSOLEMETHOD('Please specify a radius value: /%s radius 100', DroidLoot.command_ShortName)
+                DroidLoot.LootUtils.ConsoleMessage('full', 'Please specify a radius value: /%s radius 100', DroidLoot.command_ShortName)
             end
         elseif args[1] == 'quit' then
             mq.unbind('/' .. DroidLoot.command_ShortName)
@@ -169,20 +169,20 @@ local function binds(...)
             mq.cmdf('/lua stop %s', 'DroidLoot')
             DroidLoot.terminate = true
         else
-            DroidLoot.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
-            DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
+            DroidLoot.LootUtils.ConsoleMessage('full','Valid Commands:')
+            DroidLoot.LootUtils.ConsoleMessage('full','/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
+            DroidLoot.LootUtils.ConsoleMessage('full','/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
+            DroidLoot.LootUtils.ConsoleMessage('full','/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
+            DroidLoot.LootUtils.ConsoleMessage('full','/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
+            DroidLoot.LootUtils.ConsoleMessage('full','/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
         end
     else
-        DroidLoot.Messages.CONSOLEMETHOD(false, 'Valid Commands:')
-        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
-        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
-        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
-        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
-        DroidLoot.Messages.CONSOLEMETHOD(false, '/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
+        DroidLoot.LootUtils.ConsoleMessage('full','Valid Commands:')
+        DroidLoot.LootUtils.ConsoleMessage('full','/%s \aggui\aw - Toggles the Control Panel GUI', DroidLoot.command_ShortName)
+        DroidLoot.LootUtils.ConsoleMessage('full','/%s \agsell\aw - Turns selling mode on', DroidLoot.command_ShortName)
+        DroidLoot.LootUtils.ConsoleMessage('full','/%s \agsellall\aw - Turns selling mode on selling ignored items as well', DroidLoot.command_ShortName)
+        DroidLoot.LootUtils.ConsoleMessage('full','/%s \agloot\aw - Toggles looting mobs on/off', DroidLoot.command_ShortName)
+        DroidLoot.LootUtils.ConsoleMessage('full','/%s \agquit\aw - Quits the lua script.', DroidLoot.command_ShortName)
     end
 end
 mq.bind('/' .. DroidLoot.command_ShortName, binds)
@@ -198,7 +198,7 @@ function DroidLoot.CheckHP()
 
     if DroidLoot.LootUtils.health_Check then
         if mq.TLO.Me.PctHPs() <= DroidLoot.LootUtils.heal_At then
-            DroidLoot.Messages.Normal('Casting \ag %s \ax on \ag %s\ax', DroidLoot.LootUtils.heal_Spell, mq.TLO.Me())
+            DroidLoot.LootUtils.ConsoleMessage('full','Casting \ag %s \ax on \ag %s\ax', DroidLoot.LootUtils.heal_Spell, mq.TLO.Me())
             mq.cmd('/' .. cast_Mode .. ' ' .. '"' .. mq.TLO.Spell(DroidLoot.LootUtils.heal_Spell).RankName() .. '" ' .. DroidLoot.LootUtils.heal_Gem)
             while mq.TLO.Me.Casting() do
                 mq.delay(1000, DoneCasting)
@@ -220,12 +220,12 @@ end
 mq.cmd('/hidecorpse looted')
 DroidLoot.CheckCampInfo()
 
-DroidLoot.Messages.CONSOLEMETHOD(false, '++ \agDROID LOOT BOT STARTED\aw ++')
+DroidLoot.LootUtils.ConsoleMessage('full','++ \agDROID LOOT BOT STARTED\aw ++')
 if DroidLoot.returnToHome then
     DroidLoot.home_X = mq.TLO.Me.X()
     DroidLoot.home_Y = mq.TLO.Me.Y()
     DroidLoot.home_Z = mq.TLO.Me.Z()
-    DroidLoot.Messages.CONSOLEMETHOD(false, '++ Home X: \ag%s\aw Y: \ag%s\aw Z: \ag%s\aw ++', DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
+    DroidLoot.LootUtils.ConsoleMessage('full','++ Home X: \ag%s\aw Y: \ag%s\aw Z: \ag%s\aw ++', DroidLoot.home_X, DroidLoot.home_Y, DroidLoot.home_Z)
 end
 while not DroidLoot.terminate do
     if not DroidLoot.doPause then

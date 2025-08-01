@@ -385,6 +385,14 @@ local config = {
         tlo = 'UseWarpInInstance',
         tlotype = 'bool',
     },
+    USEBOTS = {
+        value = false,
+        tip = 'Toggle whether character should use bot commands.',
+        label = 'Use Bots',
+        type = 'checkbox',
+        tlo = 'UseBots',
+        tlotype = 'bool',
+    },
 
     RECOVERPCT = {
         value = 70,

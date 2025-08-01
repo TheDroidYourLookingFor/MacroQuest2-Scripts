@@ -116,6 +116,7 @@ LootUtils.Settings.logShowGUI = false
 LootUtils.Settings.logOpenGUI = true
 LootUtils.Settings.logAutoScroll = true
 LootUtils.Settings.logFilterText = ''
+LootUtils.Settings.lastSearch = ''
 
 LootUtils.console = nil
 LootUtils.Settings.logShow2GUI = false
@@ -215,6 +216,49 @@ function LootUtils.getMessagesByType(messageType)
     return LootUtils.MessageLogs[string.lower(messageType)] or {}
 end
 
+-- Store this once in your setup/init area
+LootUtils.lastConsoleStates = LootUtils.lastConsoleStates or {}
+
+local function refreshConsole(consoleName)
+    local consoleKey = "console" .. consoleName
+    local logBuffer = LootUtils.getMessagesByType(consoleName)
+    local curConsole = LootUtils[consoleKey]
+    if not logBuffer or not curConsole then return end
+
+    local state = LootUtils.lastConsoleStates[consoleName] or {
+        lastSize = 0,
+        lastFilter = '',
+    }
+
+    local currentSize = #logBuffer
+    local currentFilter = LootUtils.Settings.logFilterText or ''
+
+    if currentSize == state.lastSize and currentFilter == state.lastFilter then
+        return -- No need to rebuild, skip
+    end
+
+    -- Update and rebuild the console
+    state.lastSize = currentSize
+    state.lastFilter = currentFilter
+    LootUtils.lastConsoleStates[consoleName] = state
+
+    curConsole:Clear()
+    for _, line in ipairs(logBuffer) do
+        if currentFilter == '' or string.find(line:lower(), currentFilter:lower(), 1, true) then
+            curConsole:AppendText(line)
+        end
+    end
+end
+local function appendToConsole(logName, logText)
+    local log = LootUtils.getMessagesByType(logName)
+    local timestamp = os.date("[%H:%M:%S] ")
+    local line = timestamp .. logText
+    table.insert(log, line)
+    if #log > 45000 then
+        table.remove(log, 1)
+    end
+end
+
 function LootUtils.report(message, ...)
     local timestamp = os.date("[%H:%M:%S]")
     local reportPrefixAnnounce = '/%s \a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
@@ -240,35 +284,33 @@ function LootUtils.logReport(messageType, message, ...)
         LootUtils.Messages.Normal(message, ...)
     end
 
-    -- Always send to full console unless the type is explicitly 'full'
-    if msgType ~= 'full' then
-        LootUtils.consolefull:AppendText(cleanMsg)
-    else
-        LootUtils.consolefull:AppendText(cleanMsg)
+    if msgType ~= 'full' or msgType == 'full' then
+        appendToConsole('full', cleanMsg)
     end
 
     -- Mapping message types to their consoles and optional report flags
     local consoleMap = {
-        keep     = { console = LootUtils.consolekeep, reportFlag = "AnnounceLoot" },
-        bank     = { console = LootUtils.consolebank },
-        sell     = { console = LootUtils.consolesell },
-        fabled   = { console = LootUtils.consolefabled },
-        cash     = { console = LootUtils.consolecash },
-        ignore   = { console = LootUtils.consoleignore },
-        destroy  = { console = LootUtils.consoledestroy },
-        quest    = { console = LootUtils.consolequest },
-        announce = { console = LootUtils.consoleannounce },
-        wildcard = { console = LootUtils.consolewildcard },
-        skipped  = { console = LootUtils.consoleskipped, reportFlag = "ReportSkipped" },
-        upgrade  = { console = LootUtils.consoleupgrade, reportFlag = "AnnounceUpgrades" },
-        debug    = { console = LootUtils.consoledebug },
-        info     = { console = LootUtils.consoleinfo },
-        warn     = { console = LootUtils.consolewarn },
+        keep     = { name = 'keep', console = LootUtils.consolekeep, reportFlag = "AnnounceLoot" },
+        bank     = { name = 'bank', console = LootUtils.consolebank },
+        sell     = { name = 'sell', console = LootUtils.consolesell },
+        fabled   = { name = 'fabled', console = LootUtils.consolefabled },
+        cash     = { name = 'cash', console = LootUtils.consolecash },
+        ignore   = { name = 'ignore', console = LootUtils.consoleignore },
+        destroy  = { name = 'destroy', console = LootUtils.consoledestroy },
+        quest    = { name = 'quest', console = LootUtils.consolequest },
+        announce = { name = 'announce', console = LootUtils.consoleannounce },
+        wildcard = { name = 'wildcard', console = LootUtils.consolewildcard },
+        skipped  = { name = 'skipped', console = LootUtils.consoleskipped, reportFlag = "ReportSkipped" },
+        upgrade  = { name = 'upgrade', console = LootUtils.consoleupgrade, reportFlag = "AnnounceUpgrades" },
+        debug    = { name = 'debug', console = LootUtils.consoledebug },
+        info     = { name = 'info', console = LootUtils.consoleinfo },
+        warn     = { name = 'warn', console = LootUtils.consolewarn },
     }
 
     local entry = consoleMap[msgType]
     if entry then
-        entry.console:AppendText(cleanMsg)
+        -- entry.console:AppendText(cleanMsg)
+        appendToConsole(entry.name, cleanMsg)
         if entry.reportFlag and LootUtils[entry.reportFlag] then
             LootUtils.report(message, ...)
         end
@@ -280,20 +322,22 @@ function LootUtils.ConsoleMessage(messageType, message, ...)
     local consolePrefix = '\a-t[\ax\ayDroidLoot\ax\a-t]\a-w' .. timestamp .. '\ax '
     local cleanMsg = string.format(consolePrefix .. message, ...)
     if messageType == 'Debug' then
-        LootUtils.Messages.Debug(message, ...)
-        LootUtils.consoledebug:AppendText(cleanMsg)
+        if LootUtils.Settings.Debug then
+            LootUtils.Messages.Debug(message, ...)
+        end
+        appendToConsole(string.lower(messageType), cleanMsg)
     elseif messageType == 'Info' then
         LootUtils.Messages.Info(message, ...)
-        LootUtils.consoleinfo:AppendText(cleanMsg)
+        appendToConsole(string.lower(messageType), cleanMsg)
     elseif messageType == 'Warn' then
         LootUtils.Messages.Warn(message, ...)
-        LootUtils.consolewarn:AppendText(cleanMsg)
+        appendToConsole(string.lower(messageType), cleanMsg)
     elseif messageType == 'Normal' then
         LootUtils.Messages.Normal(message, ...)
-        LootUtils.consolefull:AppendText(cleanMsg)
+        appendToConsole('full', cleanMsg)
     else
         LootUtils.Messages.Normal(message, ...)
-        LootUtils.consolefull:AppendText(cleanMsg)
+        appendToConsole('full', cleanMsg)
     end
 end
 
@@ -773,7 +817,7 @@ local function getRule(item)
         end
         if LootUtils.StackPlatValue > 0 and sellPrice * stackSize >= LootUtils.StackPlatValue and not noDrop and not noRent then
             LootUtils.ConsoleMessage('Debug', 'Sell because: %s', 'StackPlatValue')
-            LootUtils.logReport('Sell', 'Ignore Item: %s (%s)', itemLink, 'StackPlatValue')
+            LootUtils.logReport('Sell', 'Sell Item: %s (%s)', itemLink, 'StackPlatValue')
             lootDecision = 'Sell'
         end
         if LootUtils.LootEmpoweredFabled and string.find(itemName, LootUtils.EmpoweredFabledName) then
@@ -862,7 +906,7 @@ local function event_CantLoot_handler(line)
         return
     end
     if LootUtils.UseWarp then
-        mq.cmdf('%s', '/warp t')
+        mq.cmdf('%s', '/squelch /warp t')
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 250 + playerPing
         mq.delay(playerDelay)
@@ -2045,8 +2089,7 @@ local function LogWindowGUI()
 end
 mq.imgui.init("DroidLoot Logs Window", LogWindowGUI)
 
-
-
+local firstRun = true
 local function ConsoleWidgetTest()
     if not LootUtils.Settings.logShow2GUI then return end
 
@@ -2082,8 +2125,7 @@ local function ConsoleWidgetTest()
         end
 
         ImGui.SameLine()
-
-        LootUtils.Settings.logFilterText = ImGui.InputText('Filter', LootUtils.Settings.logFilterText, 256)
+        LootUtils.Settings.logFilterText = ImGui.InputText('Filter', LootUtils.Settings.logFilterText or "", 256)
         ImGui.SameLine()
         if ImGui.Button('Clear') then
             LootUtils.Settings.logFilterText = ''
@@ -2097,6 +2139,9 @@ local function ConsoleWidgetTest()
                 console = LootUtils["console" .. logType]
             }
         end
+        LootUtils.Settings.lastSearch = LootUtils.Settings.logFilterText
+        -- end
+        firstRun = false
 
         if ImGui.BeginTabBar("LogWindows") then
             for _, entry in ipairs(consoles) do
@@ -2107,28 +2152,11 @@ local function ConsoleWidgetTest()
                         goto continue
                     end
                     if ImGui.BeginTabItem(entry.name) then
+                        refreshConsole(string.lower(entry.name))
                         entry.console.autoScroll = LootUtils.Settings.log2AutoScroll or false
                         entry.console:Render()
                         ImGui.EndTabItem()
                     end
-                    -- if ImGui.BeginTabItem(entry.name) then
-                    --     local originalBuffer = entry.console.buffer
-                    --     if LootUtils.Settings.logFilterText ~= '' then
-                    --         local filtered = {}
-                    --         for _, line in ipairs(originalBuffer) do
-                    --             if string.find(string.lower(line), string.lower(LootUtils.Settings.logFilterText), 1, true) then
-                    --                 table.insert(filtered, line)
-                    --             end
-                    --         end
-                    --         entry.console.buffer = filtered
-                    --     end
-
-                    --     entry.console.autoScroll = LootUtils.Settings.log2AutoScroll or false
-                    --     entry.console:Render()
-                    --     entry.console.buffer = originalBuffer
-
-                    --     ImGui.EndTabItem()
-                    -- end
                 end
                 ::continue::
             end
