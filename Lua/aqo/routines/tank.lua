@@ -51,7 +51,7 @@ function tank.findMobToTank()
         -- Already actively tanking a mob
         tank.stickToMob()
         if not mq.TLO.Me.Combat() then mq.cmd('/attack on') end
-        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
@@ -230,7 +230,7 @@ function tank.tankMob()
         -- /stick mod -2
         state.resists = {}
         mq.cmd('/attack on')
-        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')

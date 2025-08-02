@@ -352,16 +352,16 @@ local function pullEngage(pull_spawn)
         --movement.stop()
         if (not mq.TLO.Target.LineOfSight() or mq.TLO.Target.Distance3D() > 11) and config.USEWARP then
             if config.USEWARP and not config.USEWARPININSTANCE then
-                mq.cmd('/warp t')
+                mq.cmd('/squelch /warp t')
             elseif config.USEWARP and config.USEWARPININSTANCE and mq.TLO.Me.InInstance() then
-                mq.cmd('/warp t')
+                mq.cmd('/squelch /warp t')
             end
         end
         if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
         mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
         mq.cmd('/attack on')
-        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
@@ -378,9 +378,9 @@ local function pullEngage(pull_spawn)
             -- mq.delay(100)
         end
         if config.USEWARP and not config.USEWARPININSTANCE then
-            mq.cmd('/warp t')
+            mq.cmd('/squelch /warp t')
         elseif config.USEWARP and config.USEWARPININSTANCE and mq.TLO.Me.InInstance() then
-            mq.cmd('/warp t')
+            mq.cmd('/squelch /warp t')
         end
         if mq.TLO.Group() then
             mq.cmd('/say ^summon all')

@@ -48,7 +48,7 @@ local function eventEnragedOff(line, name)
         if mq.TLO.Target.ID() == mq.TLO.Spawn(name).ID() then
             -- target is no longer enraged
             mq.cmd('/attack on')
-            if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+            if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
                 mq.cmd('/say ^summon all')
                 mq.delay(500)
                 mq.cmd('/say ^attack')
@@ -315,7 +315,7 @@ function assist.engage()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
-        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
@@ -400,7 +400,7 @@ function assist.attack(skip_no_los)
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
-        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).Distance3D() > 25 then
+        if config.USEBOTS and mq.TLO.Group() and mq.TLO.Group.Member(1).ID() and not mq.TLO.Group.Member(1).OtherZone() and mq.TLO.Group.Member(1).Distance3D() > 25 then
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')

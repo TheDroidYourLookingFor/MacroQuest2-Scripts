@@ -592,6 +592,7 @@ local function getRule(item)
     local stackSize = item.StackSize()
     local noDrop = item.NoDrop()
     local wornSlot = item.WornSlot(1)
+    local wornSlotNum = tonumber(tostring(wornSlot))
     local canUse = item.CanUse()
     local noRent = item.NoRent()
     local evolvingItem = item.Evolving()
@@ -668,7 +669,7 @@ local function getRule(item)
     end
 
     if LootUtils.LootByAugSlots then
-        local slotCategory = getItemSlotCategory(wornSlot)
+        local slotCategory = getItemSlotCategory(wornSlotNum)
         if LootUtils.LootByAugSlotsType == 'Any' or LootUtils.LootByAugSlotsType == slotCategory then
             if LootUtils.LootByAugSlotsAmount == 6 and itemAugSlot6 ~= 0 then
                 LootUtils.logReport('Keep', 'Found Augmented Item: %s (%s(%s))', itemLink, itemAugSlot6, LootUtils.LootByAugSlotsAmount)
@@ -706,7 +707,7 @@ local function getRule(item)
             AnnounceUpgrade(16, 'Right Finger')
             return 'Keep'
         elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
-            local slotName = slotNames[wornSlot] or "Unknown"
+            local slotName = slotNames[wornSlotNum] or "Unknown"
             AnnounceUpgrade(wornSlot, slotName)
             return 'Keep'
         end
@@ -820,7 +821,7 @@ local function getRule(item)
                     return 'Keep'
                 end
             elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-                local slotName = slotNames[wornSlot] or "Unknown"
+                local slotName = slotNames[wornSlotNum] or "Unknown"
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(wornSlot, slotName)
@@ -832,7 +833,7 @@ local function getRule(item)
                 end
             end
         else
-            local slotName = slotNames[wornSlot] or "Unknown"
+            local slotName = slotNames[wornSlotNum] or "Unknown"
             if itemLore then
                 if not haveItem and not haveItemBank then
                     AnnounceUpgrade(wornSlot, slotName)
@@ -2370,7 +2371,7 @@ function LootUtils.lootCorpse(corpseID)
         checkCursor()
     end
     if LootUtils.UseWarp then
-        mq.cmdf('%s', '/warp t')
+        mq.cmdf('%s', '/squelch /warp t')
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 250 + playerPing
         mq.delay(playerDelay)
@@ -2541,7 +2542,7 @@ local function goToVendor()
     LootUtils.ConsoleMessage('Info', 'Doing business with %s', vendorName)
     if mq.TLO.Target.Distance() > 15 then
         if LootUtils.UseWarp then
-            mq.cmdf('%s', '/warp t')
+            mq.cmdf('%s', '/squelch /warp t')
             local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
             local playerDelay = 500 + playerPing
             mq.delay(playerDelay)
