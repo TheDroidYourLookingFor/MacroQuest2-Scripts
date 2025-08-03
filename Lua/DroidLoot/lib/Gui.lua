@@ -4,7 +4,7 @@ local storage = require('DroidLoot.lib.Storage')
 local messages = require('DroidLoot.lib.Messages')
 local gui = {}
 
-gui.version = '1.0.8'
+gui.version = '1.0.9'
 gui.versionOrder = { "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9" }
 gui.change_Log = {
     ['1.0.0'] = { 'Initial Release',
@@ -65,7 +65,8 @@ gui.change_Log = {
     },
     ['1.0.9'] = { 'Added new options',
         '- Added options for loot by damage',
-        '- Added options for loot by Number of Augment Slots'
+        '- Added options for loot by Number of Augment Slots',
+        '- Added slot toggles for loot upgrades.'
     },
 }
 
@@ -386,6 +387,124 @@ local function DrawDeleteButton(item)
     end
 
     return pressed
+end
+
+local layout = {
+    { "Ear1",    "Head",      "Face",  "Ear2" },
+    { "Chest",   "",          "",      "Neck" },
+    { "Arms",    "",          "",      "Back" },
+    { "Waist",   "",          "",      "Shoulder" },
+    { "Wrist1",  "",          "",      "Wrist2" },
+    { "Legs",    "Hands",     "Charm", "Feet" },
+    { "",        "Ring1",     "Ring2", "" },
+    { "Primary", "Secondary", "Range", "Ammo" },
+}
+
+local equipmentSlots = {
+    Charm = 0,
+    Ear1 = 1,
+    Head = 2,
+    Face = 3,
+    Ear2 = 4,
+    Neck = 5,
+    Shoulder = 6,
+    Arms = 7,
+    Back = 8,
+    Wrist1 = 9,
+    Wrist2 = 10,
+    Range = 11,
+    Hands = 12,
+    Primary = 13,
+    Secondary = 14,
+    Ring1 = 15,
+    Ring2 = 16,
+    Chest = 17,
+    Legs = 18,
+    Feet = 19,
+    Waist = 20,
+    Powersource = 21,
+    Ammo = 22,
+}
+
+-- Define toggle groups
+local slotGroups = {
+    Ear1 = "Ears",
+    Ear2 = "Ears",
+    Ring1 = "Rings",
+    Ring2 = "Rings"
+}
+
+-- Track toggle states for each slot group
+local slotStates = {}
+-- Dummy texture you should load properly, or replace with your actual slot texture (similar to Chomps.bagTexture)
+local slotTexture = mq.FindTextureAnimation("A_DragItem")
+local function slotButton(name)
+    if name ~= "" then
+        local group = slotGroups[name] or name
+
+        if slotStates[group] == nil then
+            slotStates[group] = DroidLoot.LootUtils.LootUpgrades[name] ~= nil and DroidLoot.LootUtils.LootUpgrades[name] or false
+        end
+
+        ImGui.PushID(name)
+
+        if ImGui.InvisibleButton("btn_" .. name, 48, 48) then
+            local newState = not slotStates[group]
+            slotStates[group] = newState
+
+            -- Save state to all slot names in the group
+            for slotName, slotGroup in pairs(slotGroups) do
+                if slotGroup == group then
+                    slotStates[slotName] = newState
+                    DroidLoot.LootUtils.LootUpgrades[slotName] = newState
+                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'LootUpgrades', slotName, newState)
+                end
+            end
+
+            -- Also handle individually clicked slot if not in slotGroups
+            if not slotGroups[name] then
+                slotStates[name] = newState
+                DroidLoot.LootUtils.LootUpgrades[name] = newState
+                DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'LootUpgrades', name, newState)
+            end
+        end
+
+        local x, y = ImGui.GetItemRectMin()
+        local x2, y2 = ImGui.GetItemRectMax()
+        local drawList = ImGui.GetWindowDrawList()
+
+        local iconID = mq.TLO.Me.Inventory(equipmentSlots[name]).Icon()
+        local hasIcon = iconID ~= nil
+
+        -- Always show toggle color (green/red)
+        local col = slotStates[group] and 0xFF00FF00 or 0xFF0000FF
+        drawList:AddRectFilled(ImVec2(x, y), ImVec2(x2, y2), col)
+
+        local cx, cy = ImGui.GetCursorPos()
+        ImGui.SetCursorScreenPos(x, y)
+
+        if hasIcon and slotTexture then
+            slotTexture:SetTextureCell(iconID - 500)
+            ImGui.DrawTextureAnimation(slotTexture, 48, 48)
+        else
+            local textSizeX, textSizeY = ImGui.CalcTextSize(name)
+            local textX = x + (48 - textSizeX) / 2
+            local textY = y + (48 - textSizeY) / 2
+            drawList:AddText(ImVec2(textX, textY), 0xFFFFFFFF, name)
+        end
+
+        ImGui.SetCursorPos(cx, cy)
+
+        if ImGui.IsItemHovered() then
+            ImGui.BeginTooltip()
+            ImGui.Text('Click toggle auto looting of upgrade for ' .. name .. '.')
+            ImGui.EndTooltip()
+        end
+
+        ImGui.PopID()
+    else
+        ImGui.Dummy(ImVec2(48, 48))
+    end
 end
 
 function gui.DroidLootGUI()
@@ -809,6 +928,32 @@ function gui.DroidLootGUI()
 
                                 ImGui.EndTabItem()
                             end
+
+                            local lootUpgradesOpen = ImGui.BeginTabItem("Loot Upgrades")
+                            if lootUpgradesOpen then
+                                DroidLoot.LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', DroidLoot.LootUtils.LootGearUpgrades)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Loots items with more HP than currently worn items.')
+                                if LOOTGEARUPGRADES ~= DroidLoot.LootUtils.LootGearUpgrades then
+                                    LOOTGEARUPGRADES = DroidLoot.LootUtils.LootGearUpgrades
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootGearUpgrades', DroidLoot.LootUtils.LootGearUpgrades)
+                                end
+                                ImGui.Separator();
+                                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(4, 4))
+
+                                for row = 1, #layout do
+                                    for col = 1, 4 do
+                                        slotButton(layout[row][col])
+                                        if col < 4 then
+                                            ImGui.SameLine();
+                                        end
+                                    end
+                                end
+
+                                ImGui.PopStyleVar();
+                                ImGui.EndTabItem();
+                            end
+
                             local hubOperationsOpen = ImGui.BeginTabItem("Hub Operations")
                             if hubOperationsOpen then
                                 ImGui.Columns(2)

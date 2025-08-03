@@ -127,6 +127,31 @@ LootUtils.Settings.log2AutoScroll = true
 LootUtils.ConsoleByType = LootUtils.ConsoleByType or {}
 LootUtils.MessageLogs = LootUtils.MessageLogs or {}
 
+LootUtils.LootUpgrades = {}
+LootUtils.LootUpgrades.Charm = true
+LootUtils.LootUpgrades.Ear1 = true
+LootUtils.LootUpgrades.Head = true
+LootUtils.LootUpgrades.Face = true
+LootUtils.LootUpgrades.Ear2 = true
+LootUtils.LootUpgrades.Neck = true
+LootUtils.LootUpgrades.Shoulder = true
+LootUtils.LootUpgrades.Arms = true
+LootUtils.LootUpgrades.Back = true
+LootUtils.LootUpgrades.Wrist1 = true
+LootUtils.LootUpgrades.Wrist2 = true
+LootUtils.LootUpgrades.Range = true
+LootUtils.LootUpgrades.Hands = true
+LootUtils.LootUpgrades.Primary = true
+LootUtils.LootUpgrades.Secondary = true
+LootUtils.LootUpgrades.Ring1 = true
+LootUtils.LootUpgrades.Ring2 = true
+LootUtils.LootUpgrades.Chest = true
+LootUtils.LootUpgrades.Legs = true
+LootUtils.LootUpgrades.Feet = true
+LootUtils.LootUpgrades.Waist = true
+LootUtils.LootUpgrades.Powersource = true
+LootUtils.LootUpgrades.Ammo = true
+
 -- Internal settings
 local lootData = {}
 local doSell = false
@@ -428,12 +453,21 @@ function LootUtils.writeSettings()
         LootUtils.saveSetting(LootUtils.Settings.LootFile, character, 'Defaults', LootUtils.Settings.Defaults)
     end
     LootUtils.saveWildCardTerms()
+    LootUtils.saveLootUpgrades()
 end
 
 function LootUtils.saveWildCardTerms()
     if #LootUtils.wildCardTerms then
         LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count', #LootUtils.wildCardTerms)
         for index, term in ipairs(LootUtils.wildCardTerms) do
+            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+        end
+    end
+end
+
+function LootUtils.saveLootUpgrades()
+    if #LootUtils.LootUpgrades then
+        for index, term in ipairs(LootUtils.LootUpgrades) do
             LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
         end
     end
@@ -467,13 +501,26 @@ function LootUtils.loadSettings()
         end
     end
     LootUtils.wildCardTerms = {}
-    LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count')
     local count = tonumber(LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Count') or 0)
     if count > 0 then
         for i = 1, count do
             local term = LootUtils.Storage.ReadINIValue(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. i)
             if term then
                 table.insert(LootUtils.wildCardTerms, term)
+            end
+        end
+    end
+    local iniUpgrade = LootUtils.Storage.ReadINISection(LootUtils.Settings.LootFile, 'LootUpgrades')
+    local keyCountUpgrade = iniUpgrade.Key.Count()
+
+    for i = 1, keyCountUpgrade do
+        local key = iniUpgrade.Key.KeyAtIndex(i)()
+        local value = iniUpgrade.Key(key).Value()
+        if LootUtils.LootUpgrades[key] ~= nil then
+            if value == 'true' or value == true then
+                LootUtils.LootUpgrades[key] = true
+            elseif value == 'false' or value == false then
+                LootUtils.LootUpgrades[key] = false
             end
         end
     end
@@ -644,6 +691,7 @@ local function getRule(item)
         ["Legs"] = true,
         ["Feet"] = true,
     }
+    local slotName = slotNames[wornSlotNum] or "Unknown"
 
     -- Use slotNames[wornSlot] to determine category
     local function getItemSlotCategory(slot)
@@ -723,7 +771,7 @@ local function getRule(item)
         return 'Keep'
     end
 
-    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornPrimaryEff ~= nil and itemEff > wornPrimaryEff then
+    if LootUtils.LootGearUpgrades and LootUtils.LootUpgrades.Primary and canUse and itemEff ~= nil and wornPrimaryEff ~= nil and itemEff > wornPrimaryEff then
         if itemLore then
             if not haveItem and not haveItemBank then
                 AnnounceUpgrade(wornSlot, 'Primary')
@@ -735,7 +783,7 @@ local function getRule(item)
         end
     end
 
-    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornSecondaryEff ~= nil and itemEff > wornSecondaryEff then
+    if LootUtils.LootGearUpgrades and LootUtils.LootUpgrades.Secondary and canUse and itemEff ~= nil and wornSecondaryEff ~= nil and itemEff > wornSecondaryEff then
         if itemLore then
             if not haveItem and not haveItemBank then
                 AnnounceUpgrade(wornSlot, 'Secondary')
@@ -747,7 +795,7 @@ local function getRule(item)
         end
     end
 
-    if LootUtils.LootGearUpgrades and canUse and itemEff ~= nil and wornRangeEff ~= nil and itemEff > wornRangeEff then
+    if LootUtils.LootGearUpgrades and LootUtils.LootUpgrades.Range and canUse and itemEff ~= nil and wornRangeEff ~= nil and itemEff > wornRangeEff then
         if itemLore then
             if not haveItem and not haveItemBank then
                 AnnounceUpgrade(wornSlot, 'Range')
@@ -760,7 +808,7 @@ local function getRule(item)
     end
     if LootUtils.LootGearUpgrades and canUse and itemHP ~= nil and itemHP > 0 then
         if mq.TLO.Me.Inventory(wornSlot)() ~= nil then
-            if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            if wornSlot == 1 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP and LootUtils.LootUpgrades.Ear1 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(wornSlot, 'Left Ear')
@@ -770,7 +818,7 @@ local function getRule(item)
                     AnnounceUpgrade(wornSlot, 'Left Ear')
                     return 'Keep'
                 end
-            elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() > 1 and mq.TLO.Me.Inventory(4).HP() < itemHP then
+            elseif wornSlot == 1 and mq.TLO.Me.Inventory(4)() ~= nil and mq.TLO.Me.Inventory(4).HP() > 1 and mq.TLO.Me.Inventory(4).HP() < itemHP and LootUtils.LootUpgrades.Ear2 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(4, 'Right Ear')
@@ -780,7 +828,7 @@ local function getRule(item)
                     AnnounceUpgrade(4, 'Right Ear')
                     return 'Keep'
                 end
-            elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            elseif wornSlot == 9 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP and LootUtils.LootUpgrades.Wrist1 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(wornSlot, 'Left Wrist')
@@ -790,7 +838,7 @@ local function getRule(item)
                     AnnounceUpgrade(wornSlot, 'Left Wrist')
                     return 'Keep'
                 end
-            elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() > 1 and mq.TLO.Me.Inventory(10).HP() < itemHP then
+            elseif wornSlot == 9 and mq.TLO.Me.Inventory(10)() ~= nil and mq.TLO.Me.Inventory(10).HP() > 1 and mq.TLO.Me.Inventory(10).HP() < itemHP and LootUtils.LootUpgrades.Wrist2 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(10, 'Right Wrist')
@@ -800,7 +848,7 @@ local function getRule(item)
                     AnnounceUpgrade(10, 'Right Wrist')
                     return 'Keep'
                 end
-            elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
+            elseif wornSlot == 15 and mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP and LootUtils.LootUpgrades.Ring1 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(wornSlot, 'Left Finger')
@@ -810,7 +858,7 @@ local function getRule(item)
                     AnnounceUpgrade(wornSlot, 'Left Finger')
                     return 'Keep'
                 end
-            elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() > 1 and mq.TLO.Me.Inventory(16).HP() < itemHP then
+            elseif wornSlot == 15 and mq.TLO.Me.Inventory(16)() ~= nil and mq.TLO.Me.Inventory(16).HP() > 1 and mq.TLO.Me.Inventory(16).HP() < itemHP and LootUtils.LootUpgrades.Ring2 then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(16, 'Right Finger')
@@ -820,8 +868,7 @@ local function getRule(item)
                     AnnounceUpgrade(16, 'Right Finger')
                     return 'Keep'
                 end
-            elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP then
-                local slotName = slotNames[wornSlotNum] or "Unknown"
+            elseif mq.TLO.Me.Inventory(wornSlot)() ~= nil and mq.TLO.Me.Inventory(wornSlot).HP() > 1 and mq.TLO.Me.Inventory(wornSlot).HP() < itemHP and LootUtils.LootUpgrades[name] then
                 if itemLore then
                     if not haveItem and not haveItemBank then
                         AnnounceUpgrade(wornSlot, slotName)
@@ -833,15 +880,16 @@ local function getRule(item)
                 end
             end
         else
-            local slotName = slotNames[wornSlotNum] or "Unknown"
-            if itemLore then
-                if not haveItem and not haveItemBank then
+            if LootUtils.LootUpgrades[name] then
+                if itemLore then
+                    if not haveItem and not haveItemBank then
+                        AnnounceUpgrade(wornSlot, slotName)
+                        return 'Keep'
+                    end
+                else
                     AnnounceUpgrade(wornSlot, slotName)
                     return 'Keep'
                 end
-            else
-                AnnounceUpgrade(wornSlot, slotName)
-                return 'Keep'
             end
         end
     end
@@ -1217,6 +1265,124 @@ LOOTBYDAMAGEEFFICIENCY = LootUtils.LootByDamageEfficiency
 LOOTBYDAMAGEEFFICIENCYAMOUNT = LootUtils.LootByDamageEfficiencyAmount
 
 CurrentStatus = ' '
+-- Slot layout by [row][col]
+local layout = {
+    { "Ear1",    "Head",      "Face",  "Ear2" },
+    { "Chest",   "",          "",      "Neck" },
+    { "Arms",    "",          "",      "Back" },
+    { "Waist",   "",          "",      "Shoulder" },
+    { "Wrist1",  "",          "",      "Wrist2" },
+    { "Legs",    "Hands",     "Charm", "Feet" },
+    { "",        "Ring1",     "Ring2", "" },
+    { "Primary", "Secondary", "Range", "Ammo" },
+}
+
+local equipmentSlots = {
+    Charm = 0,
+    Ear1 = 1,
+    Head = 2,
+    Face = 3,
+    Ear2 = 4,
+    Neck = 5,
+    Shoulder = 6,
+    Arms = 7,
+    Back = 8,
+    Wrist1 = 9,
+    Wrist2 = 10,
+    Range = 11,
+    Hands = 12,
+    Primary = 13,
+    Secondary = 14,
+    Ring1 = 15,
+    Ring2 = 16,
+    Chest = 17,
+    Legs = 18,
+    Feet = 19,
+    Waist = 20,
+    Powersource = 21,
+    Ammo = 22,
+}
+
+-- Define toggle groups
+local slotGroups = {
+    Ear1 = "Ears",
+    Ear2 = "Ears",
+    Ring1 = "Rings",
+    Ring2 = "Rings"
+}
+
+-- Track toggle states for each slot group
+local slotStates = {}
+-- Dummy texture you should load properly, or replace with your actual slot texture (similar to Chomps.bagTexture)
+local slotTexture = mq.FindTextureAnimation("A_DragItem")
+local function slotButton(name)
+    if name ~= "" then
+        local group = slotGroups[name] or name
+
+        if slotStates[group] == nil then
+            slotStates[group] = LootUtils.LootUpgrades[name] ~= nil and LootUtils.LootUpgrades[name] or false
+        end
+
+        ImGui.PushID(name)
+
+        if ImGui.InvisibleButton("btn_" .. name, 48, 48) then
+            local newState = not slotStates[group]
+            slotStates[group] = newState
+
+            -- Save state to all slot names in the group
+            for slotName, slotGroup in pairs(slotGroups) do
+                if slotGroup == group then
+                    slotStates[slotName] = newState
+                    LootUtils.LootUpgrades[slotName] = newState
+                    LootUtils.saveSetting(LootUtils.LootFile, 'LootUpgrades', slotName, newState)
+                end
+            end
+
+            -- Also handle individually clicked slot if not in slotGroups
+            if not slotGroups[name] then
+                slotStates[name] = newState
+                LootUtils.LootUpgrades[name] = newState
+                LootUtils.saveSetting(LootUtils.LootFile, 'LootUpgrades', name, newState)
+            end
+        end
+
+        local x, y = ImGui.GetItemRectMin()
+        local x2, y2 = ImGui.GetItemRectMax()
+        local drawList = ImGui.GetWindowDrawList()
+
+        local iconID = mq.TLO.Me.Inventory(equipmentSlots[name]).Icon()
+        local hasIcon = iconID ~= nil
+
+        -- Always show toggle color (green/red)
+        local col = slotStates[group] and 0xFF00FF00 or 0xFF0000FF
+        drawList:AddRectFilled(ImVec2(x, y), ImVec2(x2, y2), col)
+
+        local cx, cy = ImGui.GetCursorPos()
+        ImGui.SetCursorScreenPos(x, y)
+
+        if hasIcon and slotTexture then
+            slotTexture:SetTextureCell(iconID - 500)
+            ImGui.DrawTextureAnimation(slotTexture, 48, 48)
+        else
+            local textSizeX, textSizeY = ImGui.CalcTextSize(name)
+            local textX = x + (48 - textSizeX) / 2
+            local textY = y + (48 - textSizeY) / 2
+            drawList:AddText(ImVec2(textX, textY), 0xFFFFFFFF, name)
+        end
+
+        ImGui.SetCursorPos(cx, cy)
+
+        if ImGui.IsItemHovered() then
+            ImGui.BeginTooltip()
+            ImGui.Text('Click toggle auto looting of upgrade for ' .. name .. '.')
+            ImGui.EndTooltip()
+        end
+
+        ImGui.PopID()
+    else
+        ImGui.Dummy(ImVec2(48, 48))
+    end
+end
 local function OptionsGUI()
     if not LootUtils.Settings.optionsShowGUI then return end
     if LootUtils.Settings.optionsShowGUI and LootUtils.Settings.optionsOpenGUI then
@@ -1296,7 +1462,31 @@ local function OptionsGUI()
                 end
                 ImGui.Separator();
 
-                ImGui.EndTabItem()
+                ImGui.EndTabItem();
+            end
+            local lootUpgradesOpen = ImGui.BeginTabItem("Loot Upgrades")
+            if lootUpgradesOpen then
+                LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', LootUtils.LootGearUpgrades)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items with more HP than currently worn items.')
+                if LOOTGEARUPGRADES ~= LootUtils.LootGearUpgrades then
+                    LOOTGEARUPGRADES = LootUtils.LootGearUpgrades
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootGearUpgrades', LootUtils.LootGearUpgrades)
+                end
+                ImGui.Separator();
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(4, 4))
+
+                for row = 1, #layout do
+                    for col = 1, 4 do
+                        slotButton(layout[row][col])
+                        if col < 4 then
+                            ImGui.SameLine();
+                        end
+                    end
+                end
+
+                ImGui.PopStyleVar();
+                ImGui.EndTabItem();
             end
             local lootByDamageEfficiencyOpen = ImGui.BeginTabItem("Loot By Damage Efficiency")
             if lootByDamageEfficiencyOpen then
@@ -1318,13 +1508,13 @@ local function OptionsGUI()
                 end
                 ImGui.Separator();
 
-                ImGui.EndTabItem()
+                ImGui.EndTabItem();
             end
             local hubOperationsOpen = ImGui.BeginTabItem("Hub Operations")
             if hubOperationsOpen then
-                ImGui.Columns(2)
+                ImGui.Columns(2);
                 LootUtils.bankDeposit = ImGui.Checkbox('Enable Bank Deposit', LootUtils.bankDeposit)
-                ImGui.SameLine()
+                ImGui.SameLine();
                 ImGui.HelpMarker('Moves to hub to deposit items into bank when limit is reached.')
                 if BANKDEPOSIT ~= LootUtils.bankDeposit then
                     BANKDEPOSIT = LootUtils.bankDeposit
@@ -1334,17 +1524,17 @@ local function OptionsGUI()
 
                 LootUtils.sellVendor = ImGui.Checkbox('Enable Vendor Selling', LootUtils.sellVendor)
                 ImGui.SameLine()
-                ImGui.HelpMarker('Sells items for Platinum when enabled.')
+                ImGui.HelpMarker('Sells items for Platinum when enabled.');
                 if SELLVENDOR ~= LootUtils.sellVendor then
                     SELLVENDOR = LootUtils.sellVendor
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'sellVendor', LootUtils.sellVendor)
                 end
                 ImGui.Separator();
-                ImGui.Columns(1)
+                ImGui.Columns(1);
 
                 LootUtils.bankZone = ImGui.InputInt('Bank Zone', LootUtils.bankZone)
                 ImGui.SameLine()
-                ImGui.HelpMarker('Zone where we can access banking services.')
+                ImGui.HelpMarker('Zone where we can access banking services.');
                 if BANKZONE ~= LootUtils.bankZone then
                     BANKZONE = LootUtils.bankZone
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankZone', LootUtils.bankZone)
@@ -1352,8 +1542,8 @@ local function OptionsGUI()
                 ImGui.Separator();
 
                 LootUtils.bankNPC = ImGui.InputText('Bank NPC', LootUtils.bankNPC)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The name of the npc to warp to for banking.')
+                ImGui.SameLine();
+                ImGui.HelpMarker('The name of the npc to warp to for banking.');
                 if BANKNPC ~= LootUtils.bankNPC then
                     BANKNPC = LootUtils.bankNPC
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'bankNPC', LootUtils.bankNPC)
@@ -1361,8 +1551,8 @@ local function OptionsGUI()
                 ImGui.Separator();
 
                 LootUtils.vendorNPC = ImGui.InputText('Vendor NPC', LootUtils.vendorNPC)
-                ImGui.SameLine()
-                ImGui.HelpMarker('The name of the npc to warp to for vendoring.')
+                ImGui.SameLine();
+                ImGui.HelpMarker('The name of the npc to warp to for vendoring.');
                 if VENDORNPC ~= LootUtils.vendorNPC then
                     VENDORNPC = LootUtils.vendorNPC
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'vendorNPC', LootUtils.vendorNPC)
@@ -1745,15 +1935,6 @@ local function OptionsGUI()
                 if COMBATLOOTING ~= LootUtils.CombatLooting then
                     COMBATLOOTING = LootUtils.CombatLooting
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'CombatLooting', LootUtils.CombatLooting)
-                end
-                ImGui.Separator();
-
-                LootUtils.LootGearUpgrades = ImGui.Checkbox('Enable Upgrade Looting', LootUtils.LootGearUpgrades)
-                ImGui.SameLine()
-                ImGui.HelpMarker('Loots items with more HP than currently worn items.')
-                if LOOTGEARUPGRADES ~= LootUtils.LootGearUpgrades then
-                    LOOTGEARUPGRADES = LootUtils.LootGearUpgrades
-                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootGearUpgrades', LootUtils.LootGearUpgrades)
                 end
                 ImGui.Separator();
 
