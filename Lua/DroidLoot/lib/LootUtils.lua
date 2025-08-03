@@ -18,7 +18,7 @@ local mq = require 'mq'
 local ImGui = require 'ImGui'
 
 local LootUtils = {
-    Version = "1.0.28",
+    Version = "1.0.29",
     -- _Macro = DroidLoot,
     UseWarp = false,
     AddNewSales = true,
@@ -26,7 +26,7 @@ local LootUtils = {
     LootForage = true,
     LootTradeSkill = false,
     DoLoot = true,
-    LootByAugSlots = true,
+    LootByAugSlots = false,
     LootByAugSlotsAmount = 3,
     LootByAugSlotsTypeIndex = 1,
     LootByAugSlotsType = 'Weapon', -- Any, Armor, Weapon, NonVis
@@ -60,7 +60,7 @@ local LootUtils = {
     LootByMinHP = 0,
     LootByMinHPNoDrop = false,
     SaveBagSlots = 3,
-    MinSellPrice = 100000,
+    MinSellPrice = 10000000,
     StackableOnly = false,
     UseSingleFileForAllCharacters = false,
     UseServerLootFile = true,
@@ -75,16 +75,16 @@ local LootUtils = {
     vendorNPC = 'Jocelyn Forgerson',
     returnToCampDistance = 200,
     camp_Check = false,
-    zone_Check = true,
+    zone_Check = false,
     lootGroundSpawns = false,
-    returnHomeAfterLoot = true,
+    returnHomeAfterLoot = false,
     staticHunt = false,
     staticZoneID = '173',
     staticZoneName = 'maiden',
     staticX = '1905',
     staticY = '940',
     staticZ = '-151.74',
-    health_Check = true,
+    health_Check = false,
     heal_Spell = 'Daria\'s Mending Rk. III',
     heal_Gem = 1,
     heal_At = 50,
@@ -1735,13 +1735,10 @@ local function OptionsGUI()
                 local settingsChanged = false -- Track if any settings changed
 
                 -- Checkbox for enabling wildcard looting
-                local lootWildCardItems = LootUtils.LootWildCardItems
-                local changed
-                lootWildCardItems, changed = ImGui.Checkbox('Enable Wildcard Looting', lootWildCardItems)
-                if changed then
-                    LootUtils.LootWildCardItems = lootWildCardItems
-                    LOOTWILDCARDITEMS = lootWildCardItems
-                    settingsChanged = true
+                LootUtils.LootWildCardItems = ImGui.Checkbox('Enable Wildcard Looting', LootUtils.LootWildCardItems)
+                if LOOTWILDCARDITEMS ~= LootUtils.LootWildCardItems then
+                    LOOTWILDCARDITEMS = LootUtils.LootWildCardItems
+                    LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootWildCardItems', LootUtils.LootWildCardItems)
                 end
                 ImGui.SameLine()
                 ImGui.HelpMarker('Loots items matching wildcard names.')
@@ -1776,7 +1773,7 @@ local function OptionsGUI()
 
                     -- Add new term
                     LootUtils.newWildCardTerm = LootUtils.newWildCardTerm or ""
-                    local newTermInput
+                    local newTermInput, changed
                     newTermInput, changed = ImGui.InputText("New Term", LootUtils.newWildCardTerm, 256)
                     if changed then
                         LootUtils.newWildCardTerm = newTermInput
