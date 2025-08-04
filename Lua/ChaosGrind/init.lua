@@ -23,9 +23,12 @@ ChaosGrind.GroupHealItem = 'Mythic Minli`s Greaves of Stability'
 ChaosGrind.GroupHealAt = 90
 ChaosGrind.DoGroupHeals = true
 ChaosGrind.DoSelfHeals = true
+ChaosGrind.DoZonePulls = true
 ChaosGrind.mobsSearch = 'npc targetable noalert 1'
-ChaosGrind.aggroItem = 'Charm of Hate'
-ChaosGrind.respawnItem = 'Uber Charm of Refreshing'
+ChaosGrind.aggroItem = 'Chaotic Horn of Aggro'
+ChaosGrind.respawnItem = 'Chaotic Horn of Reborm'
+ChaosGrind.lastRespawnUse = 0
+ChaosGrind.COOLDOWN_SECONDS = 600
 ChaosGrind.NewDisconnectHandler = true
 
 ChaosGrind.lastX = mq.TLO.Me.X()
@@ -57,7 +60,9 @@ ChaosGrind.Delays = {
     Nine = 500,
     Ten = 1000,
     Eleven = 750,
-    Warp = 500
+    Warp = 500,
+    Repop = 1500,
+    Aggro = 1500
 }
 local function navToID(spawnID)
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
@@ -104,7 +109,7 @@ function ChaosGrind.goToInstanceNPC()
 end
 
 local function event_chaoticCounter_handler(line, mobName)
-    ChaosGrind.ChaoticCounter = (CampFarmer.ChaoticCounter or 0) + 1
+    ChaosGrind.ChaoticCounter = (ChaosGrind.ChaoticCounter or 0) + 1
     ChaosGrind.SlainChaoticTypes[mobName] = (ChaosGrind.SlainChaoticTypes[mobName] or 0) + 1
 end
 mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#*#", event_chaoticCounter_handler)
@@ -188,13 +193,13 @@ function ChaosGrind.GetInstance()
 end
 
 function ChaosGrind.CheckGroupHealth()
-    if mq.TLO.Group.GroupSize() > 2 and ChaosGrind.DoGroupHeals then
+    if mq.TLO.Group() and mq.TLO.Group.GroupSize() > 2 and ChaosGrind.DoGroupHeals then
         for i = 1, mq.TLO.Group.Members() do
             local member = mq.TLO.Group.Member(i)
             if member() and member.PctHPs() ~= nil and member.PctHPs() <= ChaosGrind.GroupHealAt then
                 if mq.TLO.FindItem('=' .. ChaosGrind.GroupHealItem)() then
                     mq.cmdf('/useitem "%s"', ChaosGrind.GroupHealItem)
-                    mq.delay(100)
+                    mq.delay(250)
                     break
                 end
             end
@@ -207,7 +212,7 @@ function ChaosGrind.CheckSelfHealth()
     if mq.TLO.Me.PctHPs() <= ChaosGrind.GroupHealAt and ChaosGrind.DoSelfHeals then
         if mq.TLO.FindItem('=' .. ChaosGrind.GroupHealItem)() then
             mq.cmdf('/useitem "%s"', ChaosGrind.GroupHealItem)
-            mq.delay(100)
+            mq.delay(250)
         end
     end
 end
@@ -242,56 +247,21 @@ function ChaosGrind.HandleDisconnect()
     end
 end
 
-function ChaosGrind.RespawnZone()
+function ChaosGrind.MassAggro()
+    if not ChaosGrind.DoZonePulls then return end
     ChaosGrind.HandleDisconnect()
-    if mq.TLO.SpawnCount(ChaosGrind.Settings.mobsSearch)() > ChaosGrind.Settings.MinMobsInZone then
-        return
+    local now = os.time()
+    -- Check respawn item cooldown
+    if now - ChaosGrind.lastRespawnUse >= ChaosGrind.COOLDOWN_SECONDS then
+        print('Attempting to respawn the zone!')
+        mq.cmdf('/useitem %s', ChaosGrind.respawnItem)
+        mq.delay(ChaosGrind.Delays.Repop)
+        print('Attempting to aggro the zone!')
+        mq.delay(ChaosGrind.Delays.Two)
+        mq.cmdf('/useitem %s', ChaosGrind.aggroItem)
+        mq.delay(ChaosGrind.Delays.Aggro)
+        ChaosGrind.lastRespawnUse = os.time()
     end
-    if not mq.TLO.FindItem(ChaosGrind.Settings.respawnItem)() then
-        return
-    end
-    if not mq.TLO.Me.ItemReady(ChaosGrind.Settings.respawnItem)() then
-        return
-    end
-    print('Attempting to respawn the zone!')
-    mq.cmdf('/useitem %s', ChaosGrind.Settings.respawnItem)
-    mq.delay(ChaosGrind.RepopDelay)
-end
-
-function ChaosGrind.Aggro(aggroCharm)
-    ChaosGrind.HandleDisconnect()
-    ChaosGrind.CheckZone()
-    if ChaosGrind.CheckXTargAggro() > 0 then
-        return
-    end
-    mq.cmdf('/target id %s', mq.TLO.Me.ID())
-    mq.delay(1000, function()
-        return mq.TLO.Target.ID() == mq.TLO.Me.ID()
-    end)
-    mq.delay(ChaosGrind.Delays.Two)
-    mq.cmdf('/useitem %s', aggroCharm)
-    mq.delay(ChaosGrind.AggroDelay)
-end
-
-function ChaosGrind.AggroZone()
-    ChaosGrind.HandleDisconnect()
-    ChaosGrind.CheckZone()
-    if mq.TLO.SpawnCount(ChaosGrind.mobsSearch)() < ChaosGrind.MinMobsInZone then
-        return
-    end
-    if not mq.TLO.FindItem(ChaosGrind.aggroItem)() then
-        return
-    end
-    if not mq.TLO.Me.ItemReady(ChaosGrind.aggroItem)() then
-        return
-    end
-    if mq.TLO.NearestSpawn(ChaosGrind.spawnSearch)() then
-        return
-    end
-    if ChaosGrind.CheckXTargAggro() > 0 then
-        return
-    end
-    ChaosGrind.Aggro(ChaosGrind.Settings.aggroItem)
 end
 
 local function event_slainMob_handler(line, mobName)
@@ -371,6 +341,7 @@ function ChaosGrind.ChaoticStatus()
 
     return ChaosGrind.ChaoticCounter, chaoticPerHour
 end
+
 function ChaosGrind.KillsStatus()
     local currentTime = os.time()
 
@@ -444,6 +415,7 @@ function ChaosGrind.MainLoop()
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
+                    ChaosGrind.MassAggro()
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then

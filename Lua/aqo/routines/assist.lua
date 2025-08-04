@@ -52,6 +52,10 @@ local function eventEnragedOff(line, name)
                 mq.cmd('/say ^summon all')
                 mq.delay(500)
                 mq.cmd('/say ^attack')
+                if mq.TLO.Me.AltAbilityReady(1215)() and mq.TLO.Pet.ID() > 0 then
+                    mq.cmdf('/alt act %s', 1215)
+                    mq.delay(100)
+                end
             end
         end
         if mq.TLO.Pet.ID() > 0 then
@@ -319,6 +323,10 @@ function assist.engage()
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
+            if mq.TLO.Me.AltAbilityReady(1215)() and mq.TLO.Pet.ID() > 0 then
+                mq.cmdf('/alt act %s', 1215)
+                mq.delay(100)
+            end
         end
     elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false

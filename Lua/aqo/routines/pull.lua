@@ -365,6 +365,10 @@ local function pullEngage(pull_spawn)
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
+            if mq.TLO.Me.AltAbilityReady(1215)() and mq.TLO.Pet.ID() > 0 then
+                mq.cmdf('/alt act %s', 1215)
+                mq.delay(100)
+            end
         end
         state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
     else
@@ -386,6 +390,10 @@ local function pullEngage(pull_spawn)
             mq.cmd('/say ^summon all')
             mq.delay(500)
             mq.cmd('/say ^attack')
+            if mq.TLO.Me.AltAbilityReady(1215)() and mq.TLO.Pet.ID() > 0 then
+                mq.cmdf('/alt act %s', 1215)
+                mq.delay(100)
+            end
         end
         local pullWith = config.get('PULLWITH')
         local pull_item = nil
