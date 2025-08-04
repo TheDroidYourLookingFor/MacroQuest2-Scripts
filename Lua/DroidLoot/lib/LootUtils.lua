@@ -630,9 +630,9 @@ local function getRule(item)
     local wornPrimaryDelay = mq.TLO.Me.Inventory(13).ItemDelay()
     local wornSecondaryDelay = mq.TLO.Me.Inventory(14).ItemDelay()
     local wornRangedDelay = mq.TLO.Me.Inventory(11).ItemDelay()
-    local wornPrimaryEff = (itemDMG / itemDelay) * 100
-    local wornSecondaryEff = (itemDMG / itemDelay) * 100
-    local wornRangeEff = (itemDMG / itemDelay) * 100
+    local wornPrimaryEff = (wornPrimaryDmg / wornPrimaryDelay) * 100
+    local wornSecondaryEff = (wornSecondaryDmg / wornSecondaryDelay) * 100
+    local wornRangeEff = (wornRangedDmg / wornRangedDelay) * 100
     local itemAugSlot1 = item.AugSlot1()
     local itemAugSlot2 = item.AugSlot2()
     local itemAugSlot3 = item.AugSlot3()
@@ -764,7 +764,7 @@ local function getRule(item)
             AnnounceUpgrade(16, 'Right Finger')
             return 'Keep'
         elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
-            local slotName = slotNames[wornSlotNum] or "Unknown"
+
             AnnounceUpgrade(wornSlot, slotName)
             return 'Keep'
         end
