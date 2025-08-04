@@ -154,6 +154,9 @@ gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
 gui.LOOTBYDAMAGEEFFICIENCY = DroidLoot.LootUtils.LootByDamageEfficiency
 gui.LOOTBYDAMAGEEFFICIENCYAMOUNT = DroidLoot.LootUtils.LootByDamageEfficiencyAmount
 
+gui.USEWARP = DroidLoot.LootUtils.UseWarp
+gui.USEWARPINSTANCEONLY = DroidLoot.LootUtils.UseWarpInstanceOnly
+
 gui.CurrentStatus = ' '
 gui.Open = false
 gui.ShowUI = false
@@ -1250,6 +1253,15 @@ function gui.DroidLootGUI()
                                 if gui.USEWARP ~= DroidLoot.LootUtils.UseWarp then
                                     gui.USEWARP = DroidLoot.LootUtils.UseWarp
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'UseWarp', DroidLoot.LootUtils.UseWarp)
+                                end
+                                ImGui.Separator();
+
+                                DroidLoot.LootUtils.UseWarpInstanceOnly = ImGui.Checkbox('Enable Warp Instance Only', DroidLoot.LootUtils.UseWarpInstanceOnly)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Uses warp in instances only when enabled.')
+                                if gui.USEWARPINSTANCEONLY ~= DroidLoot.LootUtils.UseWarpInstanceOnly then
+                                    gui.USEWARPINSTANCEONLY = DroidLoot.LootUtils.UseWarpInstanceOnly
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'UseWarpInstanceOnly', DroidLoot.LootUtils.UseWarpInstanceOnly)
                                 end
                                 ImGui.Separator();
 

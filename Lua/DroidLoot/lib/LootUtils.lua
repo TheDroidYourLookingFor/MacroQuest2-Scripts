@@ -21,6 +21,7 @@ local LootUtils = {
     Version = "1.0.29",
     -- _Macro = DroidLoot,
     UseWarp = false,
+    UseWarpInstanceOnly = false,
     AddNewSales = true,
     AddIgnoredItems = true,
     LootForage = true,
@@ -546,7 +547,11 @@ local function navToID(spawnID)
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
     local playerDelay = 1000 + playerPing
     local playerLoopDelay = 100 + playerPing
-    if LootUtils.UseWarp then
+    if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
+        mq.cmdf('/target id %s', spawnID)
+        mq.delay(playerDelay, function() return mq.TLO.Target() ~= nil end)
+        mq.cmd('/squelch /warp t')
+    elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
         mq.cmdf('/target id %s', spawnID)
         mq.delay(playerDelay, function() return mq.TLO.Target() ~= nil end)
         mq.cmd('/squelch /warp t')
@@ -567,13 +572,17 @@ end
 
 local function navToXYZ(navX, navY, navZ)
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
-    local playerDelay = 1000 + playerPing
+    local playerDelay = 10 + playerPing
     local playerLoopDelay = 100 + playerPing
-    if LootUtils.UseWarp then
+    if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
         mq.cmdf('/squelch /warp loc %s %s %s', navY, navX, navZ)
+        mq.delay(playerDelay)
+    elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
+        mq.cmdf('/squelch /warp loc %s %s %s', navY, navX, navZ)
+        mq.delay(playerDelay)
     else
         mq.cmdf('/nav locxyz %s %s %s log=off', navX, navY, navZ)
-        mq.delay(50)
+        mq.delay(playerDelay)
         if mq.TLO.Navigation.Active() then
             local startTime = os.time()
             while mq.TLO.Navigation.Active() do
@@ -1007,7 +1016,12 @@ local function event_CantLoot_handler(line)
     if not mq.TLO.Target() then
         return
     end
-    if LootUtils.UseWarp then
+    if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
+        mq.cmdf('%s', '/squelch /warp t')
+        local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+        local playerDelay = 250 + playerPing
+        mq.delay(playerDelay)
+    elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
         mq.cmdf('%s', '/squelch /warp t')
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 250 + playerPing
@@ -1239,6 +1253,8 @@ STACKABLEONLY = LootUtils.StackableOnly
 LOOTBYHPMIN = LootUtils.LootByMinHP
 LOOTBYHPMINNODROP = LootUtils.LootByMinHPNoDrop
 STACKPLATVALUE = LootUtils.StackPlatValue
+USEWARP = LootUtils.UseWarp
+USEWARPINSTANCEONLY = LootUtils.UseWarpInstanceOnly
 
 RETURNHOMEAFTERLOOT = LootUtils.returnHomeAfterLoot
 CAMPCHECK = LootUtils.camp_Check
@@ -1659,7 +1675,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('Always use the same Hunting Zone.')
                 if STATICHUNT ~= LootUtils.staticHunt then
                     STATICHUNT = LootUtils.staticHunt
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticHunt', LootUtils.staticHunt)
                 end
                 ImGui.Separator();
@@ -1669,7 +1685,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('The short name of the Static Hunt Zone.')
                 if STATICZONENAME ~= LootUtils.staticZoneName then
                     STATICZONENAME = LootUtils.staticZoneName
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZoneName', LootUtils.staticZoneName)
                 end
                 ImGui.Separator();
@@ -1679,7 +1695,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('The ID of the static Hunting Zone.')
                 if STATICZONEID ~= LootUtils.staticZoneID then
                     STATICZONEID = LootUtils.staticZoneID
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZoneID', LootUtils.staticZoneID)
                 end
                 ImGui.Separator();
@@ -1695,7 +1711,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('The X loc in the static Hunting Zone to camp.')
                 if STATICX ~= LootUtils.staticX then
                     STATICX = LootUtils.staticX
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticX', LootUtils.staticX)
                 end
                 ImGui.SameLine();
@@ -1710,7 +1726,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('The Y loc in the static Hunting Zone to camp.')
                 if STATICY ~= LootUtils.staticY then
                     STATICY = LootUtils.staticY
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticY', LootUtils.staticY)
                 end
                 ImGui.SameLine();
@@ -1725,7 +1741,7 @@ local function OptionsGUI()
                 ImGui.HelpMarker('The Z loc in the static Hunting Zone to camp.')
                 if STATICZ ~= LootUtils.staticZ then
                     STATICZ = LootUtils.staticZ
-                    DroidLoot.CheckCampInfo()
+                    -- DroidLoot.CheckCampInfo()
                     LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'staticZ', LootUtils.staticZ)
                 end
                 ImGui.EndTabItem();
@@ -1805,6 +1821,15 @@ local function OptionsGUI()
                 if USEWARP ~= LootUtils.UseWarp then
                     USEWARP = LootUtils.UseWarp
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'UseWarp', LootUtils.UseWarp)
+                end
+                ImGui.Separator();
+
+                LootUtils.UseWarpInstanceOnly = ImGui.Checkbox('Enable Warp Instance Only', LootUtils.UseWarpInstanceOnly)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Uses warp in instances only when enabled.')
+                if USEWARPINSTANCEONLY ~= LootUtils.UseWarpInstanceOnly then
+                    USEWARPINSTANCEONLY = LootUtils.UseWarpInstanceOnly
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'UseWarpInstanceOnly', LootUtils.UseWarpInstanceOnly)
                 end
                 ImGui.Separator();
 
@@ -2496,9 +2521,9 @@ local function lootItem(index, doWhat, button)
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
         -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
-        if DroidLoot.debug then
-            printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
-        end
+        -- if DroidLoot.debug then
+        --     printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
+        -- end
         if ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount) then
             return
         end
@@ -2548,7 +2573,12 @@ function LootUtils.lootCorpse(corpseID)
     if mq.TLO.Cursor() then
         checkCursor()
     end
-    if LootUtils.UseWarp then
+    if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
+        mq.cmdf('%s', '/squelch /warp t')
+        local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+        local playerDelay = 250 + playerPing
+        mq.delay(playerDelay)
+    elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
         mq.cmdf('%s', '/squelch /warp t')
         local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
         local playerDelay = 250 + playerPing
@@ -2670,8 +2700,14 @@ function LootUtils.lootMobs(limit)
         local corpse = corpseList[i]
         local corpseID = corpse.ID()
         if corpseID and corpseID > 0 and not corpseLocked(corpseID) then
-            if LootUtils.useWarp then
+            local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+            local playerDelay = 250 + playerPing
+            if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
                 navToID(corpseID)
+                mq.delay(playerDelay)
+            elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
+                navToID(corpseID)
+                mq.delay(playerDelay)
             end
             if (mq.TLO.Navigation.PathLength('spawn id ' .. tostring(corpseID))() or 100) < 60 then
                 LootUtils.ConsoleMessage('Debug', 'Moving to corpse ID=%s', tostring(corpseID))
@@ -2719,7 +2755,12 @@ local function goToVendor()
 
     LootUtils.ConsoleMessage('Info', 'Doing business with %s', vendorName)
     if mq.TLO.Target.Distance() > 15 then
-        if LootUtils.UseWarp then
+        if LootUtils.UseWarp and not LootUtils.UseWarpInstanceOnly then
+            mq.cmdf('%s', '/squelch /warp t')
+            local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
+            local playerDelay = 500 + playerPing
+            mq.delay(playerDelay)
+        elseif LootUtils.UseWarp and mq.TLO.Me.InInstance() and LootUtils.UseWarpInstanceOnly then
             mq.cmdf('%s', '/squelch /warp t')
             local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
             local playerDelay = 500 + playerPing
