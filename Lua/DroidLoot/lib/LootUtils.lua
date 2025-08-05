@@ -35,6 +35,8 @@ local LootUtils = {
     LootByDamageAmount = 240,
     LootByDamageEfficiency = false,
     LootByDamageEfficiencyAmount = 200,
+    LootByAC = false,
+    LootByACAmount = 200,
     EquipUsable = false,     -- Buggy at best
     LootGearUpgrades = true, -- WIP
     CorpseRadius = 250,
@@ -620,9 +622,10 @@ end
 
 local function getRule(item)
     local itemName = item.Name()
-    local itemHP = item.HP()
-    local itemDMG = item.Damage()
-    local itemDelay = item.ItemDelay()
+    local itemAC = item.AC() or 0
+    local itemHP = item.HP() or 0
+    local itemDMG = item.Damage() or 0
+    local itemDelay = item.ItemDelay() or 0
     local itemEff = (itemDMG / itemDelay) * 100
     local wornPrimaryDmg = mq.TLO.Me.Inventory(13).Damage() or 0
     local wornSecondaryDmg = mq.TLO.Me.Inventory(14).Damage() or 0
@@ -777,6 +780,11 @@ local function getRule(item)
 
     if LootUtils.LootByDamageEfficiency and itemEff >= LootUtils.LootByDamageEfficiencyAmount then
         LootUtils.logReport('Keep', 'Found Weapon Efficiency Item: %s (%s(%s))', itemLink, itemEff, LootUtils.LootByDamageEfficiencyAmount)
+        return 'Keep'
+    end
+
+    if LootUtils.LootByAC and itemAC >= LootUtils.LootByACAmount then
+        LootUtils.logReport('Keep', 'Found Armor Class Item: %s (%s(%s))', itemLink, itemAC, LootUtils.LootByACAmount)
         return 'Keep'
     end
 
@@ -1280,6 +1288,9 @@ LOOTBYDAMAGEAMOUNT = LootUtils.LootByDamageAmount
 LOOTBYDAMAGEEFFICIENCY = LootUtils.LootByDamageEfficiency
 LOOTBYDAMAGEEFFICIENCYAMOUNT = LootUtils.LootByDamageEfficiencyAmount
 
+LOOTBYAC = LootUtils.LootByAC
+LOOTBYACAMOUNT = LootUtils.LootByACAmount
+
 CurrentStatus = ' '
 -- Slot layout by [row][col]
 local layout = {
@@ -1521,6 +1532,28 @@ local function OptionsGUI()
                 if LOOTBYDAMAGEEFFICIENCYAMOUNT ~= LootUtils.LootByDamageEfficiencyAmount then
                     LOOTBYDAMAGEEFFICIENCYAMOUNT = LootUtils.LootByDamageEfficiencyAmount
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByDamageEfficiencyAmount', LootUtils.LootByDamageEfficiencyAmount)
+                end
+                ImGui.Separator();
+
+                ImGui.EndTabItem();
+            end
+            local lootByACOpen = ImGui.BeginTabItem("Loot By AC")
+            if lootByACOpen then
+                LootUtils.LootByAC = ImGui.Checkbox('Enable## Loot by AC', LootUtils.LootByAC)
+                ImGui.SameLine()
+                ImGui.HelpMarker('Loots items by their armor class when enabled.')
+                if LOOTBYAC ~= LootUtils.LootByAC then
+                    LOOTBYAC = LootUtils.LootByAC
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByAC', LootUtils.LootByAC)
+                end
+                ImGui.Separator();
+
+                LootUtils.LootByACAmount = ImGui.SliderInt("Min AC", LootUtils.LootByACAmount, 1, 1000)
+                ImGui.SameLine()
+                ImGui.HelpMarker('The minimum amount of armor class an item needs to be kept.')
+                if LOOTBYACAMOUNT ~= LootUtils.LootByACAmount then
+                    LOOTBYACAMOUNT = LootUtils.LootByACAmount
+                    LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByACAmount', LootUtils.LootByACAmount)
                 end
                 ImGui.Separator();
 

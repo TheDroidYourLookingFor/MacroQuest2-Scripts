@@ -153,6 +153,8 @@ gui.LOOTBYDAMAGE = DroidLoot.LootUtils.LootByDamage
 gui.LOOTBYDAMAGEAMOUNT = DroidLoot.LootUtils.LootByDamageAmount
 gui.LOOTBYDAMAGEEFFICIENCY = DroidLoot.LootUtils.LootByDamageEfficiency
 gui.LOOTBYDAMAGEEFFICIENCYAMOUNT = DroidLoot.LootUtils.LootByDamageEfficiencyAmount
+gui.LOOTBYAC = DroidLoot.LootUtils.LootByAC
+gui.LOOTBYACAMOUNT = DroidLoot.LootUtils.LootByACAmount
 
 gui.USEWARP = DroidLoot.LootUtils.UseWarp
 gui.USEWARPINSTANCEONLY = DroidLoot.LootUtils.UseWarpInstanceOnly
@@ -954,6 +956,29 @@ function gui.DroidLootGUI()
                                 end
 
                                 ImGui.PopStyleVar();
+                                ImGui.EndTabItem();
+                            end
+
+                            local lootByACOpen = ImGui.BeginTabItem("Loot By AC")
+                            if lootByACOpen then
+                                DroidLoot.LootUtils.LootByAC = ImGui.Checkbox('Enable## Loot by AC', DroidLoot.LootUtils.LootByAC)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('Loots items by their armor class when enabled.')
+                                if gui.LOOTBYAC ~= DroidLoot.LootUtils.LootByAC then
+                                    gui.LOOTBYAC = DroidLoot.LootUtils.LootByAC
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByAC', DroidLoot.LootUtils.LootByAC)
+                                end
+                                ImGui.Separator();
+
+                                DroidLoot.LootUtils.LootByACAmount = ImGui.SliderInt("Min AC", DroidLoot.LootUtils.LootByACAmount, 1, 1000)
+                                ImGui.SameLine()
+                                ImGui.HelpMarker('The minimum amount of armor class an item needs to be kept.')
+                                if gui.LOOTBYACAMOUNT ~= DroidLoot.LootUtils.LootByACAmount then
+                                    gui.LOOTBYACAMOUNT = DroidLoot.LootUtils.LootByACAmount
+                                    DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByACAmount', DroidLoot.LootUtils.LootByACAmount)
+                                end
+                                ImGui.Separator();
+
                                 ImGui.EndTabItem();
                             end
 
