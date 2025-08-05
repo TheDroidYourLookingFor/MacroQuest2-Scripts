@@ -86,7 +86,7 @@ local show_main = true -- Main form is visible by default
 local dlFullImg = mq.CreateTexture(mq.luaDir .. "/ChaosTrack/Resources/icon.png")
 
 local function event_ct_chaoticCounter_handler(line, mobName)
-    ChaosTrack.ChaoticCounter = (CampFarmer.ChaoticCounter or 0) + 1
+    ChaosTrack.ChaoticCounter = (ChaosTrack.ChaoticCounter or 0) + 1
     ChaosTrack.SlainChaoticTypes[mobName] = (ChaosTrack.SlainChaoticTypes[mobName] or 0) + 1
 end
 mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#*#", event_ct_chaoticCounter_handler)

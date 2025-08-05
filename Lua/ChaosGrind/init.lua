@@ -30,6 +30,9 @@ ChaosGrind.respawnItem = 'Chaotic Horn of Reborm'
 ChaosGrind.lastRespawnUse = 0
 ChaosGrind.COOLDOWN_SECONDS = 600
 ChaosGrind.NewDisconnectHandler = true
+ChaosGrind.HuntLuaScript = 'aqo'
+ChaosGrind.HuntLuaScriptCmd2 = '/aqo pause off'
+ChaosGrind.lastMove_Cooldown = 60
 
 ChaosGrind.lastX = mq.TLO.Me.X()
 ChaosGrind.lastY = mq.TLO.Me.Y()
@@ -167,7 +170,7 @@ end
 mq.event('EnterInstance', "#*#Eldrin whispers, 'Normal port#*#'", event_EnterInstance_handler, { keepLinks = true })
 
 local function event_InstanceExpiring_handler(line)
-    mq.cmd('/lua stop aqo')
+    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
     mq.delay(500)
     mq.cmdf('/useitem "%s"', ChaosGrind.OriginItem)
     mq.delay(ChaosGrind.ZoneDelay, function() return mq.TLO.Zone.ID() == ChaosGrind.HubZone end)
@@ -396,22 +399,23 @@ function ChaosGrind.MainLoop()
                     ChaosGrind.GetInstance()
                 end
                 if ChaosGrind.GrindZone == mq.TLO.Zone.ID() then
-                    if mq.TLO.Lua.Script('aqo').Status() ~= 'RUNNING' then
-                        mq.cmdf('/lua run %s', 'aqo')
+                    if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() ~= 'RUNNING' then
+                        mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
                         mq.delay(1250)
-                        mq.cmd('/aqo pause off')
+                        mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
                     end
                     if ChaosGrind.lastX == mq.TLO.Me.X() and ChaosGrind.lastY == mq.TLO.Me.Y() and ChaosGrind.lastZ == mq.TLO.Me.Z() then
-                        ChaosGrind.moveCounter = (ChaosGrind.moveCounter or 0) + 1
-                    end
-                    if ChaosGrind.moveCounter >= ChaosGrind.RestartCounter then
-                        printf('We\'ve exceeded our stand still count: %s (%s)', ChaosGrind.moveCounter, ChaosGrind.RestartCounter)
-                        mq.cmd('/lua stop aqo')
-                        mq.delay(500)
-                        ChaosGrind.lastX = mq.TLO.Me.X()
-                        ChaosGrind.lastY = mq.TLO.Me.Y()
-                        ChaosGrind.lastZ = mq.TLO.Me.Z()
-                        ChaosGrind.moveCounter = 0
+                        ChaosGrind.HandleDisconnect()
+                        local now = os.time()
+                        if now - ChaosGrind.lastMove >= ChaosGrind.lastMove_Cooldown then
+                            printf('We\'ve exceeded our stand still timer: %s seconds',ChaosGrind.lastMove_Cooldown)
+                            mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
+                            mq.delay(500)
+                            ChaosGrind.lastX = mq.TLO.Me.X()
+                            ChaosGrind.lastY = mq.TLO.Me.Y()
+                            ChaosGrind.lastZ = mq.TLO.Me.Z()
+                            ChaosGrind.lastMove = os.time()
+                        end
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
@@ -419,7 +423,7 @@ function ChaosGrind.MainLoop()
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
-                    mq.cmd('/lua stop aqo')
+                    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
                     mq.delay(500)
                     mq.cmdf('/useitem "%s"', ChaosGrind.OriginItem)
                     mq.delay(ChaosGrind.ZoneDelay, function() return mq.TLO.Zone.ID() == ChaosGrind.HubZone end)
@@ -428,18 +432,9 @@ function ChaosGrind.MainLoop()
                     mq.cmd('/say destroy instance')
                     mq.delay(ChaosGrind.ChatDelay)
                 end
-                if ChaosGrind.ReportGain then
-                    local currentTime = os.time()
-                    if os.difftime(currentTime, ChaosGrind.LastReportTime) >= ChaosGrind.ReportAATime then
-                        local totalAA, aaPerHour = ChaosGrind.AAStatus()
-                        printf('Total AA gained: %d', totalAA)
-                        printf('Current AA per hour: %.2f', aaPerHour)
-                        ChaosGrind.LastReportTime = currentTime -- Update the last report time
-                    end
-                end
             else
-                if mq.TLO.Lua.Script('aqo').Status() == 'RUNNING' then
-                    mq.cmd('/lua stop aqo')
+                if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' then
+                    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
                     mq.delay(500)
                 end
             end
