@@ -251,6 +251,18 @@ function gui.ChaosGrindGUI()
                         local formattedTotalEpics = ChaosGrind.formatNumberWithCommas(totalEpics)
                         local formattedEpicsPerHour = ChaosGrind.formatNumberWithCommas(math.floor(epicsPerHour))
 
+                        local totalThreads, threadsPerHour = ChaosGrind.ThreadsStatus()
+                        local formattedTotalThreads = ChaosGrind.formatNumberWithCommas(totalThreads)
+                        local formattedThreadsPerHour = ChaosGrind.formatNumberWithCommas(math.floor(threadsPerHour))
+
+                        local totalAugmentTokens, augmentTokensPerHour = ChaosGrind.AugmentTokensStatus()
+                        local formattedTotalAugmentTokens = ChaosGrind.formatNumberWithCommas(totalAugmentTokens)
+                        local formattedAugmentTokensPerHour = ChaosGrind.formatNumberWithCommas(math.floor(augmentTokensPerHour))
+
+                        local totalAATokens, aaTokensPerHour = ChaosGrind.AATokensStatus()
+                        local formattedTotalAATokens = ChaosGrind.formatNumberWithCommas(totalAATokens)
+                        local formattedAATokensPerHour = ChaosGrind.formatNumberWithCommas(math.floor(aaTokensPerHour))
+
                         ImGui.Text('Cursed Epics Found');
                         ImGui.SameLine();
                         ImGui.Text(tostring(formattedTotalEpics));
@@ -258,6 +270,33 @@ function gui.ChaosGrindGUI()
                         ImGui.Text('Epics / Hour');
                         ImGui.SameLine();
                         ImGui.Text(tostring(formattedEpicsPerHour));
+                        ImGui.Separator();
+
+                        ImGui.Text('Chaotic Threads Found');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedTotalThreads));
+                        ImGui.SameLine(400);
+                        ImGui.Text('Threads / Hour');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedThreadsPerHour));
+                        ImGui.Separator();
+
+                        ImGui.Text('Augment Tokens Found');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedTotalAugmentTokens));
+                        ImGui.SameLine(400);
+                        ImGui.Text('Tokens / Hour');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedAugmentTokensPerHour));
+                        ImGui.Separator();
+
+                        ImGui.Text('AA Tokens Found');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedTotalAATokens));
+                        ImGui.SameLine(400);
+                        ImGui.Text('Tokens / Hour');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedAATokensPerHour));
                         ImGui.Separator();
 
                         ImGui.Text('AA Gained');

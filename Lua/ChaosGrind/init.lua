@@ -43,6 +43,9 @@ ChaosGrind.terminate = false
 ChaosGrind.doPause = false
 ChaosGrind.ChaoticCounter = 0
 ChaosGrind.CursedEpicCounter = 0
+ChaosGrind.ChaoticThreadCounter = 0
+ChaosGrind.AugmentTokenCounter = 0
+ChaosGrind.ChaoticAATokenCounter = 0
 
 ChaosGrind.StartKC = 0
 ChaosGrind.StartAA = 0
@@ -121,6 +124,12 @@ mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#
 local function event_cursedEpicCheck_handler(line, lootName)
     if lootName == 'Innoruuk\'s Dark Curse' then
         ChaosGrind.CursedEpicCounter = (ChaosGrind.CursedEpicCounter or 0) + 1
+    elseif lootName == 'Chaotic Augment Token' then
+        ChaosGrind.AugmentTokenCounter = (ChaosGrind.AugmentTokenCounter or 0) + 1
+    elseif lootName == 'Chaotic Thread' then
+        ChaosGrind.ChaoticThreadCounter = (ChaosGrind.ChaoticThreadCounter or 0) + 1
+    elseif lootName == 'Chaotic AA Token' then
+        ChaosGrind.ChaoticAATokenCounter = (ChaosGrind.ChaoticAATokenCounter or 0) + 1
     end
 end
 mq.event('CursedEpicCheck', "#*#You have looted #1#.#*#", event_cursedEpicCheck_handler)
@@ -275,6 +284,11 @@ function ChaosGrind.MassAggro()
     end
 end
 
+local function event_CantSeeMob_handler(line)
+    mq.cmd('/warp t')
+end
+mq.event('CantSeeMob', "#*#You cannot see your target.#*#", event_CantSeeMob_handler)
+
 local function event_slainMob_handler(line, mobName)
     ChaosGrind.MobCounter = (ChaosGrind.MobCounter or 0) + 1
     ChaosGrind.SlainMobTypes[mobName] = (ChaosGrind.SlainMobTypes[mobName] or 0) + 1
@@ -351,6 +365,48 @@ function ChaosGrind.ChaoticStatus()
     end
 
     return ChaosGrind.ChaoticCounter, chaoticPerHour
+end
+
+function ChaosGrind.ThreadsStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, ChaosGrind.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local threadsPerHour = 0
+    if elapsedTimeInHours > 0 then
+        threadsPerHour = ChaosGrind.ChaoticThreadCounter / elapsedTimeInHours
+    end
+
+    return ChaosGrind.ChaoticThreadCounter, threadsPerHour
+end
+
+function ChaosGrind.AATokensStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, ChaosGrind.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local aaTokensPerHour = 0
+    if elapsedTimeInHours > 0 then
+        aaTokensPerHour = ChaosGrind.ChaoticAATokenCounter / elapsedTimeInHours
+    end
+
+    return ChaosGrind.ChaoticAATokenCounter, aaTokensPerHour
+end
+
+function ChaosGrind.AugmentTokensStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, ChaosGrind.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local augmentTokensPerHour = 0
+    if elapsedTimeInHours > 0 then
+        augmentTokensPerHour = ChaosGrind.AugmentTokenCounter / elapsedTimeInHours
+    end
+
+    return ChaosGrind.AugmentTokenCounter, augmentTokensPerHour
 end
 
 function ChaosGrind.KillsStatus()
