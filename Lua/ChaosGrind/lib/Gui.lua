@@ -213,11 +213,11 @@ function gui.ChaosGrindGUI()
                 ImGui.SetCursorPosX(rightStartX)
                 if ImGui.Button('Quit', ImVec2(buttonWidth, buttonHeight)) then
                     ChaosGrind.terminate = true
-                    mq.cmdf('/lua stop %s', 'ChaosGrinder')
+                    mq.cmdf('/lua stop %s', 'ChaosGrind')
                 end
 
                 if ImGui.CollapsingHeader("Chaos Grind") then
-                    ImGui.Indent()
+                    ImGui.Indent();
                     ImGui.Text("This is a simple script I threw together to grind instances on the\n" ..
                         "Chaotic Treasures EQEmu Server.\n")
                     ImGui.Separator();
@@ -228,7 +228,7 @@ function gui.ChaosGrindGUI()
 
                     ImGui.Text("CREDIT:");
                     ImGui.BulletText("TheDroidUrLookingFor");
-                    ImGui.Unindent()
+                    ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader('Gains') then
                     ImGui.Indent();
@@ -389,7 +389,114 @@ function gui.ChaosGrindGUI()
                             ImGui.Unindent()
                         end
                     end
-                    ImGui.Unindent()
+                    ImGui.Unindent();
+                end
+                if ImGui.CollapsingHeader("Options") then
+                    ImGui.Indent();
+                    if ImGui.CollapsingHeader("Items") then
+                        ImGui.Indent();
+                        ChaosGrind.aggroItem = ImGui.InputText('Aggro Item', ChaosGrind.aggroItem)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The name of your zone wide aggro item.')
+                        if gui.AGGROITEM ~= ChaosGrind.aggroItem then
+                            gui.AGGROITEM = ChaosGrind.aggroItem
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        ChaosGrind.respawnItem = ImGui.InputText('Respawn Item', ChaosGrind.respawnItem)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The name of your zone respawn item.')
+                        if gui.RESPAWNITEM ~= ChaosGrind.respawnItem then
+                            gui.RESPAWNITEM = ChaosGrind.respawnItem
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        ChaosGrind.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit",
+                            ChaosGrind.MinMobsInZone)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
+                        if gui.MINMOBSINZONE ~= ChaosGrind.MinMobsInZone then
+                            gui.MINMOBSINZONE = ChaosGrind.MinMobsInZone
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        ImGui.Unindent();
+                    end
+                    if ImGui.CollapsingHeader("Kill Zone") then
+                        ImGui.Indent();
+                        ChaosGrind.Zone = ImGui.InputText('Zone Name', ChaosGrind.Zone)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The short name of the Static Hunt Zone.')
+                        if gui.STATICZONENAME ~= ChaosGrind.Zone then
+                            gui.STATICZONENAME = ChaosGrind.Zone
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        ChaosGrind.GrindZone = ImGui.InputInt('Zone ID', ChaosGrind.GrindZone)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The ID of the static Hunting Zone.')
+                        if gui.STATICZONEID ~= ChaosGrind.GrindZone then
+                            gui.STATICZONEID = ChaosGrind.GrindZone
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        local start_y_Options = ImGui.GetCursorPosY()
+                        ImGui.SetCursorPosY(start_y_Options + 3)
+                        ImGui.Text('X')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        ChaosGrind.respawnX = ImGui.InputInt('##Zone X', ChaosGrind.respawnX)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The X loc in the Hunting Zone to zone pull.')
+                        if gui.STATICX ~= ChaosGrind.respawnX then
+                            gui.STATICX = ChaosGrind.respawnX
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.SameLine();
+
+                        ImGui.SetCursorPosY(start_y_Options + 1)
+                        ImGui.Text('Y')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        ChaosGrind.respawnY = ImGui.InputInt('##Zone Y', ChaosGrind.respawnY)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The Y loc in the Hunting Zone to zone pull.')
+                        if gui.STATICY ~= ChaosGrind.respawnY then
+                            gui.STATICY = ChaosGrind.respawnY
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.SameLine();
+
+                        ImGui.SetCursorPosY(start_y_Options + 1)
+                        ImGui.Text('Z')
+                        ImGui.SameLine()
+                        ImGui.SetNextItemWidth(120)
+                        ImGui.SetCursorPosY(start_y_Options)
+                        ChaosGrind.respawnZ = ImGui.InputInt('##Zone Z', ChaosGrind.respawnZ)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The Z loc in the Hunting Zone to zone pull.')
+                        if gui.STATICZ ~= ChaosGrind.respawnZ then
+                            gui.STATICZ = ChaosGrind.respawnZ
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Unindent();
+                    end
+                    ChaosGrind.debug = ImGui.Checkbox('Enable Debug Messages', ChaosGrind.debug)
+                    ImGui.SameLine()
+                    ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
+                    if gui.DEBUG ~= ChaosGrind.debug then
+                        gui.DEBUG = ChaosGrind.debug
+                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                    end
+                    ImGui.Separator();
+                    ImGui.Unindent();
                 end
                 if ImGui.CollapsingHeader("Console") then
                     ImGui.Indent()
@@ -422,7 +529,7 @@ function gui.ChaosGrindGUI()
             ImGui.SameLine()
             if ImGui.Button('X', buttonImVec) then
                 ChaosGrind.terminate = true
-                mq.cmdf('/lua stop %s', 'ChaosGrinder')
+                mq.cmdf('/lua stop %s', 'ChaosGrind')
             end
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2(0, 0)) -- No padding inside button
             local buttonColor

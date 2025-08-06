@@ -5,6 +5,7 @@ ChaosGrind = {
     _author = 'TheDroidUrLookingFor'
 }
 ChaosGrind.GUI = require('ChaosGrind.lib.Gui')
+ChaosGrind.Storage = require('ChaosGrind.lib.Storage')
 ChaosGrind.GrindZone = 89
 ChaosGrind.Expansion = 'The Ruins of Kunark'
 ChaosGrind.Zone = 'sebilis'
@@ -27,6 +28,12 @@ ChaosGrind.DoZonePulls = true
 ChaosGrind.mobsSearch = 'npc targetable noalert 1'
 ChaosGrind.aggroItem = 'Chaotic Horn of Aggro'
 ChaosGrind.respawnItem = 'Chaotic Horn of Reborm'
+ChaosGrind.spawnSearch = 'npc radius 60 los targetable noalert 1'
+ChaosGrind.mobsSearch = 'npc targetable noalert 1'
+ChaosGrind.MinMobsInZone = 10
+ChaosGrind.respawnX = 110
+ChaosGrind.respawnY = -1104
+ChaosGrind.respawnZ = -178
 ChaosGrind.lastRespawnUse = 0
 ChaosGrind.COOLDOWN_SECONDS = 600
 ChaosGrind.NewDisconnectHandler = true
@@ -97,7 +104,7 @@ end
 
 function ChaosGrind.goToInstanceNPC()
     if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone then return end
-    if not mq.TLO.Target() then
+    if not mq.TLO.Target() or (mq.TLO.Target() and mq.TLO.Target.Name() ~= ChaosGrind.InstanceNPC) then
         mq.cmdf('/target npc %s', ChaosGrind.InstanceNPC)
         mq.delay(2000, function() return mq.TLO.Target() ~= nil end)
     end
@@ -168,7 +175,8 @@ local function event_Selectzone_handler(line)
     local links = mq.ExtractLinks(line)
     for _, link in ipairs(links) do
         local linkText = link.text or tostring(link)
-        if string.find(linkText, ChaosGrind.Zone) then
+        -- if string.find(linkText, ChaosGrind.Zone) then
+        if linkText == ChaosGrind.Zone then
             mq.ExecuteTextLink(link)
             mq.flushevents("SelectZone")
             mq.delay(ChaosGrind.ChatDelay)
@@ -271,20 +279,45 @@ function ChaosGrind.HandleDisconnect()
     end
 end
 
+function ChaosGrind.CheckXTargAggro()
+    local y = 0
+    for x = 1, 13 do
+        local xTarget = mq.TLO.Me.XTarget(x)
+        local spawnID = xTarget.ID()
+        local spawnTOT = mq.TLO.Spawn(spawnID).TargetOfTarget()
+        local spawnType = mq.TLO.Spawn(spawnID).Type()
+        if spawnID > 0 then
+            if spawnTOT == mq.TLO.Me.ID() and spawnType ~= 'Untargetable' and spawnType == 'NPC' then
+                y = y + 1
+            end
+        end
+    end
+    return y
+end
+
 function ChaosGrind.MassAggro()
     if not ChaosGrind.DoZonePulls then return end
     ChaosGrind.HandleDisconnect()
-    local now = os.time()
-    -- Check respawn item cooldown
-    if now - ChaosGrind.lastRespawnUse >= ChaosGrind.COOLDOWN_SECONDS then
-        print('Attempting to respawn the zone!')
-        mq.cmdf('/useitem %s', ChaosGrind.respawnItem)
-        mq.delay(ChaosGrind.Delays.Repop)
-        print('Attempting to aggro the zone!')
-        mq.delay(ChaosGrind.Delays.Two)
-        mq.cmdf('/useitem %s', ChaosGrind.aggroItem)
-        mq.delay(ChaosGrind.Delays.Aggro)
-        ChaosGrind.lastRespawnUse = os.time()
+    if not mq.TLO.NearestSpawn(ChaosGrind.spawnSearch)() and ChaosGrind.CheckXTargAggro() == 0 then
+        if mq.TLO.SpawnCount(ChaosGrind.mobsSearch)() < ChaosGrind.MinMobsInZone then
+            local now = os.time()
+            -- Check respawn item cooldown
+            if now - ChaosGrind.lastRespawnUse >= ChaosGrind.COOLDOWN_SECONDS then
+                print('Attempting to respawn the zone!')
+                mq.cmdf('/warp loc %s %s %s', ChaosGrind.Y, ChaosGrind.X, ChaosGrind.Z)
+                mq.delay(ChaosGrind.Delays.Repop)
+                mq.cmdf('/useitem %s', ChaosGrind.respawnItem)
+                mq.delay(ChaosGrind.Delays.Repop)
+                if mq.TLO.SpawnCount(ChaosGrind.mobsSearch)() < ChaosGrind.MinMobsInZone then
+                    return
+                end
+                print('Attempting to aggro the zone!')
+                mq.delay(ChaosGrind.Delays.Two)
+                mq.cmdf('/useitem %s', ChaosGrind.aggroItem)
+                mq.delay(ChaosGrind.Delays.Aggro)
+                ChaosGrind.lastRespawnUse = os.time()
+            end
+        end
     end
 end
 
@@ -546,10 +579,11 @@ function ChaosGrind.MainLoop()
                     mq.delay(ChaosGrind.ChatDelay)
                 end
             else
-                if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' then
-                    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
+                if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO() and not mq.TLO.AQO.Paused() then
+                    mq.cmd('/aqo pause on')
                     mq.delay(500)
                 end
+                mq.delay(ChaosGrind.MainLoopDelay)
             end
         end
         mq.delay(ChaosGrind.MainLoopDelay)
