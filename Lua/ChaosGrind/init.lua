@@ -41,6 +41,7 @@ ChaosGrind.moveCounter = 0
 ChaosGrind.RestartCounter = 600
 ChaosGrind.terminate = false
 ChaosGrind.doPause = false
+ChaosGrind.LootCounter = 0
 ChaosGrind.ChaoticCounter = 0
 ChaosGrind.CursedEpicCounter = 0
 ChaosGrind.ChaoticThreadCounter = 0
@@ -104,7 +105,7 @@ function ChaosGrind.goToInstanceNPC()
     if vendorName ~= ChaosGrind.InstanceNPC then ChaosGrind.goToInstanceNPC() end
     if mq.TLO.Target.Distance() > 15 then
         if ChaosGrind.UseWarp then
-            mq.cmdf('%s', '/warp t')
+            mq.cmdf('%s', '/squelch /warp t')
             local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
             local playerDelay = 500 + playerPing
             mq.delay(playerDelay)
@@ -122,6 +123,7 @@ end
 mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#*#", event_chaoticCounter_handler)
 
 local function event_cursedEpicCheck_handler(line, lootName)
+    printf('Looted: %s / Line: %s', lootName, line)
     if lootName == 'Innoruuk\'s Dark Curse' then
         ChaosGrind.CursedEpicCounter = (ChaosGrind.CursedEpicCounter or 0) + 1
     elseif lootName == 'Chaotic Augment Token' then
@@ -131,8 +133,10 @@ local function event_cursedEpicCheck_handler(line, lootName)
     elseif lootName == 'Chaotic AA Token' then
         ChaosGrind.ChaoticAATokenCounter = (ChaosGrind.ChaoticAATokenCounter or 0) + 1
     end
+    ChaosGrind.LootCounter = (ChaosGrind.LootCounter or 0) + 1
+    mq.flushevents("CursedEpicCheck")
 end
-mq.event('CursedEpicCheck', "#*#You have looted #1#.#*#", event_cursedEpicCheck_handler)
+mq.event('CursedEpicCheck', "--You have looted #1#.--", event_cursedEpicCheck_handler)
 
 local function event_ListExpansions_handler(line)
     local links = mq.ExtractLinks(line)
@@ -285,7 +289,7 @@ function ChaosGrind.MassAggro()
 end
 
 local function event_CantSeeMob_handler(line)
-    mq.cmd('/warp t')
+    mq.cmd('/squelch /warp t')
 end
 mq.event('CantSeeMob', "#*#You cannot see your target.#*#", event_CantSeeMob_handler)
 
@@ -423,6 +427,20 @@ function ChaosGrind.KillsStatus()
     return ChaosGrind.MobCounter, killsPerHour
 end
 
+function ChaosGrind.LootsStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, ChaosGrind.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local lootsPerHour = 0
+    if elapsedTimeInHours > 0 then
+        lootsPerHour = ChaosGrind.LootCounter / elapsedTimeInHours
+    end
+
+    return ChaosGrind.LootCounter, lootsPerHour
+end
+
 function ChaosGrind.CurrencyStatus()
     -- Get current AA points and current time
     local currentKC = mq.TLO.Me.AltCurrency('Kill Credit')()
@@ -514,7 +532,7 @@ function ChaosGrind.MainLoop()
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
                     ChaosGrind.MassAggro()
-                    if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then mq.cmd('/warp t') end
+                    if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then mq.cmd('/squelch /warp t') end
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
