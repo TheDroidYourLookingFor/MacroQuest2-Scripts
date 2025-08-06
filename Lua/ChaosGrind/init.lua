@@ -478,19 +478,35 @@ function ChaosGrind.MainLoop()
                 if ChaosGrind.GrindZone == mq.TLO.Zone.ID() then
                     if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() ~= 'RUNNING' then
                         mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
-                        mq.delay(1250)
-                        mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
+                        mq.delay(500)
                     end
-                    if ChaosGrind.lastX == mq.TLO.Me.X() and ChaosGrind.lastY == mq.TLO.Me.Y() then
+                    if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO.Paused() then
+                        mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
+                        mq.delay(500)
+                    end
+                    -- Define your movement threshold (e.g., 0.5 units)
+                    local movementThreshold = 0.5
+                    -- Calculate distance moved since last check
+                    local dx = ChaosGrind.lastX - mq.TLO.Me.X()
+                    local dy = ChaosGrind.lastY - mq.TLO.Me.Y()
+                    local distance = math.sqrt(dx * dx + dy * dy)
+
+                    if distance < movementThreshold then
                         local now = os.time()
                         if now - ChaosGrind.lastMove >= ChaosGrind.lastMove_Cooldown then
                             printf('We\'ve exceeded our stand still timer: %s seconds', ChaosGrind.lastMove_Cooldown)
                             mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
                             mq.delay(500)
+                            -- Update position and time
                             ChaosGrind.lastX = mq.TLO.Me.X()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
                             ChaosGrind.lastMove = os.time()
                         end
+                    else
+                        -- If we moved enough, reset the last move timer
+                        ChaosGrind.lastX = mq.TLO.Me.X()
+                        ChaosGrind.lastY = mq.TLO.Me.Y()
+                        ChaosGrind.lastMove = os.time()
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
