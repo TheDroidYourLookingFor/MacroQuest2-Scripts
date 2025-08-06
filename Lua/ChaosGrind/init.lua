@@ -5,6 +5,9 @@ ChaosGrind = {
     _author = 'TheDroidUrLookingFor'
 }
 ChaosGrind.GUI = require('ChaosGrind.lib.Gui')
+ChaosGrind.GrindZone = 89
+ChaosGrind.Expansion = 'The Ruins of Kunark'
+ChaosGrind.Zone = 'sebilis'
 ChaosGrind.DoStatTrack = true
 ChaosGrind.script_ShortName = 'ChaosGrind'
 ChaosGrind.command_ShortName = 'cg'
@@ -16,9 +19,6 @@ ChaosGrind.ZoneDelay = 30000
 ChaosGrind.UseWarp = true
 ChaosGrind.InstanceNPC = 'Eldrin'
 ChaosGrind.HubZone = 998
-ChaosGrind.GrindZone = 89
-ChaosGrind.Expansion = 'The Ruins of Kunark'
-ChaosGrind.Zone = 'sebilis'
 ChaosGrind.GroupHealItem = 'Mythic Minli`s Greaves of Stability'
 ChaosGrind.GroupHealAt = 90
 ChaosGrind.DoGroupHeals = true
@@ -33,15 +33,16 @@ ChaosGrind.NewDisconnectHandler = true
 ChaosGrind.HuntLuaScript = 'aqo'
 ChaosGrind.HuntLuaScriptCmd2 = '/aqo pause off'
 ChaosGrind.lastMove_Cooldown = 60
+ChaosGrind.lastMove = os.time()
 
 ChaosGrind.lastX = mq.TLO.Me.X()
 ChaosGrind.lastY = mq.TLO.Me.Y()
-ChaosGrind.lastZ = mq.TLO.Me.Z()
 ChaosGrind.moveCounter = 0
 ChaosGrind.RestartCounter = 600
 ChaosGrind.terminate = false
 ChaosGrind.doPause = false
 ChaosGrind.ChaoticCounter = 0
+ChaosGrind.CursedEpicCounter = 0
 
 ChaosGrind.StartKC = 0
 ChaosGrind.StartAA = 0
@@ -116,6 +117,13 @@ local function event_chaoticCounter_handler(line, mobName)
     ChaosGrind.SlainChaoticTypes[mobName] = (ChaosGrind.SlainChaoticTypes[mobName] or 0) + 1
 end
 mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#*#", event_chaoticCounter_handler)
+
+local function event_cursedEpicCheck_handler(line, lootName)
+    if lootName == 'Innoruuk\'s Dark Curse' then
+        ChaosGrind.CursedEpicCounter = (ChaosGrind.CursedEpicCounter or 0) + 1
+    end
+end
+mq.event('CursedEpicCheck', "#*#You have looted #1#.#*#", event_cursedEpicCheck_handler)
 
 local function event_ListExpansions_handler(line)
     local links = mq.ExtractLinks(line)
@@ -380,10 +388,23 @@ function ChaosGrind.CurrencyStatus()
     return kcGained, kcPerHour
 end
 
+function ChaosGrind.CursedEpicStatus()
+    local currentTime = os.time()
+
+    local elapsedTimeInSeconds = os.difftime(currentTime, ChaosGrind.StartTime)
+    local elapsedTimeInHours = elapsedTimeInSeconds / 3600 -- Convert seconds to hours
+
+    local epicsPerHour = 0
+    if elapsedTimeInHours > 0 then
+        epicsPerHour = ChaosGrind.CursedEpicCounter / elapsedTimeInHours
+    end
+
+    return ChaosGrind.CursedEpicCounter, epicsPerHour
+end
+
 function ChaosGrind.MainLoop()
     ChaosGrind.lastX = mq.TLO.Me.X()
     ChaosGrind.lastY = mq.TLO.Me.Y()
-    ChaosGrind.lastZ = mq.TLO.Me.Z()
     ChaosGrind.moveCounter = 0
     ChaosGrind.GUI.initGUI()
     print('Chaos Server Instance Grind Bot Starting Up!')
@@ -404,16 +425,14 @@ function ChaosGrind.MainLoop()
                         mq.delay(1250)
                         mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
                     end
-                    if ChaosGrind.lastX == mq.TLO.Me.X() and ChaosGrind.lastY == mq.TLO.Me.Y() and ChaosGrind.lastZ == mq.TLO.Me.Z() then
-                        ChaosGrind.HandleDisconnect()
+                    if ChaosGrind.lastX == mq.TLO.Me.X() and ChaosGrind.lastY == mq.TLO.Me.Y() then
                         local now = os.time()
                         if now - ChaosGrind.lastMove >= ChaosGrind.lastMove_Cooldown then
-                            printf('We\'ve exceeded our stand still timer: %s seconds',ChaosGrind.lastMove_Cooldown)
+                            printf('We\'ve exceeded our stand still timer: %s seconds', ChaosGrind.lastMove_Cooldown)
                             mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
                             mq.delay(500)
                             ChaosGrind.lastX = mq.TLO.Me.X()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
-                            ChaosGrind.lastZ = mq.TLO.Me.Z()
                             ChaosGrind.lastMove = os.time()
                         end
                     end

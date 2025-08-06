@@ -247,6 +247,19 @@ function gui.ChaosGrindGUI()
                         local formattedTotalChaotics = ChaosGrind.formatNumberWithCommas(totalChaotics)
                         local formattedChaoticsPerHour = ChaosGrind.formatNumberWithCommas(chaoticsPerHour)
 
+                        local totalEpics, epicsPerHour = ChaosGrind.CursedEpicStatus()
+                        local formattedTotalEpics = ChaosGrind.formatNumberWithCommas(totalEpics)
+                        local formattedEpicsPerHour = ChaosGrind.formatNumberWithCommas(math.floor(epicsPerHour))
+
+                        ImGui.Text('Cursed Epics Found');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedTotalEpics));
+                        ImGui.SameLine(400);
+                        ImGui.Text('Epics / Hour');
+                        ImGui.SameLine();
+                        ImGui.Text(tostring(formattedEpicsPerHour));
+                        ImGui.Separator();
+
                         ImGui.Text('AA Gained');
                         ImGui.SameLine();
                         ImGui.Text(tostring(formattedTotalAA));
