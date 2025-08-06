@@ -131,14 +131,14 @@ end
 mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#*#", event_chaoticCounter_handler)
 
 local function event_cursedEpicCheck_handler(line, lootName)
-    printf('Looted: %s / Line: %s', lootName, line)
-    if lootName == 'Innoruuk\'s Dark Curse' or lootName == 'a Innoruuk\'s Dark Curse' then
+    -- printf('Looted: %s / Line: %s', lootName, line)
+    if string.find(lootName, 'Innoruuk\'s Dark Curse') then
         ChaosGrind.CursedEpicCounter = (ChaosGrind.CursedEpicCounter or 0) + 1
-    elseif lootName == 'Chaotic Augment Token' or lootName == 'a Chaotic Augment Token' then
+    elseif string.find(lootName, 'Chaotic Augment Token') then
         ChaosGrind.AugmentTokenCounter = (ChaosGrind.AugmentTokenCounter or 0) + 1
-    elseif lootName == 'Chaotic Thread' or lootName == 'a Chaotic Thread' then
+    elseif string.find(lootName, 'Chaotic Thread') then
         ChaosGrind.ChaoticThreadCounter = (ChaosGrind.ChaoticThreadCounter or 0) + 1
-    elseif lootName == 'Chaotic AA Token' or lootName == 'a Chaotic AA Token' then
+    elseif string.find(lootName, 'Chaotic AA Token') then
         ChaosGrind.ChaoticAATokenCounter = (ChaosGrind.ChaoticAATokenCounter or 0) + 1
     end
     ChaosGrind.LootCounter = (ChaosGrind.LootCounter or 0) + 1
@@ -280,26 +280,10 @@ function ChaosGrind.HandleDisconnect()
     end
 end
 
-function ChaosGrind.CheckXTargAggro()
-    local y = 0
-    for x = 1, 13 do
-        local xTarget = mq.TLO.Me.XTarget(x)
-        local spawnID = xTarget.ID()
-        local spawnTOT = mq.TLO.Spawn(spawnID).TargetOfTarget()
-        local spawnType = mq.TLO.Spawn(spawnID).Type()
-        if spawnID > 0 then
-            if spawnTOT == mq.TLO.Me.ID() and spawnType ~= 'Untargetable' and spawnType == 'NPC' then
-                y = y + 1
-            end
-        end
-    end
-    return y
-end
-
 function ChaosGrind.MassAggro()
     if not ChaosGrind.DoZonePulls then return end
     ChaosGrind.HandleDisconnect()
-    if not mq.TLO.NearestSpawn(ChaosGrind.spawnSearch)() and ChaosGrind.CheckXTargAggro() == 0 then
+    if not mq.TLO.NearestSpawn(ChaosGrind.spawnSearch)() and not mq.TLO.Me.XTarget(1)() then
         if mq.TLO.SpawnCount(ChaosGrind.mobsSearch)() < ChaosGrind.MinMobsInZone then
             local now = os.time()
             -- Check respawn item cooldown
@@ -560,7 +544,7 @@ function ChaosGrind.MainLoop()
                         ChaosGrind.lastMove = now
                         ChaosGrind.idleTime = now
                     end
-                    if ChaosGrind.CheckXTargAggro() ~= 0 and not mq.TLO.Target() then mq.TLO.Me.XTarget(1).DoTarget() end
+                    if mq.TLO.Me.XTarget(1)() and not mq.TLO.Target() then mq.TLO.Me.XTarget(1).DoTarget() end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
                     ChaosGrind.MassAggro()
