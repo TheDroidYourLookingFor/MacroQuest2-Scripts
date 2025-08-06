@@ -100,9 +100,11 @@ gui.POTIONBUFF = 'Potion of Adventure II'
 gui.STATICHUNT = false
 gui.STATICZONEID = '173'
 gui.STATICZONENAME = 'maiden'
+gui.EXPANSION = 'The Ruins of Kunark'
 gui.STATICX = '1905'
 gui.STATICY = '940'
 gui.STATICZ = '-151.74'
+gui.WARPTOTARGETDISTANCE = 15
 
 gui.Open = false
 gui.ShowUI = false
@@ -216,11 +218,11 @@ function gui.ChaosGrindGUI()
                     mq.cmdf('/lua stop %s', 'ChaosGrind')
                 end
 
-                local rightStartX = windowWidth - buttonWidth
-                ImGui.SetCursorPosX(rightStartX)
-                if ImGui.Button('Kill AQO', ImVec2(buttonWidth, buttonHeight)) then
-                    mq.cmdf('/lua stop %s', 'AQO')
-                end
+                -- local rightStartX = windowWidth - buttonWidth
+                -- ImGui.SetCursorPosX(rightStartX)
+                -- if ImGui.Button('Kill AQO', ImVec2(buttonWidth, buttonHeight)) then
+                --     mq.cmdf('/lua stop %s', 'AQO')
+                -- end
 
                 if ImGui.CollapsingHeader("Chaos Grind") then
                     ImGui.Indent();
@@ -442,6 +444,15 @@ function gui.ChaosGrindGUI()
                         end
                         ImGui.Separator();
 
+                        ChaosGrind.Expansion = ImGui.InputText('Expansion Name', ChaosGrind.Expansion)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The expansion for the hunt Zone.')
+                        if gui.EXPANSION ~= ChaosGrind.Expansion then
+                            gui.EXPANSION = ChaosGrind.Expansion
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
                         ChaosGrind.GrindZone = ImGui.InputInt('Zone ID', ChaosGrind.GrindZone)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The ID of the static Hunting Zone.')
@@ -492,6 +503,16 @@ function gui.ChaosGrindGUI()
                             gui.STATICZ = ChaosGrind.respawnZ
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
                         end
+                        ImGui.Separator();
+
+                        ChaosGrind.WarpToTargetDistance = ImGui.InputInt('Warp Distance', ChaosGrind.WarpToTargetDistance)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('The distance from target we will auto warp to it.')
+                        if gui.WARPTOTARGETDISTANCE ~= ChaosGrind.WarpToTargetDistance then
+                            gui.WARPTOTARGETDISTANCE = ChaosGrind.WarpToTargetDistance
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
                         ImGui.Unindent();
                     end
                     ChaosGrind.debug = ImGui.Checkbox('Enable Debug Messages', ChaosGrind.debug)
