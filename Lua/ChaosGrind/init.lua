@@ -124,13 +124,13 @@ mq.event('GoblinCheck', "Chaotic#1# twists into a chaotic reflection of itself!#
 
 local function event_cursedEpicCheck_handler(line, lootName)
     printf('Looted: %s / Line: %s', lootName, line)
-    if lootName == 'Innoruuk\'s Dark Curse' then
+    if lootName == 'Innoruuk\'s Dark Curse' or lootName == 'a Innoruuk\'s Dark Curse' then
         ChaosGrind.CursedEpicCounter = (ChaosGrind.CursedEpicCounter or 0) + 1
-    elseif lootName == 'Chaotic Augment Token' then
+    elseif lootName == 'Chaotic Augment Token' or lootName == 'a Chaotic Augment Token' then
         ChaosGrind.AugmentTokenCounter = (ChaosGrind.AugmentTokenCounter or 0) + 1
-    elseif lootName == 'Chaotic Thread' then
+    elseif lootName == 'Chaotic Thread' or lootName == 'a Chaotic Thread' then
         ChaosGrind.ChaoticThreadCounter = (ChaosGrind.ChaoticThreadCounter or 0) + 1
-    elseif lootName == 'Chaotic AA Token' then
+    elseif lootName == 'Chaotic AA Token' or lootName == 'a Chaotic AA Token' then
         ChaosGrind.ChaoticAATokenCounter = (ChaosGrind.ChaoticAATokenCounter or 0) + 1
     end
     ChaosGrind.LootCounter = (ChaosGrind.LootCounter or 0) + 1
@@ -504,7 +504,7 @@ function ChaosGrind.MainLoop()
                         mq.delay(500)
                     end
                     -- Define your movement threshold (e.g., 0.5 units)
-                    local movementThreshold = 0.5
+                    local movementThreshold = 2.5
                     -- Calculate distance moved since last check
                     local dx = ChaosGrind.lastX - mq.TLO.Me.X()
                     local dy = ChaosGrind.lastY - mq.TLO.Me.Y()
@@ -519,15 +519,15 @@ function ChaosGrind.MainLoop()
                             -- Update position and time
                             ChaosGrind.lastX = mq.TLO.Me.X()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
-                            ChaosGrind.lastMove = os.time()
-                            ChaosGrind.idleTime = os.time() - ChaosGrind.lastMove
+                            ChaosGrind.lastMove = now
                         end
+                        ChaosGrind.idleTime = now
                     else
+                        local now = os.time()
                         -- If we moved enough, reset the last move timer
                         ChaosGrind.lastX = mq.TLO.Me.X()
                         ChaosGrind.lastY = mq.TLO.Me.Y()
-                        ChaosGrind.lastMove = os.time()
-                        ChaosGrind.idleTime = os.time() - ChaosGrind.lastMove
+                        ChaosGrind.lastMove = now
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()

@@ -180,9 +180,9 @@ function gui.ChaosGrindGUI()
                 ImGui.Text('Idle Time:')
                 ImGui.SameLine()
                 ImGui.Text(string.format('%02d:%02d:%02d',
-                    math.floor(ChaosGrind.idleTime / 3600),
-                    math.floor((ChaosGrind.idleTime % 3600) / 60),
-                    ChaosGrind.idleTime % 60))
+                    math.floor((os.time() - ChaosGrind.idleTime) / 3600),
+                    math.floor(((os.time() - ChaosGrind.idleTime) % 3600) / 60),
+                    (os.time() - ChaosGrind.idleTime) % 60))
 
                 ImGui.Separator();
                 local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
