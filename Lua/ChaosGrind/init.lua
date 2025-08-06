@@ -304,7 +304,7 @@ function ChaosGrind.MassAggro()
             -- Check respawn item cooldown
             if now - ChaosGrind.lastRespawnUse >= ChaosGrind.COOLDOWN_SECONDS then
                 print('Attempting to respawn the zone!')
-                mq.cmdf('/warp loc %s %s %s', ChaosGrind.Y, ChaosGrind.X, ChaosGrind.Z)
+                mq.cmdf('/warp loc %s %s %s', ChaosGrind.respawnY, ChaosGrind.respawnX, ChaosGrind.respawnZ)
                 mq.delay(ChaosGrind.Delays.Repop)
                 mq.cmdf('/useitem %s', ChaosGrind.respawnItem)
                 mq.delay(ChaosGrind.Delays.Repop)
