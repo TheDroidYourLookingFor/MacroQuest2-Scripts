@@ -38,6 +38,7 @@ ChaosGrind.lastRespawnUse = 0
 ChaosGrind.COOLDOWN_SECONDS = 600
 ChaosGrind.NewDisconnectHandler = true
 ChaosGrind.HuntLuaScript = 'aqo'
+ChaosGrind.HuntLuaScriptCmd1 = '/aqo pause on'
 ChaosGrind.HuntLuaScriptCmd2 = '/aqo pause off'
 ChaosGrind.lastMove_Cooldown = 60
 ChaosGrind.lastMove = os.time()
@@ -530,11 +531,9 @@ function ChaosGrind.MainLoop()
                 if ChaosGrind.GrindZone == mq.TLO.Zone.ID() then
                     if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() ~= 'RUNNING' then
                         mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
-                        mq.delay(500)
-                    end
-                    if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO() and mq.TLO.AQO.Paused() then
+                        mq.delay(1250)
                         mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
-                        mq.delay(500)
+                        mq.delay(1250)
                     end
                     -- Define your movement threshold (e.g., 0.5 units)
                     local movementThreshold = 2.5
@@ -548,7 +547,6 @@ function ChaosGrind.MainLoop()
                         if now - ChaosGrind.lastMove >= ChaosGrind.lastMove_Cooldown then
                             printf('We\'ve exceeded our stand still timer: %s seconds', ChaosGrind.lastMove_Cooldown)
                             mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
-                            mq.delay(500)
                             -- Update position and time
                             ChaosGrind.lastX = mq.TLO.Me.X()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
@@ -562,6 +560,7 @@ function ChaosGrind.MainLoop()
                         ChaosGrind.lastMove = now
                         ChaosGrind.idleTime = now
                     end
+                    if ChaosGrind.CheckXTargAggro() ~= 0 and not mq.TLO.Target() then mq.TLO.Me.XTarget(1).DoTarget() end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
                     ChaosGrind.MassAggro()
@@ -573,7 +572,7 @@ function ChaosGrind.MainLoop()
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
-                    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
+                    mq.cmdf(ChaosGrind.HuntLuaScriptCmd1)
                     mq.delay(500)
                     mq.cmdf('/useitem "%s"', ChaosGrind.OriginItem)
                     mq.delay(ChaosGrind.ZoneDelay, function() return mq.TLO.Zone.ID() == ChaosGrind.HubZone end)
@@ -583,9 +582,8 @@ function ChaosGrind.MainLoop()
                     mq.delay(ChaosGrind.ChatDelay)
                 end
             else
-                if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO() and not mq.TLO.AQO.Paused() then
-                    mq.cmd('/aqo pause on')
-                    mq.delay(500)
+                if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' then
+                    mq.cmdf('/lua stop %s', ChaosGrind.HuntLuaScript)
                 end
                 mq.delay(ChaosGrind.MainLoopDelay)
             end

@@ -216,6 +216,12 @@ function gui.ChaosGrindGUI()
                     mq.cmdf('/lua stop %s', 'ChaosGrind')
                 end
 
+                local rightStartX = windowWidth - buttonWidth
+                ImGui.SetCursorPosX(rightStartX)
+                if ImGui.Button('Kill AQO', ImVec2(buttonWidth, buttonHeight)) then
+                    mq.cmdf('/lua stop %s', 'AQO')
+                end
+
                 if ImGui.CollapsingHeader("Chaos Grind") then
                     ImGui.Indent();
                     ImGui.Text("This is a simple script I threw together to grind instances on the\n" ..
