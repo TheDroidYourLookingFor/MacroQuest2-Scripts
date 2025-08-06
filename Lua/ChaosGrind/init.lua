@@ -521,13 +521,13 @@ function ChaosGrind.MainLoop()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
                             ChaosGrind.lastMove = now
                         end
-                        ChaosGrind.idleTime = now
                     else
                         local now = os.time()
                         -- If we moved enough, reset the last move timer
                         ChaosGrind.lastX = mq.TLO.Me.X()
                         ChaosGrind.lastY = mq.TLO.Me.Y()
                         ChaosGrind.lastMove = now
+                        ChaosGrind.idleTime = now
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
