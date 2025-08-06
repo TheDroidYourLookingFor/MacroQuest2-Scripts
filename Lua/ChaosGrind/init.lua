@@ -565,7 +565,11 @@ function ChaosGrind.MainLoop()
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
                     ChaosGrind.MassAggro()
-                    if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then mq.cmd('/squelch /warp t') end
+                    pcall(function()
+                        if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then
+                            mq.cmd('/squelch /warp t')
+                        end
+                    end)
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
