@@ -175,6 +175,15 @@ function gui.ChaosGrindGUI()
                 ImGui.Text('Run Time:')
                 ImGui.SameLine()
                 ImGui.Text(formattedElapsedTime)
+
+                ImGui.Separator();
+                ImGui.Text('Idle Time:')
+                ImGui.SameLine()
+                ImGui.Text(string.format('%02d:%02d:%02d',
+                    math.floor(ChaosGrind.idleTime / 3600),
+                    math.floor((ChaosGrind.idleTime % 3600) / 60),
+                    ChaosGrind.idleTime % 60))
+
                 ImGui.Separator();
                 local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
                 ImGui.SetCursorPosX(15)

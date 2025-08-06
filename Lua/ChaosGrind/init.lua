@@ -34,7 +34,7 @@ ChaosGrind.HuntLuaScript = 'aqo'
 ChaosGrind.HuntLuaScriptCmd2 = '/aqo pause off'
 ChaosGrind.lastMove_Cooldown = 60
 ChaosGrind.lastMove = os.time()
-
+ChaosGrind.idleTime = os.time()
 ChaosGrind.lastX = mq.TLO.Me.X()
 ChaosGrind.lastY = mq.TLO.Me.Y()
 ChaosGrind.moveCounter = 0
@@ -459,6 +459,7 @@ function ChaosGrind.CursedEpicStatus()
 end
 
 function ChaosGrind.MainLoop()
+    ChaosGrind.idleTime = os.time()
     ChaosGrind.lastX = mq.TLO.Me.X()
     ChaosGrind.lastY = mq.TLO.Me.Y()
     ChaosGrind.moveCounter = 0
@@ -480,7 +481,7 @@ function ChaosGrind.MainLoop()
                         mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
                         mq.delay(500)
                     end
-                    if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO.Paused() then
+                    if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() == 'RUNNING' and mq.TLO.AQO() and mq.TLO.AQO.Paused() then
                         mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
                         mq.delay(500)
                     end
@@ -501,12 +502,14 @@ function ChaosGrind.MainLoop()
                             ChaosGrind.lastX = mq.TLO.Me.X()
                             ChaosGrind.lastY = mq.TLO.Me.Y()
                             ChaosGrind.lastMove = os.time()
+                            ChaosGrind.idleTime = os.time() - ChaosGrind.lastMove
                         end
                     else
                         -- If we moved enough, reset the last move timer
                         ChaosGrind.lastX = mq.TLO.Me.X()
                         ChaosGrind.lastY = mq.TLO.Me.Y()
                         ChaosGrind.lastMove = os.time()
+                        ChaosGrind.idleTime = os.time() - ChaosGrind.lastMove
                     end
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
