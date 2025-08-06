@@ -46,7 +46,7 @@ ChaosGrind.CursedEpicCounter = 0
 ChaosGrind.ChaoticThreadCounter = 0
 ChaosGrind.AugmentTokenCounter = 0
 ChaosGrind.ChaoticAATokenCounter = 0
-
+ChaosGrind.WarpToTargetDistance = 15
 ChaosGrind.StartKC = 0
 ChaosGrind.StartAA = 0
 ChaosGrind.StartTime = os.time()
@@ -514,6 +514,7 @@ function ChaosGrind.MainLoop()
                     ChaosGrind.CheckSelfHealth()
                     ChaosGrind.CheckGroupHealth()
                     ChaosGrind.MassAggro()
+                    if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then mq.cmd('/warp t') end
                     mq.doevents()
                 end
                 if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
