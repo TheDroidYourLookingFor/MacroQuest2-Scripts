@@ -49,6 +49,24 @@ gui.GROUPALT = false
 gui.ALTLOOTERNAME = 'Binli'
 gui.DOSTATTRACK = true
 
+gui.GROUPHEALAT = 90
+gui.GROUPHEALITEM = ''
+gui.DOGROUPHEALS = false
+gui.DOSELFHEALS = false
+
+gui.LIFETAPITEM = 'Crazok\'s Talking Eartackle'
+gui.LIFETAPAT = 99
+gui.USELIFETAPITEM = false
+
+gui.PBAOEITEM = 'Tanza the Crystal-Bound'
+gui.PBAOEAT = 99
+gui.USEPBAOEITEM = false
+
+gui.NUKEITEM = 'Stalwart Sagacious Helm'
+gui.NUKEAT = 99
+gui.USENUKEITEM = false
+
+
 gui.USEPALADINAA = true
 gui.USECLERICAA = true
 gui.USEBEMCHEST = true
@@ -403,33 +421,162 @@ function gui.ChaosGrindGUI()
                     ImGui.Indent();
                     if ImGui.CollapsingHeader("Items") then
                         ImGui.Indent();
-                        ChaosGrind.aggroItem = ImGui.InputText('Aggro Item', ChaosGrind.aggroItem)
-                        ImGui.SameLine()
-                        ImGui.HelpMarker('The name of your zone wide aggro item.')
-                        if gui.AGGROITEM ~= ChaosGrind.aggroItem then
-                            gui.AGGROITEM = ChaosGrind.aggroItem
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
-                        end
-                        ImGui.Separator();
+                        if ImGui.CollapsingHeader("Zone Pull") then
+                            ImGui.Indent();
+                            ChaosGrind.aggroItem = ImGui.InputText('Aggro Item', ChaosGrind.aggroItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your zone wide aggro item.')
+                            if gui.AGGROITEM ~= ChaosGrind.aggroItem then
+                                gui.AGGROITEM = ChaosGrind.aggroItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
 
-                        ChaosGrind.respawnItem = ImGui.InputText('Respawn Item', ChaosGrind.respawnItem)
-                        ImGui.SameLine()
-                        ImGui.HelpMarker('The name of your zone respawn item.')
-                        if gui.RESPAWNITEM ~= ChaosGrind.respawnItem then
-                            gui.RESPAWNITEM = ChaosGrind.respawnItem
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
-                        end
-                        ImGui.Separator();
+                            ChaosGrind.respawnItem = ImGui.InputText('Respawn Item', ChaosGrind.respawnItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your zone respawn item.')
+                            if gui.RESPAWNITEM ~= ChaosGrind.respawnItem then
+                                gui.RESPAWNITEM = ChaosGrind.respawnItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
 
-                        ChaosGrind.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit",
-                            ChaosGrind.MinMobsInZone)
-                        ImGui.SameLine()
-                        ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
-                        if gui.MINMOBSINZONE ~= ChaosGrind.MinMobsInZone then
-                            gui.MINMOBSINZONE = ChaosGrind.MinMobsInZone
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit",
+                                ChaosGrind.MinMobsInZone)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
+                            if gui.MINMOBSINZONE ~= ChaosGrind.MinMobsInZone then
+                                gui.MINMOBSINZONE = ChaosGrind.MinMobsInZone
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent();
                         end
-                        ImGui.Separator();
+
+                        if ImGui.CollapsingHeader("Group Heal Item##collapsingheader") then
+                            ImGui.Indent();
+
+                            ChaosGrind.DoSelfHeals = ImGui.Checkbox('Enable Self Heals', ChaosGrind.DoSelfHeals)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Enables the use of the group heal item to heal self.')
+                            if gui.DOSELFHEALS ~= ChaosGrind.DoSelfHeals then
+                                gui.DOSELFHEALS = ChaosGrind.DoSelfHeals
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.DoGroupHeals = ImGui.Checkbox('Enable Group Heals', ChaosGrind.DoGroupHeals)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Enables the use of the group heal item.')
+                            if gui.DOGROUPHEALS ~= ChaosGrind.DoGroupHeals then
+                                gui.DOGROUPHEALS = ChaosGrind.DoGroupHeals
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.GroupHealItem = ImGui.InputText('Group Heal Item', ChaosGrind.GroupHealItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your group heal item.')
+                            if gui.GROUPHEALITEM ~= ChaosGrind.GroupHealItem then
+                                gui.GROUPHEALITEM = ChaosGrind.GroupHealItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.GroupHealAt = ImGui.InputInt("Group Heal At", ChaosGrind.GroupHealAt)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The percent of health to use group heal item at.')
+                            if gui.GROUPHEALAT ~= ChaosGrind.GroupHealAt then
+                                gui.GROUPHEALAT = ChaosGrind.GroupHealAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent();
+                        end
+
+                        if ImGui.CollapsingHeader("PBAoE Item##collapsingheader") then
+                            ImGui.Indent();
+                            ChaosGrind.UsePBAoEItem = ImGui.Checkbox('Enable PBAoE Item', ChaosGrind.UsePBAoEItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Enables the use of the PBAoE item.')
+                            if gui.USEPBAOEITEM ~= ChaosGrind.UsePBAoEItem then
+                                gui.USEPBAOEITEM = ChaosGrind.UsePBAoEItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.PBAoEItem = ImGui.InputText('PBAoE Item', ChaosGrind.PBAoEItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your PBAoE item.')
+                            if gui.PBAOEITEM ~= ChaosGrind.PBAoEItem then
+                                gui.PBAOEITEM = ChaosGrind.PBAoEItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.PBAoEAt = ImGui.InputInt("PBAoE At", ChaosGrind.PBAoEAt)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The percent of health to use PBAoE item at.')
+                            if gui.PBAOEAT ~= ChaosGrind.PBAoEAt then
+                                gui.PBAOEAT = ChaosGrind.PBAoEAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent();
+                        end
+
+                        if ImGui.CollapsingHeader("Lifetap Item##collapsingheader") then
+                            ImGui.Indent();
+                            ChaosGrind.UseLifetapItem = ImGui.Checkbox('Enable Lifetap Item', ChaosGrind.UseLifetapItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Enables the use of the lifetap item.')
+                            if gui.DOGROUPHEALS ~= ChaosGrind.UseLifetapItem then
+                                gui.DOGROUPHEALS = ChaosGrind.UseLifetapItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.LifetapItem = ImGui.InputText('Lifetap Item', ChaosGrind.LifetapItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your lifetap item.')
+                            if gui.GROUPHEALITEM ~= ChaosGrind.LifetapItem then
+                                gui.GROUPHEALITEM = ChaosGrind.LifetapItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.LifetapAt = ImGui.InputInt("Lifetap At", ChaosGrind.LifetapAt)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The percent of health to use lifetap item at.')
+                            if gui.GROUPHEALAT ~= ChaosGrind.LifetapAt then
+                                gui.GROUPHEALAT = ChaosGrind.LifetapAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent();
+                        end
+
+                        if ImGui.CollapsingHeader("Nuke Item##collapsingheader") then
+                            ImGui.Indent();
+                            ChaosGrind.UseNukeItem = ImGui.Checkbox('Enable Nuke Item', ChaosGrind.UseNukeItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('Enables the use of the Nuke item.')
+                            if gui.USENUKEITEM ~= ChaosGrind.UseNukeItem then
+                                gui.USENUKEITEM = ChaosGrind.UseNukeItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.NukeItem = ImGui.InputText('Nuke Item', ChaosGrind.NukeItem)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The name of your Nuke item.')
+                            if gui.NUKEITEM ~= ChaosGrind.NukeItem then
+                                gui.NUKEITEM = ChaosGrind.NukeItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+
+                            ChaosGrind.NukeAt = ImGui.InputInt("Nuke At", ChaosGrind.NukeAt)
+                            ImGui.SameLine()
+                            ImGui.HelpMarker('The percent of health to use Nuke item at.')
+                            if gui.NUKEAT ~= ChaosGrind.NukeAt then
+                                gui.NUKEAT = ChaosGrind.NukeAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            end
+                            ImGui.Separator();
+                            ImGui.Unindent();
+                        end
 
                         ImGui.Unindent();
                     end

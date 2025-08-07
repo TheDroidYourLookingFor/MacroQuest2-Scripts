@@ -20,10 +20,24 @@ ChaosGrind.ZoneDelay = 30000
 ChaosGrind.UseWarp = true
 ChaosGrind.InstanceNPC = 'Eldrin'
 ChaosGrind.HubZone = 998
+
+ChaosGrind.LifetapItem = 'Crazok\'s Talking Eartackle'
+ChaosGrind.LifetapAt = 99
+ChaosGrind.UseLifetapItem = true
+
+ChaosGrind.PBAoEItem = 'Tanza the Crystal-Bound'
+ChaosGrind.PBAoEAt = 99
+ChaosGrind.UsePBAoEItem = true
+
+ChaosGrind.NukeItem = 'Stalwart Sagacious Helm'
+ChaosGrind.NukeAt = 99
+ChaosGrind.UseNukeItem = true
+
 ChaosGrind.GroupHealItem = 'Mythic Minli`s Greaves of Stability'
 ChaosGrind.GroupHealAt = 90
 ChaosGrind.DoGroupHeals = true
 ChaosGrind.DoSelfHeals = true
+
 ChaosGrind.DoZonePulls = true
 ChaosGrind.mobsSearch = 'npc targetable noalert 1'
 ChaosGrind.aggroItem = 'Chaotic Horn of Aggro'
@@ -551,6 +565,24 @@ function ChaosGrind.MainLoop()
                     pcall(function()
                         if mq.TLO.Target() and mq.TLO.Target.Distance3D() >= ChaosGrind.WarpToTargetDistance then
                             mq.cmd('/squelch /warp t')
+                        end
+                        if ChaosGrind.UsePBAoEItem and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Target.Distance3D() <= ChaosGrind.WarpToTargetDistance and mq.TLO.Target.PctHPs() <= ChaosGrind.PBAoEAt then
+                            if mq.TLO.FindItem('=' .. ChaosGrind.PBAoEItem)() then
+                                mq.cmdf('/useitem "%s"', ChaosGrind.PBAoEItem)
+                                mq.delay(250)
+                            end
+                        end
+                        if ChaosGrind.UseNukeItem and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Target.Distance3D() <= ChaosGrind.WarpToTargetDistance and mq.TLO.Target.PctHPs() <= ChaosGrind.NukeAt then
+                            if mq.TLO.FindItem('=' .. ChaosGrind.NukeItem)() then
+                                mq.cmdf('/useitem "%s"', ChaosGrind.NukeItem)
+                                mq.delay(250)
+                            end
+                        end
+                        if ChaosGrind.UseLifetapItem and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Target.Distance3D() <= ChaosGrind.WarpToTargetDistance and mq.TLO.Target.PctHPs() <= ChaosGrind.LifetapAt then
+                            if mq.TLO.FindItem('=' .. ChaosGrind.LifetapItem)() then
+                                mq.cmdf('/useitem "%s"', ChaosGrind.LifetapItem)
+                                mq.delay(250)
+                            end
                         end
                     end)
                     mq.doevents()
