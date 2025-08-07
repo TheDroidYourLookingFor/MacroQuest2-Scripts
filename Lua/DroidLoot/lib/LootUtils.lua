@@ -166,7 +166,7 @@ local cantLootID = 0
 local spawnSearch = '%s radius %d zradius 50'
 -- If you want destroy to actually loot and destroy items, change Destroy=false to Destroy=true.
 -- Otherwise, destroy behaves the same as ignore.
-local shouldLootActions = {
+LootUtils.shouldLootActions = {
     Keep = true,
     Bank = true,
     Sell = true,
@@ -180,9 +180,9 @@ local shouldLootActions = {
 }
 function LootUtils.CheckLootActions()
     if not LootUtils.LootEmpoweredFabled then
-        shouldLootActions['Fabled'] = false
+        LootUtils.shouldLootActions['Fabled'] = false
     else
-        shouldLootActions['Fabled'] = true
+        LootUtils.shouldLootActions['Fabled'] = true
     end
 end
 
@@ -457,6 +457,7 @@ function LootUtils.writeSettings()
     end
     LootUtils.saveWildCardTerms()
     LootUtils.saveLootUpgrades()
+    LootUtils.saveShouldLootActions()
 end
 
 function LootUtils.saveWildCardTerms()
@@ -471,7 +472,15 @@ end
 function LootUtils.saveLootUpgrades()
     if #LootUtils.LootUpgrades then
         for index, term in ipairs(LootUtils.LootUpgrades) do
-            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'wildCardTerms', 'Term' .. index, term)
+            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'LootUpgrades', index, term)
+        end
+    end
+end
+
+function LootUtils.saveShouldLootActions()
+    if #LootUtils.shouldLootActions then
+        for index, term in ipairs(LootUtils.shouldLootActions) do
+            LootUtils.saveSetting(LootUtils.Settings.LootFile, 'LootActions', index, term)
         end
     end
 end
@@ -524,6 +533,21 @@ function LootUtils.loadSettings()
                 LootUtils.LootUpgrades[key] = true
             elseif value == 'false' or value == false then
                 LootUtils.LootUpgrades[key] = false
+            end
+        end
+    end
+
+    local iniLootActions = LootUtils.Storage.ReadINISection(LootUtils.Settings.LootFile, 'LootActions')
+    local keyCountLootActions = iniLootActions.Key.Count()
+
+    for i = 1, keyCountLootActions do
+        local key = iniLootActions.Key.KeyAtIndex(i)()
+        local value = iniLootActions.Key(key).Value()
+        if LootUtils.shouldLootActions[key] ~= nil then
+            if value == 'true' or value == true then
+                LootUtils.keyCountLootActions[key] = true
+            elseif value == 'false' or value == false then
+                LootUtils.keyCountLootActions[key] = false
             end
         end
     end
@@ -767,7 +791,6 @@ local function getRule(item)
             AnnounceUpgrade(16, 'Right Finger')
             return 'Keep'
         elseif mq.TLO.Me.Inventory(wornSlot)() == nil then
-
             AnnounceUpgrade(wornSlot, slotName)
             return 'Keep'
         end
@@ -1263,6 +1286,16 @@ LOOTBYHPMINNODROP = LootUtils.LootByMinHPNoDrop
 STACKPLATVALUE = LootUtils.StackPlatValue
 USEWARP = LootUtils.UseWarp
 USEWARPINSTANCEONLY = LootUtils.UseWarpInstanceOnly
+
+LOOTACTIONANNOUNCE = LootUtils.shouldLootActions['Announce']
+LOOTACTIONBANK = LootUtils.shouldLootActions['Bank']
+LOOTACTIONCASH = LootUtils.shouldLootActions['Cash']
+LOOTACTIONDESTROY = LootUtils.shouldLootActions['Destroy']
+LOOTACTIONIGNORE = LootUtils.shouldLootActions['Ignore']
+LOOTACTIONKEEP = LootUtils.shouldLootActions['Keep']
+LOOTACTIONQUEST = LootUtils.shouldLootActions['Quest']
+LOOTACTIONSELL = LootUtils.shouldLootActions['Sell']
+LOOTACTIONWILDCARD = LootUtils.shouldLootActions['Wildcard']
 
 RETURNHOMEAFTERLOOT = LootUtils.returnHomeAfterLoot
 CAMPCHECK = LootUtils.camp_Check
@@ -1846,7 +1879,7 @@ local function OptionsGUI()
             end
             local booleanOptionsOpen = ImGui.BeginTabItem("Booleans")
             if booleanOptionsOpen then
-                ImGui.Columns(2)
+                ImGui.Columns(2, 'first')
                 local start_y = ImGui.GetCursorPosY()
                 LootUtils.UseWarp = ImGui.Checkbox('Enable Warp', LootUtils.UseWarp)
                 ImGui.SameLine()
@@ -2000,7 +2033,101 @@ local function OptionsGUI()
                     LOOTBYHPMINNODROP = LootUtils.LootByMinHPNoDrop
                     LootUtils.saveSetting(LootUtils.Settings.LootFile, 'Settings', 'LootByMinHPNoDrop', LootUtils.LootByMinHPNoDrop)
                 end
-                ImGui.Columns(1)
+                ImGui.Columns(1);
+                ImGui.Separator();
+
+                if ImGui.CollapsingHeader("Loot Actions") then
+                    ImGui.Indent();
+                    ImGui.Columns(2, 'second')
+                    start_y = ImGui.GetCursorPosY()
+
+                    LootUtils.shouldLootActions['Announce'] = ImGui.Checkbox('Enable Announce Looting', LootUtils.shouldLootActions['Announce'])
+                    if LOOTACTIONANNOUNCE ~= LootUtils.shouldLootActions['Announce'] then
+                        LOOTACTIONANNOUNCE = LootUtils.shouldLootActions['Announce']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Announce'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Announce items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Bank'] = ImGui.Checkbox('Enable Bank Looting', LootUtils.shouldLootActions['Bank'])
+                    if LOOTACTIONBANK ~= LootUtils.shouldLootActions['Bank'] then
+                        LOOTACTIONBANK = LootUtils.shouldLootActions['Bank']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Bank'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Bank items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Cash'] = ImGui.Checkbox('Enable Cash Looting', LootUtils.shouldLootActions['Cash'])
+                    if LOOTACTIONCASH ~= LootUtils.shouldLootActions['Cash'] then
+                        LOOTACTIONCASH = LootUtils.shouldLootActions['Cash']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Cash'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Cash items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Destroy'] = ImGui.Checkbox('Enable Destroy Looting', LootUtils.shouldLootActions['Destroy'])
+                    if LOOTACTIONDESTROY ~= LootUtils.shouldLootActions['Destroy'] then
+                        LOOTACTIONDESTROY = LootUtils.shouldLootActions['Destroy']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Destroy'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Destroy items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Ignore'] = ImGui.Checkbox('Enable Ignore Looting', LootUtils.shouldLootActions['Ignore'])
+                    if LOOTACTIONIGNORE ~= LootUtils.shouldLootActions['Ignore'] then
+                        LOOTACTIONIGNORE = LootUtils.shouldLootActions['Ignore']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Ignore'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Ignore items.')
+                    ImGui.Separator();
+
+                    ImGui.NextColumn();
+                    ImGui.SetCursorPosY(start_y);
+
+                    LootUtils.shouldLootActions['Keep'] = ImGui.Checkbox('Enable Keep Looting', LootUtils.shouldLootActions['Keep'])
+                    if LOOTACTIONKEEP ~= LootUtils.shouldLootActions['Keep'] then
+                        LOOTACTIONKEEP = LootUtils.shouldLootActions['Keep']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Keep'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Keep items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Quest'] = ImGui.Checkbox('Enable Quest Looting', LootUtils.shouldLootActions['Quest'])
+                    if LOOTACTIONQUEST ~= LootUtils.shouldLootActions['Quest'] then
+                        LOOTACTIONQUEST = LootUtils.shouldLootActions['Quest']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Quest'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Quest items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Sell'] = ImGui.Checkbox('Enable Sell Looting', LootUtils.shouldLootActions['Sell'])
+                    if LOOTACTIONSELL ~= LootUtils.shouldLootActions['Sell'] then
+                        LOOTACTIONSELL = LootUtils.shouldLootActions['Sell']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Sell'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Sell items.')
+                    ImGui.Separator();
+
+                    LootUtils.shouldLootActions['Wildcard'] = ImGui.Checkbox('Enable Wildcard Looting', LootUtils.shouldLootActions['Wildcard'])
+                    if LOOTACTIONWILDCARD ~= LootUtils.shouldLootActions['Wildcard'] then
+                        LOOTACTIONWILDCARD = LootUtils.shouldLootActions['Wildcard']
+                        LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', LootUtils.shouldLootActions['Wildcard'])
+                    end
+                    ImGui.SameLine();
+                    ImGui.HelpMarker('Loots Wildcard items.')
+
+                    ImGui.Columns(1);
+                    ImGui.Unindent();
+                end
+
                 ImGui.EndTabItem();
             end
             local stringsOptionsOpen = ImGui.BeginTabItem("Strings")
@@ -2553,7 +2680,7 @@ local function lootItem(index, doWhat, button)
         local ruleAmount = lootRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('=' .. itemName)()
 
-        -- if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
+        -- if not LootUtils.shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= tonumber(ruleAmount)) then return end
         -- if DroidLoot.debug then
         --     printf('DoWhat: %s / ruleAction: %s / ruleAmount: %s / currentItemAmount: %s', doWhat, ruleAction, ruleAmount, currentItemAmount)
         -- end
@@ -2563,7 +2690,7 @@ local function lootItem(index, doWhat, button)
     elseif ruleAction == 'Wildcard' then
 
     else
-        if not shouldLootActions[ruleAction] then
+        if not LootUtils.shouldLootActions[ruleAction] then
             return
         end
     end
@@ -2583,6 +2710,7 @@ local function lootItem(index, doWhat, button)
     LootUtils.logReport('Keep', 'Keep Item: %s (%s-%s)[\ag%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Keep')
 
     if ruleAction == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
+        LootUtils.logReport('Destroy', 'Destroy Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Destroy')
         mq.cmd('/destroy')
     end
     if mq.TLO.Cursor() then
@@ -2679,6 +2807,9 @@ function LootUtils.lootCorpse(corpseID)
                     end
                 end
 
+                if lootAction == 'Destroy' and LootUtils.LootDestroyItems then
+                    LootUtils.logReport('Destroy', 'Destroy Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Destroy')
+                end
                 if lootAction == 'Ignore' or lootAction == 'NULL' then
                     LootUtils.logReport('Ignore', 'Ignore Item: %s (%s-%s)[\ar%s\ax]', corpseItem.ItemLink('CLICKABLE')(), corpseName, corpseID, 'Ignore')
                 end
@@ -3111,7 +3242,7 @@ function eventForage()
         local ruleAmount = forageRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('=' .. foragedItem)()
         -- >= because .. does finditemcount not count the item on the cursor?
-        if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
+        if not LootUtils.shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
             if mq.TLO.Cursor.Name() == foragedItem then
                 if LootUtils.LootForageSpam then
                     LootUtils.ConsoleMessage('Info', 'Destroying foraged item %s', foragedItem)
@@ -3122,7 +3253,7 @@ function eventForage()
             end
             -- will a lore item we already have even show up on cursor?
             -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
-        elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
+        elseif (LootUtils.shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
             if LootUtils.LootForageSpam then
                 LootUtils.ConsoleMessage('Info', 'Keeping foraged item %s', foragedItem)
             end
