@@ -6,9 +6,6 @@ ChaosGrind = {
 }
 ChaosGrind.GUI = require('ChaosGrind.lib.Gui')
 ChaosGrind.Storage = require('ChaosGrind.lib.Storage')
-ChaosGrind.GrindZone = 89
-ChaosGrind.Expansion = 'The Ruins of Kunark'
-ChaosGrind.Zone = 'sebilis'
 ChaosGrind.DoStatTrack = true
 ChaosGrind.script_ShortName = 'ChaosGrind'
 ChaosGrind.command_ShortName = 'cg'
@@ -18,6 +15,7 @@ ChaosGrind.MainLoopDelay = 100
 ChaosGrind.ChatDelay = 1000
 ChaosGrind.ZoneDelay = 30000
 ChaosGrind.UseWarp = true
+ChaosGrind.WarpBeforeStart = true
 ChaosGrind.InstanceNPC = 'Eldrin'
 ChaosGrind.HubZone = 998
 
@@ -45,9 +43,6 @@ ChaosGrind.respawnItem = 'Chaotic Horn of Reborm'
 ChaosGrind.spawnSearch = 'npc radius 60 los targetable noalert 1'
 ChaosGrind.mobsSearch = 'npc targetable noalert 1'
 ChaosGrind.MinMobsInZone = 10
-ChaosGrind.respawnX = 110
-ChaosGrind.respawnY = -1104
-ChaosGrind.respawnZ = -178
 ChaosGrind.lastRespawnUse = 0
 ChaosGrind.COOLDOWN_SECONDS = 600
 ChaosGrind.NewDisconnectHandler = true
@@ -78,6 +73,60 @@ ChaosGrind.MobCounter = 0
 ChaosGrind.SlainMobTypes = {}
 ChaosGrind.SlainChaoticTypes = {}
 
+ChaosGrind.GrindZone = {
+    paw = {
+        ID = 18,
+        X = 42.53,
+        Y = 718.35,
+        Z = 4.12,
+        Expansion = 'The Ruins of Kunark',
+        ignoreTarget = 'an imprisoned gnoll'
+    },
+    pofire = {
+        ID = 217,
+        X = 612.22,
+        Y = 657.17,
+        Z = -166.87,
+        Expansion = 'The Planes of Power',
+        ignoreTarget = 'Essence of Fire'
+    },
+    sebilis = {
+        ID = 89,
+        X = 110,
+        Y = -1104,
+        Z = -178,
+        Expansion = 'The Ruins of Kunark',
+        ignoreTarget = ''
+    }
+}
+ChaosGrind.Zone = 'pofire'
+ChaosGrind.Expansion = ChaosGrind.GrindZone[ChaosGrind.Zone].Expansion
+ChaosGrind.GrindZoneID = ChaosGrind.GrindZone[ChaosGrind.Zone].ID
+ChaosGrind.respawnX = ChaosGrind.GrindZone[ChaosGrind.Zone].X
+ChaosGrind.respawnY = ChaosGrind.GrindZone[ChaosGrind.Zone].Y
+ChaosGrind.respawnZ = ChaosGrind.GrindZone[ChaosGrind.Zone].Z
+ChaosGrind.startZoneName = ChaosGrind.Zone
+ChaosGrind.startZone = tonumber(ChaosGrind.GrindZoneID)
+ChaosGrind.startX = tonumber(ChaosGrind.respawnX)
+ChaosGrind.startY = tonumber(ChaosGrind.respawnY)
+ChaosGrind.startZ = tonumber(ChaosGrind.respawnZ)
+
+function ChaosGrind.CheckCampInfo()
+    ChaosGrind.startZoneName = ChaosGrind.Zone
+    ChaosGrind.startZone = tonumber(ChaosGrind.GrindZoneID)
+    ChaosGrind.startX = tonumber(ChaosGrind.respawnX)
+    ChaosGrind.startY = tonumber(ChaosGrind.respawnY)
+    ChaosGrind.startZ = tonumber(ChaosGrind.respawnZ)
+end
+
+function ChaosGrind.CheckDistance(X, Y, Z)
+    local deltaX = X - mq.TLO.Me.X()
+    local deltaY = Y - mq.TLO.Me.Y()
+    local deltaZ = Z - mq.TLO.Me.Z()
+    local distance = math.sqrt(deltaX ^ 2 + deltaY ^ 2 + deltaZ ^ 2)
+    return distance
+end
+
 ChaosGrind.Delays = {
     One = 25,
     Two = 50,
@@ -98,7 +147,7 @@ local function navToID(spawnID)
     local playerPing = math.floor(mq.TLO.EverQuest.Ping() * 2)
     local playerDelay = 1000 + playerPing
     local playerLoopDelay = 100 + playerPing
-    if ChaosGrind.UseWarp and mq.TLO.Zone.ID() == ChaosGrind.GrindZone then
+    if ChaosGrind.UseWarp and mq.TLO.Zone.ID() == ChaosGrind.GrindZoneID then
         mq.cmdf('/target id %s', spawnID)
         mq.delay(playerDelay, function() return mq.TLO.Target() ~= nil end)
         mq.cmd('/squelch /warp t')
@@ -235,7 +284,7 @@ function ChaosGrind.GetInstance()
     mq.doevents()
     mq.delay(ChaosGrind.ChatDelay)
     mq.doevents()
-    mq.delay(ChaosGrind.ZoneDelay, function() return mq.TLO.Zone.ID() == ChaosGrind.GrindZone end)
+    mq.delay(ChaosGrind.ZoneDelay, function() return mq.TLO.Zone.ID() == ChaosGrind.GrindZoneID end)
     mq.delay(50)
 end
 
@@ -509,6 +558,7 @@ function ChaosGrind.CursedEpicStatus()
 end
 
 function ChaosGrind.MainLoop()
+    ChaosGrind.CheckCampInfo()
     ChaosGrind.idleTime = os.time()
     ChaosGrind.lastX = mq.TLO.Me.X()
     ChaosGrind.lastY = mq.TLO.Me.Y()
@@ -526,8 +576,12 @@ function ChaosGrind.MainLoop()
                     ChaosGrind.goToInstanceNPC()
                     ChaosGrind.GetInstance()
                 end
-                if ChaosGrind.GrindZone == mq.TLO.Zone.ID() then
+                if ChaosGrind.GrindZoneID == mq.TLO.Zone.ID() then
                     if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() ~= 'RUNNING' then
+                        if ChaosGrind.WarpBeforeStart then
+                            mq.cmdf('/squelch /warp loc %s %s %s', ChaosGrind.respawnY, ChaosGrind.respawnX, ChaosGrind.respawnZ)
+                            mq.delay(CampFarmer.Delays.Warp)
+                        end
                         mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
                         mq.delay(1250)
                         mq.cmd(ChaosGrind.HuntLuaScriptCmd2)
@@ -587,7 +641,7 @@ function ChaosGrind.MainLoop()
                     end)
                     mq.doevents()
                 end
-                if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZone then
+                if mq.TLO.Zone.ID() ~= ChaosGrind.HubZone and mq.TLO.Zone.ID() ~= ChaosGrind.GrindZoneID then
                     mq.cmdf(ChaosGrind.HuntLuaScriptCmd1)
                     mq.delay(500)
                     mq.cmdf('/useitem "%s"', ChaosGrind.OriginItem)

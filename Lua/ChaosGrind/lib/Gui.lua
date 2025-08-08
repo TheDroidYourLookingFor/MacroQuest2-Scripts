@@ -123,6 +123,7 @@ gui.STATICX = '1905'
 gui.STATICY = '940'
 gui.STATICZ = '-151.74'
 gui.WARPTOTARGETDISTANCE = 15
+gui.WARPBEFORESTART = true
 
 gui.Open = false
 gui.ShowUI = false
@@ -582,12 +583,63 @@ function gui.ChaosGrindGUI()
                     end
                     if ImGui.CollapsingHeader("Kill Zone") then
                         ImGui.Indent();
+
+                        -- ComboBox for Presets
+                        ImGui.Text("Presets")
+                        ImGui.SameLine()
+                        if not gui.SelectedPreset then gui.SelectedPreset = '' end
+                        if not gui.PresetIndex then gui.PresetIndex = 0 end
+
+                        local presetNames = {}
+                        local presetIndex = 0
+                        local selectedIndex = gui.PresetIndex or 0
+
+                        for name, _ in pairs(ChaosGrind.GrindZone) do
+                            table.insert(presetNames, name)
+                        end
+
+                        table.sort(presetNames) -- optional, sort alphabetically
+
+                        if ImGui.BeginCombo("##PresetCombo", presetNames[selectedIndex + 1] or "Select Preset") then
+                            for i, name in ipairs(presetNames) do
+                                local isSelected = (i - 1) == selectedIndex
+                                if ImGui.Selectable(name, isSelected) then
+                                    selectedIndex = i - 1
+                                    gui.PresetIndex = selectedIndex
+                                    gui.SelectedPreset = name
+
+                                    -- Set values from the selected preset
+                                    local preset = ChaosGrind.GrindZone[name]
+                                    if preset then
+                                        ChaosGrind.Zone = name
+                                        ChaosGrind.Expansion = preset.Expansion or ''
+                                        ChaosGrind.GrindZoneID = preset.ID or 0
+                                        ChaosGrind.respawnX = math.floor(preset.X or 0)
+                                        ChaosGrind.respawnY = math.floor(preset.Y or 0)
+                                        ChaosGrind.respawnZ = math.floor(preset.Z or 0)
+                                        ChaosGrind.ignoreTarget = preset.ignoreTarget or ''
+
+                                        -- Save and update camp info
+                                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                                        ChaosGrind.CheckCampInfo()
+                                    end
+                                end
+                                if isSelected then
+                                    ImGui.SetItemDefaultFocus()
+                                end
+                            end
+                            ImGui.EndCombo()
+                        end
+
+                        ImGui.Separator()
+
                         ChaosGrind.Zone = ImGui.InputText('Zone Name', ChaosGrind.Zone)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The short name of the Static Hunt Zone.')
                         if gui.STATICZONENAME ~= ChaosGrind.Zone then
                             gui.STATICZONENAME = ChaosGrind.Zone
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
 
@@ -600,12 +652,13 @@ function gui.ChaosGrindGUI()
                         end
                         ImGui.Separator();
 
-                        ChaosGrind.GrindZone = ImGui.InputInt('Zone ID', ChaosGrind.GrindZone)
+                        ChaosGrind.GrindZoneID = ImGui.InputInt('Zone ID', ChaosGrind.GrindZoneID)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The ID of the static Hunting Zone.')
-                        if gui.STATICZONEID ~= ChaosGrind.GrindZone then
-                            gui.STATICZONEID = ChaosGrind.GrindZone
+                        if gui.STATICZONEID ~= ChaosGrind.GrindZoneID then
+                            gui.STATICZONEID = ChaosGrind.GrindZoneID
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
 
@@ -621,6 +674,7 @@ function gui.ChaosGrindGUI()
                         if gui.STATICX ~= ChaosGrind.respawnX then
                             gui.STATICX = ChaosGrind.respawnX
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.CheckCampInfo()
                         end
                         ImGui.SameLine();
 
@@ -635,6 +689,7 @@ function gui.ChaosGrindGUI()
                         if gui.STATICY ~= ChaosGrind.respawnY then
                             gui.STATICY = ChaosGrind.respawnY
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.CheckCampInfo()
                         end
                         ImGui.SameLine();
 
@@ -649,6 +704,7 @@ function gui.ChaosGrindGUI()
                         if gui.STATICZ ~= ChaosGrind.respawnZ then
                             gui.STATICZ = ChaosGrind.respawnZ
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
 
@@ -657,6 +713,15 @@ function gui.ChaosGrindGUI()
                         ImGui.HelpMarker('The distance from target we will auto warp to it.')
                         if gui.WARPTOTARGETDISTANCE ~= ChaosGrind.WarpToTargetDistance then
                             gui.WARPTOTARGETDISTANCE = ChaosGrind.WarpToTargetDistance
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        end
+                        ImGui.Separator();
+
+                        ChaosGrind.WarpBeforeStart = ImGui.Checkbox('Warp Before Start', ChaosGrind.WarpBeforeStart)
+                        ImGui.SameLine()
+                        ImGui.HelpMarker('Should the bot warp to the X/Y/Z before starting?')
+                        if gui.WARPBEFORESTART ~= ChaosGrind.WarpBeforeStart then
+                            gui.WARPBEFORESTART = ChaosGrind.WarpBeforeStart
                             ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
                         end
                         ImGui.Separator();
