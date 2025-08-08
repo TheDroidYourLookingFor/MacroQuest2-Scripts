@@ -580,7 +580,7 @@ function ChaosGrind.MainLoop()
                     if mq.TLO.Lua.Script(ChaosGrind.HuntLuaScript).Status() ~= 'RUNNING' then
                         if ChaosGrind.WarpBeforeStart then
                             mq.cmdf('/squelch /warp loc %s %s %s', ChaosGrind.respawnY, ChaosGrind.respawnX, ChaosGrind.respawnZ)
-                            mq.delay(CampFarmer.Delays.Warp)
+                            mq.delay(ChaosGrind.Delays.Warp)
                         end
                         mq.cmdf('/lua run %s', ChaosGrind.HuntLuaScript)
                         mq.delay(1250)
