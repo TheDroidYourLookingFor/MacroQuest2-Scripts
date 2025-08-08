@@ -190,8 +190,8 @@ function gui.ChaosGrindGUI()
                 local windowWidth = ImGui.GetWindowContentRegionWidth()
                 local buttonWidth, buttonHeight = 140, 30
                 local buttonWidthSmall = 90
-                -- Get the elapsed time since ChaosGrind.StartTime
-                local formattedElapsedTime = ChaosGrind.getElapsedTime(ChaosGrind.StartTime)
+                -- Get the elapsed time since ChaosGrind.Settings.StartTime
+                local formattedElapsedTime = ChaosGrind.getElapsedTime(ChaosGrind.Settings.StartTime)
                 ImGui.SameLine(250)
                 ImGui.Text('Run Time:')
                 ImGui.SameLine()
@@ -201,20 +201,20 @@ function gui.ChaosGrindGUI()
                 ImGui.Text('Idle Time:')
                 ImGui.SameLine()
                 ImGui.Text(string.format('%02d:%02d:%02d',
-                    math.floor((os.time() - ChaosGrind.idleTime) / 3600),
-                    math.floor(((os.time() - ChaosGrind.idleTime) % 3600) / 60),
-                    (os.time() - ChaosGrind.idleTime) % 60))
+                    math.floor((os.time() - ChaosGrind.Settings.idleTime) / 3600),
+                    math.floor(((os.time() - ChaosGrind.Settings.idleTime) % 3600) / 60),
+                    (os.time() - ChaosGrind.Settings.idleTime) % 60))
 
                 ImGui.Separator();
                 local buttonImVec2 = ImVec2(buttonWidth, buttonHeight)
                 ImGui.SetCursorPosX(15)
-                if ChaosGrind.doPause then
+                if ChaosGrind.Settings.doPause then
                     if ImGui.Button('Resume', buttonImVec2) then
-                        ChaosGrind.doPause = false
+                        ChaosGrind.Settings.doPause = false
                     end
                 else
                     if ImGui.Button('Pause', buttonImVec2) then
-                        ChaosGrind.doPause = true
+                        ChaosGrind.Settings.doPause = true
                     end
                 end
                 ImGui.SameLine()
@@ -233,7 +233,7 @@ function gui.ChaosGrindGUI()
                 local rightStartX = windowWidth - buttonWidth
                 ImGui.SetCursorPosX(rightStartX)
                 if ImGui.Button('Quit', ImVec2(buttonWidth, buttonHeight)) then
-                    ChaosGrind.terminate = true
+                    ChaosGrind.Settings.terminate = true
                     mq.cmdf('/lua stop %s', 'ChaosGrind')
                 end
 
@@ -250,7 +250,7 @@ function gui.ChaosGrindGUI()
                     ImGui.Separator();
 
                     ImGui.Text("COMMANDS:");
-                    ImGui.BulletText('/' .. ChaosGrind.command_ShortName .. ' quit');
+                    ImGui.BulletText('/' .. ChaosGrind.Settings.command_ShortName .. ' quit');
                     ImGui.Separator();
 
                     ImGui.Text("CREDIT:");
@@ -259,15 +259,15 @@ function gui.ChaosGrindGUI()
                 end
                 if ImGui.CollapsingHeader('Gains') then
                     ImGui.Indent();
-                    ChaosGrind.DoStatTrack = ImGui.Checkbox('Enable Stat Track', ChaosGrind.DoStatTrack)
+                    ChaosGrind.Settings.DoStatTrack = ImGui.Checkbox('Enable Stat Track', ChaosGrind.Settings.DoStatTrack)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Track our gains?')
-                    if gui.DOSTATTRACK ~= ChaosGrind.DoStatTrack then
-                        gui.DOSTATTRACK = ChaosGrind.DoStatTrack
-                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                    if gui.DOSTATTRACK ~= ChaosGrind.Settings.DoStatTrack then
+                        gui.DOSTATTRACK = ChaosGrind.Settings.DoStatTrack
+                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                     end
                     ImGui.Separator();
-                    if ChaosGrind.DoStatTrack then
+                    if ChaosGrind.Settings.DoStatTrack then
                         local totalKC, kcPerHour = ChaosGrind.CurrencyStatus()
                         local totalAA, aaPerHour = ChaosGrind.AAStatus()
                         local formattedTotalAA = ChaosGrind.formatNumberWithCommas(totalAA)
@@ -385,7 +385,7 @@ function gui.ChaosGrindGUI()
                         ImGui.Separator();
                         if ImGui.CollapsingHeader('Mob Info') then
                             ImGui.Indent()
-                            for mobName, killCount in pairs(ChaosGrind.SlainMobTypes) do
+                            for mobName, killCount in pairs(ChaosGrind.Settings.SlainMobTypes) do
                                 local mobKillsPerHour = ChaosGrind.KillStatus(killCount)
 
                                 ImGui.Text(mobName .. ':')
@@ -401,7 +401,7 @@ function gui.ChaosGrindGUI()
                         end
                         if ImGui.CollapsingHeader('Chaotic Mob Info') then
                             ImGui.Indent()
-                            for mobName, killCount in pairs(ChaosGrind.SlainChaoticTypes) do
+                            for mobName, killCount in pairs(ChaosGrind.Settings.SlainChaoticTypes) do
                                 local mobKillsPerHour = ChaosGrind.KillStatus(killCount)
 
                                 ImGui.Text(mobName .. ':')
@@ -424,31 +424,31 @@ function gui.ChaosGrindGUI()
                         ImGui.Indent();
                         if ImGui.CollapsingHeader("Zone Pull") then
                             ImGui.Indent();
-                            ChaosGrind.aggroItem = ImGui.InputText('Aggro Item', ChaosGrind.aggroItem)
+                            ChaosGrind.Settings.aggroItem = ImGui.InputText('Aggro Item', ChaosGrind.Settings.aggroItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your zone wide aggro item.')
-                            if gui.AGGROITEM ~= ChaosGrind.aggroItem then
-                                gui.AGGROITEM = ChaosGrind.aggroItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.AGGROITEM ~= ChaosGrind.Settings.aggroItem then
+                                gui.AGGROITEM = ChaosGrind.Settings.aggroItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
 
-                            ChaosGrind.respawnItem = ImGui.InputText('Respawn Item', ChaosGrind.respawnItem)
+                            ChaosGrind.Settings.respawnItem = ImGui.InputText('Respawn Item', ChaosGrind.Settings.respawnItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your zone respawn item.')
-                            if gui.RESPAWNITEM ~= ChaosGrind.respawnItem then
-                                gui.RESPAWNITEM = ChaosGrind.respawnItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.RESPAWNITEM ~= ChaosGrind.Settings.respawnItem then
+                                gui.RESPAWNITEM = ChaosGrind.Settings.respawnItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
 
-                            ChaosGrind.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit",
-                                ChaosGrind.MinMobsInZone)
+                            ChaosGrind.Settings.MinMobsInZone = ImGui.InputInt("Respawn Mobs Limit",
+                                ChaosGrind.Settings.MinMobsInZone)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The amount of mobs allowed before we respawn the zone.')
-                            if gui.MINMOBSINZONE ~= ChaosGrind.MinMobsInZone then
-                                gui.MINMOBSINZONE = ChaosGrind.MinMobsInZone
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.MINMOBSINZONE ~= ChaosGrind.Settings.MinMobsInZone then
+                                gui.MINMOBSINZONE = ChaosGrind.Settings.MinMobsInZone
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
                             ImGui.Unindent();
@@ -457,36 +457,36 @@ function gui.ChaosGrindGUI()
                         if ImGui.CollapsingHeader("Group Heal Item##collapsingheader") then
                             ImGui.Indent();
 
-                            ChaosGrind.DoSelfHeals = ImGui.Checkbox('Enable Self Heals', ChaosGrind.DoSelfHeals)
+                            ChaosGrind.Settings.DoSelfHeals = ImGui.Checkbox('Enable Self Heals', ChaosGrind.Settings.DoSelfHeals)
                             ImGui.SameLine()
                             ImGui.HelpMarker('Enables the use of the group heal item to heal self.')
-                            if gui.DOSELFHEALS ~= ChaosGrind.DoSelfHeals then
-                                gui.DOSELFHEALS = ChaosGrind.DoSelfHeals
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.DOSELFHEALS ~= ChaosGrind.Settings.DoSelfHeals then
+                                gui.DOSELFHEALS = ChaosGrind.Settings.DoSelfHeals
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.DoGroupHeals = ImGui.Checkbox('Enable Group Heals', ChaosGrind.DoGroupHeals)
+                            ChaosGrind.Settings.DoGroupHeals = ImGui.Checkbox('Enable Group Heals', ChaosGrind.Settings.DoGroupHeals)
                             ImGui.SameLine()
                             ImGui.HelpMarker('Enables the use of the group heal item.')
-                            if gui.DOGROUPHEALS ~= ChaosGrind.DoGroupHeals then
-                                gui.DOGROUPHEALS = ChaosGrind.DoGroupHeals
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.DOGROUPHEALS ~= ChaosGrind.Settings.DoGroupHeals then
+                                gui.DOGROUPHEALS = ChaosGrind.Settings.DoGroupHeals
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.GroupHealItem = ImGui.InputText('Group Heal Item', ChaosGrind.GroupHealItem)
+                            ChaosGrind.Settings.GroupHealItem = ImGui.InputText('Group Heal Item', ChaosGrind.Settings.GroupHealItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your group heal item.')
-                            if gui.GROUPHEALITEM ~= ChaosGrind.GroupHealItem then
-                                gui.GROUPHEALITEM = ChaosGrind.GroupHealItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.GROUPHEALITEM ~= ChaosGrind.Settings.GroupHealItem then
+                                gui.GROUPHEALITEM = ChaosGrind.Settings.GroupHealItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.GroupHealAt = ImGui.InputInt("Group Heal At", ChaosGrind.GroupHealAt)
+                            ChaosGrind.Settings.GroupHealAt = ImGui.InputInt("Group Heal At", ChaosGrind.Settings.GroupHealAt)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The percent of health to use group heal item at.')
-                            if gui.GROUPHEALAT ~= ChaosGrind.GroupHealAt then
-                                gui.GROUPHEALAT = ChaosGrind.GroupHealAt
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.GROUPHEALAT ~= ChaosGrind.Settings.GroupHealAt then
+                                gui.GROUPHEALAT = ChaosGrind.Settings.GroupHealAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
                             ImGui.Unindent();
@@ -494,28 +494,28 @@ function gui.ChaosGrindGUI()
 
                         if ImGui.CollapsingHeader("PBAoE Item##collapsingheader") then
                             ImGui.Indent();
-                            ChaosGrind.UsePBAoEItem = ImGui.Checkbox('Enable PBAoE Item', ChaosGrind.UsePBAoEItem)
+                            ChaosGrind.Settings.UsePBAoEItem = ImGui.Checkbox('Enable PBAoE Item', ChaosGrind.Settings.UsePBAoEItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('Enables the use of the PBAoE item.')
-                            if gui.USEPBAOEITEM ~= ChaosGrind.UsePBAoEItem then
-                                gui.USEPBAOEITEM = ChaosGrind.UsePBAoEItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.USEPBAOEITEM ~= ChaosGrind.Settings.UsePBAoEItem then
+                                gui.USEPBAOEITEM = ChaosGrind.Settings.UsePBAoEItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.PBAoEItem = ImGui.InputText('PBAoE Item', ChaosGrind.PBAoEItem)
+                            ChaosGrind.Settings.PBAoEItem = ImGui.InputText('PBAoE Item', ChaosGrind.Settings.PBAoEItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your PBAoE item.')
-                            if gui.PBAOEITEM ~= ChaosGrind.PBAoEItem then
-                                gui.PBAOEITEM = ChaosGrind.PBAoEItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.PBAOEITEM ~= ChaosGrind.Settings.PBAoEItem then
+                                gui.PBAOEITEM = ChaosGrind.Settings.PBAoEItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.PBAoEAt = ImGui.InputInt("PBAoE At", ChaosGrind.PBAoEAt)
+                            ChaosGrind.Settings.PBAoEAt = ImGui.InputInt("PBAoE At", ChaosGrind.Settings.PBAoEAt)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The percent of health to use PBAoE item at.')
-                            if gui.PBAOEAT ~= ChaosGrind.PBAoEAt then
-                                gui.PBAOEAT = ChaosGrind.PBAoEAt
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.PBAOEAT ~= ChaosGrind.Settings.PBAoEAt then
+                                gui.PBAOEAT = ChaosGrind.Settings.PBAoEAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
                             ImGui.Unindent();
@@ -523,28 +523,28 @@ function gui.ChaosGrindGUI()
 
                         if ImGui.CollapsingHeader("Lifetap Item##collapsingheader") then
                             ImGui.Indent();
-                            ChaosGrind.UseLifetapItem = ImGui.Checkbox('Enable Lifetap Item', ChaosGrind.UseLifetapItem)
+                            ChaosGrind.Settings.UseLifetapItem = ImGui.Checkbox('Enable Lifetap Item', ChaosGrind.Settings.UseLifetapItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('Enables the use of the lifetap item.')
-                            if gui.DOGROUPHEALS ~= ChaosGrind.UseLifetapItem then
-                                gui.DOGROUPHEALS = ChaosGrind.UseLifetapItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.DOGROUPHEALS ~= ChaosGrind.Settings.UseLifetapItem then
+                                gui.DOGROUPHEALS = ChaosGrind.Settings.UseLifetapItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.LifetapItem = ImGui.InputText('Lifetap Item', ChaosGrind.LifetapItem)
+                            ChaosGrind.Settings.LifetapItem = ImGui.InputText('Lifetap Item', ChaosGrind.Settings.LifetapItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your lifetap item.')
-                            if gui.GROUPHEALITEM ~= ChaosGrind.LifetapItem then
-                                gui.GROUPHEALITEM = ChaosGrind.LifetapItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.GROUPHEALITEM ~= ChaosGrind.Settings.LifetapItem then
+                                gui.GROUPHEALITEM = ChaosGrind.Settings.LifetapItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.LifetapAt = ImGui.InputInt("Lifetap At", ChaosGrind.LifetapAt)
+                            ChaosGrind.Settings.LifetapAt = ImGui.InputInt("Lifetap At", ChaosGrind.Settings.LifetapAt)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The percent of health to use lifetap item at.')
-                            if gui.GROUPHEALAT ~= ChaosGrind.LifetapAt then
-                                gui.GROUPHEALAT = ChaosGrind.LifetapAt
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.GROUPHEALAT ~= ChaosGrind.Settings.LifetapAt then
+                                gui.GROUPHEALAT = ChaosGrind.Settings.LifetapAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
                             ImGui.Unindent();
@@ -552,28 +552,28 @@ function gui.ChaosGrindGUI()
 
                         if ImGui.CollapsingHeader("Nuke Item##collapsingheader") then
                             ImGui.Indent();
-                            ChaosGrind.UseNukeItem = ImGui.Checkbox('Enable Nuke Item', ChaosGrind.UseNukeItem)
+                            ChaosGrind.Settings.UseNukeItem = ImGui.Checkbox('Enable Nuke Item', ChaosGrind.Settings.UseNukeItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('Enables the use of the Nuke item.')
-                            if gui.USENUKEITEM ~= ChaosGrind.UseNukeItem then
-                                gui.USENUKEITEM = ChaosGrind.UseNukeItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.USENUKEITEM ~= ChaosGrind.Settings.UseNukeItem then
+                                gui.USENUKEITEM = ChaosGrind.Settings.UseNukeItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.NukeItem = ImGui.InputText('Nuke Item', ChaosGrind.NukeItem)
+                            ChaosGrind.Settings.NukeItem = ImGui.InputText('Nuke Item', ChaosGrind.Settings.NukeItem)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The name of your Nuke item.')
-                            if gui.NUKEITEM ~= ChaosGrind.NukeItem then
-                                gui.NUKEITEM = ChaosGrind.NukeItem
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.NUKEITEM ~= ChaosGrind.Settings.NukeItem then
+                                gui.NUKEITEM = ChaosGrind.Settings.NukeItem
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
 
-                            ChaosGrind.NukeAt = ImGui.InputInt("Nuke At", ChaosGrind.NukeAt)
+                            ChaosGrind.Settings.NukeAt = ImGui.InputInt("Nuke At", ChaosGrind.Settings.NukeAt)
                             ImGui.SameLine()
                             ImGui.HelpMarker('The percent of health to use Nuke item at.')
-                            if gui.NUKEAT ~= ChaosGrind.NukeAt then
-                                gui.NUKEAT = ChaosGrind.NukeAt
-                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                            if gui.NUKEAT ~= ChaosGrind.Settings.NukeAt then
+                                gui.NUKEAT = ChaosGrind.Settings.NukeAt
+                                ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             end
                             ImGui.Separator();
                             ImGui.Unindent();
@@ -594,7 +594,7 @@ function gui.ChaosGrindGUI()
                         local presetIndex = 0
                         local selectedIndex = gui.PresetIndex or 0
 
-                        for name, _ in pairs(ChaosGrind.GrindZone) do
+                        for name, _ in pairs(ChaosGrind.Settings.GrindZone) do
                             table.insert(presetNames, name)
                         end
 
@@ -609,18 +609,18 @@ function gui.ChaosGrindGUI()
                                     gui.SelectedPreset = name
 
                                     -- Set values from the selected preset
-                                    local preset = ChaosGrind.GrindZone[name]
+                                    local preset = ChaosGrind.Settings.GrindZone[name]
                                     if preset then
-                                        ChaosGrind.Zone = name
-                                        ChaosGrind.Expansion = preset.Expansion or ''
-                                        ChaosGrind.GrindZoneID = preset.ID or 0
-                                        ChaosGrind.respawnX = math.floor(preset.X or 0)
-                                        ChaosGrind.respawnY = math.floor(preset.Y or 0)
-                                        ChaosGrind.respawnZ = math.floor(preset.Z or 0)
-                                        ChaosGrind.ignoreTarget = preset.ignoreTarget or ''
+                                        ChaosGrind.Settings.Zone = name
+                                        ChaosGrind.Settings.Expansion = preset.Expansion or ''
+                                        ChaosGrind.Settings.GrindZoneID = preset.ID or 0
+                                        ChaosGrind.Settings.respawnX = math.floor(preset.X or 0)
+                                        ChaosGrind.Settings.respawnY = math.floor(preset.Y or 0)
+                                        ChaosGrind.Settings.respawnZ = math.floor(preset.Z or 0)
+                                        ChaosGrind.Settings.ignoreTarget = preset.ignoreTarget or ''
 
                                         -- Save and update camp info
-                                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                                         ChaosGrind.CheckCampInfo()
                                     end
                                 end
@@ -633,31 +633,31 @@ function gui.ChaosGrindGUI()
 
                         ImGui.Separator()
 
-                        ChaosGrind.Zone = ImGui.InputText('Zone Name', ChaosGrind.Zone)
+                        ChaosGrind.Settings.Zone = ImGui.InputText('Zone Name', ChaosGrind.Settings.Zone)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The short name of the Static Hunt Zone.')
-                        if gui.STATICZONENAME ~= ChaosGrind.Zone then
-                            gui.STATICZONENAME = ChaosGrind.Zone
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.STATICZONENAME ~= ChaosGrind.Settings.Zone then
+                            gui.STATICZONENAME = ChaosGrind.Settings.Zone
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
 
-                        ChaosGrind.Expansion = ImGui.InputText('Expansion Name', ChaosGrind.Expansion)
+                        ChaosGrind.Settings.Expansion = ImGui.InputText('Expansion Name', ChaosGrind.Settings.Expansion)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The expansion for the hunt Zone.')
-                        if gui.EXPANSION ~= ChaosGrind.Expansion then
-                            gui.EXPANSION = ChaosGrind.Expansion
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.EXPANSION ~= ChaosGrind.Settings.Expansion then
+                            gui.EXPANSION = ChaosGrind.Settings.Expansion
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                         end
                         ImGui.Separator();
 
-                        ChaosGrind.GrindZoneID = ImGui.InputInt('Zone ID', ChaosGrind.GrindZoneID)
+                        ChaosGrind.Settings.GrindZoneID = ImGui.InputInt('Zone ID', ChaosGrind.Settings.GrindZoneID)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The ID of the static Hunting Zone.')
-                        if gui.STATICZONEID ~= ChaosGrind.GrindZoneID then
-                            gui.STATICZONEID = ChaosGrind.GrindZoneID
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.STATICZONEID ~= ChaosGrind.Settings.GrindZoneID then
+                            gui.STATICZONEID = ChaosGrind.Settings.GrindZoneID
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
@@ -668,12 +668,12 @@ function gui.ChaosGrindGUI()
                         ImGui.SameLine()
                         ImGui.SetNextItemWidth(120)
                         ImGui.SetCursorPosY(start_y_Options)
-                        ChaosGrind.respawnX = ImGui.InputInt('##Zone X', ChaosGrind.respawnX)
+                        ChaosGrind.Settings.respawnX = ImGui.InputInt('##Zone X', ChaosGrind.Settings.respawnX)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The X loc in the Hunting Zone to zone pull.')
-                        if gui.STATICX ~= ChaosGrind.respawnX then
-                            gui.STATICX = ChaosGrind.respawnX
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.STATICX ~= ChaosGrind.Settings.respawnX then
+                            gui.STATICX = ChaosGrind.Settings.respawnX
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             ChaosGrind.CheckCampInfo()
                         end
                         ImGui.SameLine();
@@ -683,12 +683,12 @@ function gui.ChaosGrindGUI()
                         ImGui.SameLine()
                         ImGui.SetNextItemWidth(120)
                         ImGui.SetCursorPosY(start_y_Options)
-                        ChaosGrind.respawnY = ImGui.InputInt('##Zone Y', ChaosGrind.respawnY)
+                        ChaosGrind.Settings.respawnY = ImGui.InputInt('##Zone Y', ChaosGrind.Settings.respawnY)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The Y loc in the Hunting Zone to zone pull.')
-                        if gui.STATICY ~= ChaosGrind.respawnY then
-                            gui.STATICY = ChaosGrind.respawnY
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.STATICY ~= ChaosGrind.Settings.respawnY then
+                            gui.STATICY = ChaosGrind.Settings.respawnY
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             ChaosGrind.CheckCampInfo()
                         end
                         ImGui.SameLine();
@@ -698,41 +698,41 @@ function gui.ChaosGrindGUI()
                         ImGui.SameLine()
                         ImGui.SetNextItemWidth(120)
                         ImGui.SetCursorPosY(start_y_Options)
-                        ChaosGrind.respawnZ = ImGui.InputInt('##Zone Z', ChaosGrind.respawnZ)
+                        ChaosGrind.Settings.respawnZ = ImGui.InputInt('##Zone Z', ChaosGrind.Settings.respawnZ)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The Z loc in the Hunting Zone to zone pull.')
-                        if gui.STATICZ ~= ChaosGrind.respawnZ then
-                            gui.STATICZ = ChaosGrind.respawnZ
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.STATICZ ~= ChaosGrind.Settings.respawnZ then
+                            gui.STATICZ = ChaosGrind.Settings.respawnZ
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                             ChaosGrind.CheckCampInfo()
                         end
                         ImGui.Separator();
 
-                        ChaosGrind.WarpToTargetDistance = ImGui.InputInt('Warp Distance', ChaosGrind.WarpToTargetDistance)
+                        ChaosGrind.Settings.WarpToTargetDistance = ImGui.InputInt('Warp Distance', ChaosGrind.Settings.WarpToTargetDistance)
                         ImGui.SameLine()
                         ImGui.HelpMarker('The distance from target we will auto warp to it.')
-                        if gui.WARPTOTARGETDISTANCE ~= ChaosGrind.WarpToTargetDistance then
-                            gui.WARPTOTARGETDISTANCE = ChaosGrind.WarpToTargetDistance
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.WARPTOTARGETDISTANCE ~= ChaosGrind.Settings.WarpToTargetDistance then
+                            gui.WARPTOTARGETDISTANCE = ChaosGrind.Settings.WarpToTargetDistance
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                         end
                         ImGui.Separator();
 
-                        ChaosGrind.WarpBeforeStart = ImGui.Checkbox('Warp Before Start', ChaosGrind.WarpBeforeStart)
+                        ChaosGrind.Settings.WarpBeforeStart = ImGui.Checkbox('Warp Before Start', ChaosGrind.Settings.WarpBeforeStart)
                         ImGui.SameLine()
                         ImGui.HelpMarker('Should the bot warp to the X/Y/Z before starting?')
-                        if gui.WARPBEFORESTART ~= ChaosGrind.WarpBeforeStart then
-                            gui.WARPBEFORESTART = ChaosGrind.WarpBeforeStart
-                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                        if gui.WARPBEFORESTART ~= ChaosGrind.Settings.WarpBeforeStart then
+                            gui.WARPBEFORESTART = ChaosGrind.Settings.WarpBeforeStart
+                            ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                         end
                         ImGui.Separator();
                         ImGui.Unindent();
                     end
-                    ChaosGrind.debug = ImGui.Checkbox('Enable Debug Messages', ChaosGrind.debug)
+                    ChaosGrind.Settings.debug = ImGui.Checkbox('Enable Debug Messages', ChaosGrind.Settings.debug)
                     ImGui.SameLine()
                     ImGui.HelpMarker('Shows more information in the MQ console when enabled.')
-                    if gui.DEBUG ~= ChaosGrind.debug then
-                        gui.DEBUG = ChaosGrind.debug
-                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile, ChaosGrind.Settings)
+                    if gui.DEBUG ~= ChaosGrind.Settings.debug then
+                        gui.DEBUG = ChaosGrind.Settings.debug
+                        ChaosGrind.Storage.SaveSettings(ChaosGrind.settingsFile,  ChaosGrind.Settings)
                     end
                     ImGui.Separator();
                     ImGui.Unindent();
@@ -767,20 +767,20 @@ function gui.ChaosGrindGUI()
             end
             ImGui.SameLine()
             if ImGui.Button('X', buttonImVec) then
-                ChaosGrind.terminate = true
+                ChaosGrind.Settings.terminate = true
                 mq.cmdf('/lua stop %s', 'ChaosGrind')
             end
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2(0, 0)) -- No padding inside button
             local buttonColor
-            if ChaosGrind.doPause then
+            if ChaosGrind.Settings.doPause then
                 buttonColor = ImVec4(1, 0, 0, 1)
                 if ImGui.ImageButton('Resume', dlFullImg:GetTextureID(), ImVec2(44, 44), ImVec2(0.0, 0.0), ImVec2(0.62, 0.62), ImVec4(0, 0, 0, 0), buttonColor) then
-                    ChaosGrind.doPause = false
+                    ChaosGrind.Settings.doPause = false
                 end
             else
                 buttonColor = ImVec4(0, 1, 0, 1)
                 if ImGui.ImageButton('Pause', dlFullImg:GetTextureID(), ImVec2(44, 44), ImVec2(0.0, 0.0), ImVec2(0.62, 0.62), ImVec4(0, 0, 0, 0), buttonColor) then
-                    ChaosGrind.doPause = true
+                    ChaosGrind.Settings.doPause = true
                 end
             end
             ImGui.PopStyleVar()
