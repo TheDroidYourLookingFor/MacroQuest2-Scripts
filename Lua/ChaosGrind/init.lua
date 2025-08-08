@@ -320,28 +320,28 @@ function ChaosGrind.HandleDisconnect()
     if ChaosGrind.Settings.NewDisconnectHandler then
         if mq.TLO.EverQuest.GameState() ~= 'INGAME' and not mq.TLO.AutoLogin.Active() then
             mq.TLO.AutoLogin.Profile.ReRun()
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
         end
     else
         if mq.TLO.EverQuest.GameState() == 'PRECHARSELECT' then
             mq.cmd("/notify serverselect SERVERSELECT_PlayLastServerButton leftmouseup")
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'CHARSELECT'
             end)
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
         end
         if mq.TLO.EverQuest.GameState() == 'CHARSELECT' then
             mq.cmd("/notify CharacterListWnd CLW_Play_Button leftmouseup")
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
             mq.delay(25000, function()
                 return mq.TLO.EverQuest.GameState() == 'INGAME'
             end)
-            mq.delay(ChaosGrind.Settings.Delays.Two)
+            mq.delay(ChaosGrind.Delays.Two)
         end
     end
 end
@@ -359,13 +359,13 @@ function ChaosGrind.MassAggro()
                 end
                 print('Attempting to respawn the zone!')
                 mq.cmdf('/warp loc %s %s %s', ChaosGrind.Settings.respawnY, ChaosGrind.Settings.respawnX, ChaosGrind.Settings.respawnZ)
-                mq.delay(ChaosGrind.Settings.Delays.Repop)
+                mq.delay(ChaosGrind.Delays.Repop)
                 mq.cmdf('/useitem %s', ChaosGrind.Settings.respawnItem)
-                mq.delay(ChaosGrind.Settings.Delays.Repop)
+                mq.delay(ChaosGrind.Delays.Repop)
                 print('Attempting to aggro the zone!')
-                mq.delay(ChaosGrind.Settings.Delays.Two)
+                mq.delay(ChaosGrind.Delays.Two)
                 mq.cmdf('/useitem %s', ChaosGrind.Settings.aggroItem)
-                mq.delay(ChaosGrind.Settings.Delays.Aggro)
+                mq.delay(ChaosGrind.Delays.Aggro)
                 ChaosGrind.Settings.lastRespawnUse = os.time()
             end
         end
@@ -601,7 +601,7 @@ function ChaosGrind.MainLoop()
                     if mq.TLO.Lua.Script(ChaosGrind.Settings.HuntLuaScript).Status() ~= 'RUNNING' then
                         if ChaosGrind.Settings.WarpBeforeStart then
                             mq.cmdf('/squelch /warp loc %s %s %s', ChaosGrind.Settings.respawnY, ChaosGrind.Settings.respawnX, ChaosGrind.Settings.respawnZ)
-                            mq.delay(ChaosGrind.Settings.Delays.Warp)
+                            mq.delay(ChaosGrind.Delays.Warp)
                         end
                         mq.cmdf('/lua run %s', ChaosGrind.Settings.HuntLuaScript)
                         mq.delay(1250)
