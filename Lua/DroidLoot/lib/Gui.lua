@@ -131,6 +131,16 @@ gui.LOOTBYHPMIN = DroidLoot.LootUtils.LootByMinHP
 gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
 gui.STACKPLATVALUE = DroidLoot.LootUtils.StackPlatValue
 
+gui.LOOTACTIONANNOUNCE = DroidLoot.LootUtils.shouldLootActions['Announce']
+gui.LOOTACTIONBANK = DroidLoot.LootUtils.shouldLootActions['Bank']
+gui.LOOTACTIONCASH = DroidLoot.LootUtils.shouldLootActions['Cash']
+gui.LOOTACTIONDESTROY = DroidLoot.LootUtils.shouldLootActions['Destroy']
+gui.LOOTACTIONIGNORE = DroidLoot.LootUtils.shouldLootActions['Ignore']
+gui.LOOTACTIONKEEP = DroidLoot.LootUtils.shouldLootActions['Keep']
+gui.LOOTACTIONQUEST = DroidLoot.LootUtils.shouldLootActions['Quest']
+gui.LOOTACTIONSELL = DroidLoot.LootUtils.shouldLootActions['Sell']
+gui.LOOTACTIONWILDCARD = DroidLoot.LootUtils.shouldLootActions['Wildcard']
+
 gui.RETURNHOMEAFTERLOOT = DroidLoot.LootUtils.returnHomeAfterLoot
 gui.CAMPCHECK = DroidLoot.LootUtils.camp_Check
 gui.ZONECHECK = DroidLoot.LootUtils.zone_Check
@@ -1433,7 +1443,101 @@ function gui.DroidLootGUI()
                                     gui.LOOTBYHPMINNODROP = DroidLoot.LootUtils.LootByMinHPNoDrop
                                     DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.Settings.LootFile, 'Settings', 'LootByMinHPNoDrop', DroidLoot.LootUtils.LootByMinHPNoDrop)
                                 end
-                                ImGui.Columns(1)
+                                ImGui.Columns(1);
+                                ImGui.Separator();
+
+                                if ImGui.CollapsingHeader("Loot Actions") then
+                                    ImGui.Indent();
+                                    ImGui.Columns(2, 'second')
+                                    start_y = ImGui.GetCursorPosY()
+
+                                    DroidLoot.LootUtils.shouldLootActions['Announce'] = ImGui.Checkbox('Enable Announce Looting', DroidLoot.LootUtils.shouldLootActions['Announce'])
+                                    if gui.LOOTACTIONANNOUNCE ~= DroidLoot.LootUtils.shouldLootActions['Announce'] then
+                                        gui.LOOTACTIONANNOUNCE = DroidLoot.LootUtils.shouldLootActions['Announce']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Announce'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Announce items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Bank'] = ImGui.Checkbox('Enable Bank Looting', DroidLoot.LootUtils.shouldLootActions['Bank'])
+                                    if gui.LOOTACTIONBANK ~= DroidLoot.LootUtils.shouldLootActions['Bank'] then
+                                        gui.LOOTACTIONBANK = DroidLoot.LootUtils.shouldLootActions['Bank']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Bank'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Bank items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Cash'] = ImGui.Checkbox('Enable Cash Looting', DroidLoot.LootUtils.shouldLootActions['Cash'])
+                                    if gui.LOOTACTIONCASH ~= DroidLoot.LootUtils.shouldLootActions['Cash'] then
+                                        gui.LOOTACTIONCASH = DroidLoot.LootUtils.shouldLootActions['Cash']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Cash'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Cash items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Destroy'] = ImGui.Checkbox('Enable Destroy Looting', DroidLoot.LootUtils.shouldLootActions['Destroy'])
+                                    if gui.LOOTACTIONDESTROY ~= DroidLoot.LootUtils.shouldLootActions['Destroy'] then
+                                        gui.LOOTACTIONDESTROY = DroidLoot.LootUtils.shouldLootActions['Destroy']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Destroy'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Destroy items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Ignore'] = ImGui.Checkbox('Enable Ignore Looting', DroidLoot.LootUtils.shouldLootActions['Ignore'])
+                                    if gui.LOOTACTIONIGNORE ~= DroidLoot.LootUtils.shouldLootActions['Ignore'] then
+                                        gui.LOOTACTIONIGNORE = DroidLoot.LootUtils.shouldLootActions['Ignore']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Ignore'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Ignore items.')
+                                    ImGui.Separator();
+
+                                    ImGui.NextColumn();
+                                    ImGui.SetCursorPosY(start_y);
+
+                                    DroidLoot.LootUtils.shouldLootActions['Keep'] = ImGui.Checkbox('Enable Keep Looting', DroidLoot.LootUtils.shouldLootActions['Keep'])
+                                    if gui.LOOTACTIONKEEP ~= DroidLoot.LootUtils.shouldLootActions['Keep'] then
+                                        gui.LOOTACTIONKEEP = DroidLoot.LootUtils.shouldLootActions['Keep']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Keep'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Keep items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Quest'] = ImGui.Checkbox('Enable Quest Looting', DroidLoot.LootUtils.shouldLootActions['Quest'])
+                                    if gui.LOOTACTIONQUEST ~= DroidLoot.LootUtils.shouldLootActions['Quest'] then
+                                        gui.LOOTACTIONQUEST = DroidLoot.LootUtils.shouldLootActions['Quest']
+                                        DroidLoot.LootUtils.saveSetting(LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Quest'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Quest items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Sell'] = ImGui.Checkbox('Enable Sell Looting', DroidLoot.LootUtils.shouldLootActions['Sell'])
+                                    if gui.LOOTACTIONSELL ~= DroidLoot.LootUtils.shouldLootActions['Sell'] then
+                                        gui.LOOTACTIONSELL = DroidLoot.LootUtils.shouldLootActions['Sell']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Sell'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Sell items.')
+                                    ImGui.Separator();
+
+                                    DroidLoot.LootUtils.shouldLootActions['Wildcard'] = ImGui.Checkbox('Enable Wildcard Looting', DroidLoot.LootUtils.shouldLootActions['Wildcard'])
+                                    if gui.LOOTACTIONWILDCARD ~= DroidLoot.LootUtils.shouldLootActions['Wildcard'] then
+                                        gui.LOOTACTIONWILDCARD = DroidLoot.LootUtils.shouldLootActions['Wildcard']
+                                        DroidLoot.LootUtils.saveSetting(DroidLoot.LootUtils.LootFile, 'Settings', 'LootActions', DroidLoot.LootUtils.shouldLootActions['Wildcard'])
+                                    end
+                                    ImGui.SameLine();
+                                    ImGui.HelpMarker('Loots Wildcard items.')
+
+                                    ImGui.Columns(1);
+                                    ImGui.Unindent();
+                                end
+
                                 ImGui.EndTabItem();
                             end
                             local stringsOptionsOpen = ImGui.BeginTabItem("Strings")
